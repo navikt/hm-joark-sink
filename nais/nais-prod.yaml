@@ -1,0 +1,37 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    zone: fss
+  labels:
+    app: hm-soknadsbehandling
+    team: teamdagpenger
+  name: hm-soknadsbehandling
+  namespace: teamdagpenger
+spec:
+  image: {{ image }}
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  port: 8080
+  prometheus:
+    enabled: true
+    path: /metrics
+  replicas:
+    max: 1
+    min: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  secureLogs:
+    enabled: true
+  vault:
+    enabled: true
+    paths:
+      - kvPath: "serviceuser/data/prod/srvhm-soknadsbehandling"
+        mountPath: "/var/run/secrets/nais.io/service_user"

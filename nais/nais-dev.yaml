@@ -1,0 +1,48 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app: hm-soknadsbehandling
+    team: teamdigihot
+  name: hm-soknadsbehandling
+  namespace: teamdigihot
+spec:
+  image: {{ image }}
+  team: teamdigihot
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  port: 8080
+  prometheus:
+    enabled: true
+    path: /metrics
+  replicas:
+    max: 1
+    min: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  secureLogs:
+    enabled: true
+  kafka:
+    pool: nav-dev
+  gcp:
+    sqlInstances:
+      - name: hm-soknadsbehandling-db-dev
+        type: POSTGRES_12
+        tier: db-custom-1-3840
+        diskType: SSD
+        highAvailability: true
+        diskSize: 10
+        diskAutoresize: true
+        autoBackupTime: "03:00"
+        databases:
+          - name: soknadsbehandling
+            envVarPrefix: DB
+        cascadingDelete: false
+

@@ -1,0 +1,34 @@
+apiVersion: nais.io/v1alpha1
+kind: Alert
+metadata:
+  name: hm-soknadsbehandling
+  namespace: teamdagpenger
+  labels:
+    team: teamdagpenger
+spec:
+  alerts:
+    - action: '`kubectl describe pod -l app={{ $labels.deployment }} -n {{ $labels.namespace
+      }}` for events og `kubectl get  pods -l app={{ $labels.deployment }} -n {{ $labels.namespace
+      }}` for å se feilende podder'
+      alert: applikasjon nede
+      description: '{{ $labels.deployment }} har utilgjengelige podder i {{ $labels.namespace
+      }}'
+      expr: kube_deployment_status_replicas_unavailable{deployment="hm-soknadsbehandling",job="kubernetes-service-endpoints"}
+        > 0
+      for: 2m
+    - action: Sjekk loggene til {{ $labels.log_app }} i {{ $labels.log_namespace }},
+        for å se hvorfor det er så mye feil
+      alert: høy feilrate i logger
+      expr: (100 * sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="hm-soknadsbehandling",log_level="Error"}[3m]))
+        / sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="hm-soknadsbehandling"}[3m])))
+        > 90
+      for: 3m
+    - action: Sjekk {{ $labels.app }} i {{ $labels.kubernetes_namespace }} sine selftest
+        for å se hva som er galt
+      alert: feil i selftest
+      expr: selftests_aggregate_result_status{app="hm-soknadsbehandling"} > 0
+      for: 1m
+  receivers:
+    slack:
+      channel: '#team-dagpenger-alert'
+      prependText: '<!here> | '
