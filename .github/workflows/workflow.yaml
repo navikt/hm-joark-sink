@@ -3,7 +3,7 @@ name: Build and deploy
 on: [push]
 
 env:
-  IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling:${{ github.sha }}"
+  IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"
 jobs:
   build:
     name: Build app, docker image and  push docker image

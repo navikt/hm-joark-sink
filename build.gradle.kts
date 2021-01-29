@@ -26,8 +26,8 @@ repositories {
 }
 
 application {
-    applicationName = "hm-soknadsbehandling"
-    mainClassName = "no.nav.hjelpemidler.soknad.mottak.ApplicationKt"
+    applicationName = "hm-joark-sink"
+    mainClassName = "no.nav.hjelpemidler.joark.ApplicationKt"
 }
 
 java {
@@ -42,26 +42,18 @@ dependencies {
     implementation("com.github.guepardoapps:kulid:1.1.2.0")
     implementation(RapidAndRivers)
     implementation(Ktor.serverNetty)
-    implementation(Database.Flyway)
-    implementation(Database.HikariCP)
     implementation(Database.Kotlinquery)
-    implementation(Database.Postgres)
     implementation(Fuel.fuel)
     implementation(Fuel.library("coroutines"))
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
     implementation(kotlin("stdlib-jdk8"))
-    implementation(Database.VaultJdbc) {
-        exclude(module = "slf4j-simple")
-        exclude(module = "slf4j-api")
-    }
 
     testImplementation(Junit5.api)
     testImplementation(KoTest.assertions)
     testImplementation(KoTest.runner)
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
-    testImplementation(TestContainers.postgresql)
     testImplementation(Wiremock.standalone)
     testRuntimeOnly(Junit5.engine)
 }

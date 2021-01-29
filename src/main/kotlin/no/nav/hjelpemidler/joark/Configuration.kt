@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.mottak
+package no.nav.hjelpemidler.joark
 
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
@@ -15,11 +15,6 @@ private val localProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8082",
         "application.profile" to "LOCAL",
-        "db.host" to "host.docker.internal",
-        "db.database" to "soknadsbehandling",
-        "db.password" to "postgres",
-        "db.port" to "5434",
-        "db.username" to "postgres",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "kafka.truststore.password" to "foo",
@@ -58,11 +53,10 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
 }
 
 internal object Configuration {
-    val database: Database = Database()
     val application: Application = Application()
     val rapidApplication: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
-        "RAPID_APP_NAME" to "hm-soknadsbehandling",
+        "RAPID_APP_NAME" to "hm-joark-sink",
         "KAFKA_BOOTSTRAP_SERVERS" to config()[Key("kafka.brokers", stringType)],
         "KAFKA_CONSUMER_GROUP_ID" to application.id,
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.topic", stringType)],
@@ -75,16 +69,8 @@ internal object Configuration {
         "HTTP_PORT" to config()[Key("application.httpPort", stringType)],
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
-    data class Database(
-        val host: String = config()[Key("db.host", stringType)],
-        val port: String = config()[Key("db.port", stringType)],
-        val name: String = config()[Key("db.database", stringType)],
-        val user: String? = config().getOrNull(Key("db.username", stringType)),
-        val password: String? = config().getOrNull(Key("db.password", stringType))
-    )
-
     data class Application(
-        val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-v1"),
+        val id: String = config().getOrElse(Key("", stringType), "hm-joark-sink-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val httpPort: Int = config()[Key("application.httpPort", intType)]
     )

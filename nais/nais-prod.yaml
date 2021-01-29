@@ -4,9 +4,9 @@ metadata:
   annotations:
     zone: fss
   labels:
-    app: hm-soknadsbehandling
+    app: hm-joark-sink
     team: teamdagpenger
-  name: hm-soknadsbehandling
+  name: hm-joark-sink
   namespace: teamdagpenger
 spec:
   image: {{ image }}
@@ -33,5 +33,5 @@ spec:
   vault:
     enabled: true
     paths:
-      - kvPath: "serviceuser/data/prod/srvhm-soknadsbehandling"
+      - kvPath: "serviceuser/data/prod/srvhm-joark-sink"
         mountPath: "/var/run/secrets/nais.io/service_user"

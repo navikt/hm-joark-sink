@@ -2,9 +2,9 @@ apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
   labels:
-    app: hm-soknadsbehandling
+    app: hm-joark-sink
     team: teamdigihot
-  name: hm-soknadsbehandling
+  name: hm-joark-sink
   namespace: teamdigihot
 spec:
   image: {{ image }}
@@ -31,18 +31,3 @@ spec:
     enabled: true
   kafka:
     pool: nav-dev
-  gcp:
-    sqlInstances:
-      - name: hm-soknadsbehandling-db-dev
-        type: POSTGRES_12
-        tier: db-custom-1-3840
-        diskType: SSD
-        highAvailability: true
-        diskSize: 10
-        diskAutoresize: true
-        autoBackupTime: "03:00"
-        databases:
-          - name: soknadsbehandling
-            envVarPrefix: DB
-        cascadingDelete: false
-
