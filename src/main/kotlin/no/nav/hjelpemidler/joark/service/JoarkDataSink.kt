@@ -18,13 +18,14 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.oppslag.PdfClient
 import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class JoarkDataSink(rapidsConnection: RapidsConnection) :
+internal class JoarkDataSink(rapidsConnection: RapidsConnection, private val pdfClient: PdfClient) :
     River.PacketListener {
 
     companion object {
@@ -57,33 +58,34 @@ internal class JoarkDataSink(rapidsConnection: RapidsConnection) :
                         soknadJson = soknadToJson(packet.soknad),
                         soknadId = UUID.fromString(packet.soknadId)
                     )
-
-                    logger.info { "Søknad mottatt: ${soknadData.soknadId}" }
-                    save(soknadData)
+                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
+                    val pdf = genererPdf(soknadData)
                     forward(soknadData, context)
                 }
             }
         }
     }
 
-    private fun save(soknadData: SoknadData) =
+    private suspend fun genererPdf(soknadData: SoknadData) =
         kotlin.runCatching {
+
+            pdfClient.genererPdf(soknadData.soknadJson)
         }.onSuccess {
-            logger.info("Søknad saved: ${soknadData.soknadId}")
-            // Prometheus.soknadCounter.inc()
+            logger.info("PDF generert: ${soknadData.soknadId}")
+            Prometheus.pdfGenerertCounter.inc()
         }.onFailure {
-            logger.error(it) { "Failed to save søknad: ${soknadData.soknadId}" }
+            logger.error(it) { "Feilet under gerering av PDF: ${soknadData.soknadId}" }
         }.getOrThrow()
 
     private fun CoroutineScope.forward(søknadData: SoknadData, context: RapidsConnection.MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.send(søknadData.fnrBruker, søknadData.toJson("aJoarkRef"))
-            Prometheus.soknadSendtCounter.inc()
+            Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
                 null -> {
-                    logger.info("Søknad sent: ${søknadData.soknadId}")
-                    sikkerlogg.info("Søknad sent med søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
+                    logger.info("Søknad arkivert i JOARK: ${søknadData.soknadId}")
+                    sikkerlogg.info("Søknad arkivert med søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {

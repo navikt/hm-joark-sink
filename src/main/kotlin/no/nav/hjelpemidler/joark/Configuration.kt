@@ -13,7 +13,7 @@ import java.net.UnknownHostException
 
 private val localProperties = ConfigurationMap(
     mapOf(
-        "application.httpPort" to "8082",
+        "application.httpPort" to "8083",
         "application.profile" to "LOCAL",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
@@ -22,7 +22,8 @@ private val localProperties = ConfigurationMap(
         "KAFKA_CREDSTORE_PASSWORD" to "foo",
         "KAFKA_KEYSTORE_PATH" to "bla/bla",
         "kafka.brokers" to "host.docker.internal:9092",
-        "IS_KAFKA_CLOUD" to "false"
+        "IS_KAFKA_CLOUD" to "false",
+        "pdf.baseurl" to "http://host.docker.internal:8088",
     )
 )
 private val devProperties = ConfigurationMap(
@@ -31,7 +32,8 @@ private val devProperties = ConfigurationMap(
         "application.profile" to "DEV",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
-        "IS_KAFKA_CLOUD" to "true"
+        "IS_KAFKA_CLOUD" to "true",
+        "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
     )
 )
 private val prodProperties = ConfigurationMap(
@@ -40,7 +42,8 @@ private val prodProperties = ConfigurationMap(
         "application.profile" to "PROD",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
-        "IS_KAFKA_CLOUD" to "true"
+        "IS_KAFKA_CLOUD" to "true",
+        "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
     )
 )
 
@@ -54,6 +57,7 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
 
 internal object Configuration {
     val application: Application = Application()
+    val pdf: Pdf = Pdf()
     val rapidApplication: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
         "RAPID_APP_NAME" to "hm-joark-sink",
@@ -73,6 +77,10 @@ internal object Configuration {
         val id: String = config().getOrElse(Key("", stringType), "hm-joark-sink-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val httpPort: Int = config()[Key("application.httpPort", intType)]
+    )
+
+    data class Pdf(
+        val baseUrl: String = config()[Key("pdf.baseurl", stringType)]
     )
 }
 

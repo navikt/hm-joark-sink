@@ -31,3 +31,7 @@ spec:
     enabled: true
   kafka:
     pool: nav-dev
+  accessPolicy:
+    outbound:
+      rules:
+        - application: hm-soknad-pdfgen
