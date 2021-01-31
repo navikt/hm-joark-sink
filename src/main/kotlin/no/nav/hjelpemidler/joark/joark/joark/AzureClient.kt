@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark
+package no.nav.hjelpemidler.joark.joark.joark
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory

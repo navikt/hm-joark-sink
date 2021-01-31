@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.joark.joark.service
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
@@ -17,15 +17,20 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.joark.metrics.Prometheus
-import no.nav.hjelpemidler.joark.oppslag.PdfClient
+import no.nav.hjelpemidler.joark.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.joark.pdf.PdfClient
 import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class JoarkDataSink(rapidsConnection: RapidsConnection, private val pdfClient: PdfClient) :
+internal class JoarkDataSink(
+    rapidsConnection: RapidsConnection,
+    private val pdfClient: PdfClient,
+    private val joarkClient: JoarkClient
+) :
     River.PacketListener {
 
     companion object {
@@ -59,27 +64,37 @@ internal class JoarkDataSink(rapidsConnection: RapidsConnection, private val pdf
                         soknadId = UUID.fromString(packet.soknadId)
                     )
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
-                    val pdf = genererPdf(soknadData)
-                    forward(soknadData, context)
+                    val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
+                    val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
+                    forward(soknadData, joarkRef, context)
                 }
             }
         }
     }
 
-    private suspend fun genererPdf(soknadData: SoknadData) =
+    private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
-
-            pdfClient.genererPdf(soknadData.soknadJson)
+            pdfClient.genererPdf(soknadJson)
         }.onSuccess {
-            logger.info("PDF generert: ${soknadData.soknadId}")
+            logger.info("PDF generert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under gerering av PDF: ${soknadData.soknadId}" }
+            logger.error(it) { "Feilet under generering av PDF: $soknadId" }
         }.getOrThrow()
 
-    private fun CoroutineScope.forward(søknadData: SoknadData, context: RapidsConnection.MessageContext) {
+    private suspend fun arkiver(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray) =
+        kotlin.runCatching {
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf)
+        }.onSuccess {
+            logger.info("Søknad arkivert: $soknadId")
+            Prometheus.pdfGenerertCounter.inc()
+        }.onFailure {
+            logger.error(it) { "Feilet under arkivering av søknad: $soknadId" }
+        }.getOrThrow()
+
+    private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: RapidsConnection.MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.send(søknadData.fnrBruker, søknadData.toJson("aJoarkRef"))
+            context.send(søknadData.fnrBruker, søknadData.toJson(joarkRef))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {

@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark
+package no.nav.hjelpemidler.joark.joark
 
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
@@ -24,6 +24,12 @@ private val localProperties = ConfigurationMap(
         "kafka.brokers" to "host.docker.internal:9092",
         "IS_KAFKA_CLOUD" to "false",
         "pdf.baseurl" to "http://host.docker.internal:8088",
+        "AZURE_TENANT_BASEURL" to "mockServer",
+        "AZURE_TENANT_ID" to "123",
+        "AZURE_APP_CLIENT_ID" to "123",
+        "AZURE_APP_CLIENT_SECRET" to "dummy",
+        "joark.baseurl" to "http://host.docker.internal:8089",
+        "JOARK_SCOPE" to "123"
     )
 )
 private val devProperties = ConfigurationMap(
@@ -34,6 +40,9 @@ private val devProperties = ConfigurationMap(
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "IS_KAFKA_CLOUD" to "true",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
+        "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
+        "joark.baseurl" to "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv",
+        "JOARK_SCOPE" to "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
     )
 )
 private val prodProperties = ConfigurationMap(
@@ -44,6 +53,9 @@ private val prodProperties = ConfigurationMap(
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "IS_KAFKA_CLOUD" to "true",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
+        "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
+        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv",
+        "JOARK_SCOPE" to "123"
     )
 )
 
@@ -58,6 +70,8 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
 internal object Configuration {
     val application: Application = Application()
     val pdf: Pdf = Pdf()
+    val azure: Azure = Azure()
+    val joark: Joark = Joark()
     val rapidApplication: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
         "RAPID_APP_NAME" to "hm-joark-sink",
@@ -81,6 +95,19 @@ internal object Configuration {
 
     data class Pdf(
         val baseUrl: String = config()[Key("pdf.baseurl", stringType)]
+    )
+
+    data class Azure(
+        val tenantBaseUrl: String = config()[Key("AZURE_TENANT_BASEURL", stringType)],
+        val tenantId: String = config()[Key("AZURE_TENANT_ID", stringType)],
+        val clientId: String = config()[Key("AZURE_APP_CLIENT_ID", stringType)],
+        val clientSecret: String = config()[Key("AZURE_APP_CLIENT_SECRET", stringType)]
+    )
+
+    data class Joark(
+        val baseUrl: String = config()[Key("joark.baseurl", stringType)],
+        val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)]
+
     )
 }
 
