@@ -72,6 +72,11 @@ internal class JoarkDataSink(
         }
     }
 
+    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+        super.onError(problems, context)
+        logger.info(problems.toExtendedReport())
+    }
+
     private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
             pdfClient.genererPdf(soknadJson)
