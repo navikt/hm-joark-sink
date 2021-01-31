@@ -25,7 +25,7 @@ private val localProperties = ConfigurationMap(
         "IS_KAFKA_CLOUD" to "false",
         "pdf.baseurl" to "http://host.docker.internal:8088",
         "AZURE_TENANT_BASEURL" to "mockServer",
-        "AZURE_TENANT_ID" to "123",
+        "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
         "joark.baseurl" to "http://host.docker.internal:8089",
@@ -99,7 +99,7 @@ internal object Configuration {
 
     data class Azure(
         val tenantBaseUrl: String = config()[Key("AZURE_TENANT_BASEURL", stringType)],
-        val tenantId: String = config()[Key("AZURE_TENANT_ID", stringType)],
+        val tenantId: String = config()[Key("AZURE_APP_TENANT_ID", stringType)],
         val clientId: String = config()[Key("AZURE_APP_CLIENT_ID", stringType)],
         val clientSecret: String = config()[Key("AZURE_APP_CLIENT_SECRET", stringType)]
     )
