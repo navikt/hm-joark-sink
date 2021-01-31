@@ -41,7 +41,7 @@ private val devProperties = ConfigurationMap(
         "IS_KAFKA_CLOUD" to "true",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv",
+        "joark.baseurl" to "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
         "JOARK_SCOPE" to "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
     )
 )
