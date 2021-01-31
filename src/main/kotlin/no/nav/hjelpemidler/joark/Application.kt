@@ -1,10 +1,10 @@
-package no.nav.hjelpemidler.joark.joark
+package no.nav.hjelpemidler.joark
 
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.hjelpemidler.joark.joark.joark.AzureClient
-import no.nav.hjelpemidler.joark.joark.joark.JoarkClient
-import no.nav.hjelpemidler.joark.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.joark.service.JoarkDataSink
+import no.nav.hjelpemidler.joark.joark.AzureClient
+import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.JoarkDataSink
 
 fun main() {
     val pdfClient = PdfClient(Configuration.pdf.baseUrl)

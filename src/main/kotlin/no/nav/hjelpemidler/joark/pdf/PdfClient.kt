@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark.pdf
+package no.nav.hjelpemidler.joark.pdf
 
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitByteArrayResponse

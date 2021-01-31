@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark.metrics
+package no.nav.hjelpemidler.joark.metrics
 
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Counter

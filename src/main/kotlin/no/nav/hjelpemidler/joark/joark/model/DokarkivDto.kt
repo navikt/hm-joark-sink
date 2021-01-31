@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark.joark.model
+package no.nav.hjelpemidler.joark.joark.model
 
 data class HjelpemidlerDigitalSoknad(
     val avsenderMottaker: AvsenderMottaker,

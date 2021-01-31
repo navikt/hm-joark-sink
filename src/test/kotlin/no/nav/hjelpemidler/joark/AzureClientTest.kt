@@ -1,11 +1,11 @@
-package no.nav.hjelpemidler.joark.joark
+package no.nav.hjelpemidler.joark
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import no.nav.hjelpemidler.joark.joark.joark.AzureClient
+import no.nav.hjelpemidler.joark.joark.AzureClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll

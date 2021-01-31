@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark.joark
+package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -9,11 +9,11 @@ import com.github.kittinunf.fuel.httpPost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import no.nav.hjelpemidler.joark.joark.joark.model.AvsenderMottaker
-import no.nav.hjelpemidler.joark.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.joark.model.Dokumentvarianter
-import no.nav.hjelpemidler.joark.joark.joark.model.HjelpemidlerDigitalSoknad
+import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
+import no.nav.hjelpemidler.joark.joark.model.Bruker
+import no.nav.hjelpemidler.joark.joark.model.Dokumenter
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import java.util.Base64
 import java.util.UUID
 import kotlin.collections.ArrayList

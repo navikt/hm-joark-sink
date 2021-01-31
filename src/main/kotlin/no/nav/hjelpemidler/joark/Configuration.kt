@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark
+package no.nav.hjelpemidler.joark
 
 import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties

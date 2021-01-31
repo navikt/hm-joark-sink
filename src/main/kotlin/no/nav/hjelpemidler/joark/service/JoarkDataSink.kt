@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.joark.service
+package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
@@ -17,9 +17,9 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.joark.joark.joark.JoarkClient
-import no.nav.hjelpemidler.joark.joark.metrics.Prometheus
-import no.nav.hjelpemidler.joark.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.pdf.PdfClient
 import java.time.LocalDateTime
 import java.util.UUID
 
