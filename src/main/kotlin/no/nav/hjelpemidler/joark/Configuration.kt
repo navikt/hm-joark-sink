@@ -24,11 +24,11 @@ private val localProperties = ConfigurationMap(
         "kafka.brokers" to "host.docker.internal:9092",
         "IS_KAFKA_CLOUD" to "false",
         "pdf.baseurl" to "http://host.docker.internal:8088",
-        "AZURE_TENANT_BASEURL" to "mockServer",
+        "AZURE_TENANT_BASEURL" to "http://localhost:9099",
         "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
-        "joark.baseurl" to "http://host.docker.internal:8089",
+        "joark.baseurl" to "http://localhost:9099/dokarkiv",
         "JOARK_SCOPE" to "123"
     )
 )

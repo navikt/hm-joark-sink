@@ -5,8 +5,14 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
+import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 fun main() {
+
+    if (System.getenv("NAIS_CLUSTER_NAME") == null) {
+        WiremockServer(Configuration).startServer()
+    }
+
     val pdfClient = PdfClient(Configuration.pdf.baseUrl)
     val azureClient = AzureClient(
         tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
