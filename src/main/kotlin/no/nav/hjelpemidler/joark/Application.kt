@@ -9,7 +9,7 @@ import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 fun main() {
 
-    if (System.getenv("NAIS_CLUSTER_NAME") == null) {
+    if (Configuration.application.profile == Profile.LOCAL) {
         WiremockServer(Configuration).startServer()
     }
 
