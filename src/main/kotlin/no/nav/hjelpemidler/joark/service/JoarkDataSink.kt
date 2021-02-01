@@ -122,7 +122,7 @@ internal data class SoknadData(
             it["soknadId"] = this.soknadId
             it["@event_name"] = "SøknadArkivert"
             it["@opprettet"] = LocalDateTime.now()
-            it["fnrBruker"] = this.fnrBruker
+            it["fodselNrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
         }.toJson()
     }
