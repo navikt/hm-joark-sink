@@ -49,14 +49,12 @@ dependencies {
     implementation(Kotlin.Logging.kotlinLogging)
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation("com.github.tomakehurst:wiremock:2.27.1")
-
     testImplementation(Junit5.api)
     testImplementation(KoTest.assertions)
     testImplementation(KoTest.runner)
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
-    testImplementation(Wiremock.standalone)
+    implementation(Wiremock.standalone)
     testRuntimeOnly(Junit5.engine)
 }
 
