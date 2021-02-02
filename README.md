@@ -8,7 +8,7 @@ App som lytter på rapid og arkiverer mottatte søknader i joark.
 
 Dokarkiv og AzureAd er mocka med Wiremock
 
-start [backend](https://github.com/navikt/hm-soknad-api) for å starte rapid og evt. populere rapid
-start [hm-soknadsbehandling](https://github.com/navikt/hm-soknadsbehandling) for å lagre søknad i db og sende videre på rapid
+- start [backend](https://github.com/navikt/hm-soknad-api) for å starte rapid og evt. populere rapid
+- start [hm-soknadsbehandling](https://github.com/navikt/hm-soknadsbehandling) for å lagre søknad i db og sende videre på rapid
 
-start hm-joark-sink og vent på melding
+- start hm-joark-sink og vent på melding
