@@ -12,3 +12,12 @@ Dokarkiv og AzureAd er mocka med Wiremock
 - start [hm-soknadsbehandling](https://github.com/navikt/hm-soknadsbehandling) for å lagre søknad i db og sende videre på rapid
 
 - start hm-joark-sink og vent på melding
+
+
+# Interne henvendelser
+
+slack -> #digihot-dev
+
+# Eksterne henvendelser
+
+Lag issue i repo 
