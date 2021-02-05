@@ -52,7 +52,7 @@ private val prodProperties = ConfigurationMap(
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
         "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv",
-        "JOARK_SCOPE" to "123"
+        "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default"
     )
 )
 
