@@ -14,5 +14,5 @@ spec:
       for: 1m
   receivers:
     slack:
-      channel: '#digihot-rr-alerts-dev'
+      channel: '#digihot-rr-alerts'
       prependText: '<!here> | '
