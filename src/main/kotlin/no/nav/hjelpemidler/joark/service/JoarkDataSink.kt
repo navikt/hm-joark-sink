@@ -124,6 +124,7 @@ internal data class SoknadData(
             it["@opprettet"] = LocalDateTime.now()
             it["fodselNrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
+            it["eventId"] = UUID.randomUUID()
         }.toJson()
     }
 }
