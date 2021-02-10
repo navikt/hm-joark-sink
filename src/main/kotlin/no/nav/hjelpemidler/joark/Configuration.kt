@@ -51,7 +51,7 @@ private val prodProperties = ConfigurationMap(
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv",
+        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
         "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default"
     )
 )
