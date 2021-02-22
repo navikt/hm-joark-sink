@@ -1,11 +1,10 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  labels:
-    app: hm-joark-sink
-    team: teamdigihot
-  name: hm-joark-sink
+  name: {{ appnavn }}
   namespace: teamdigihot
+  labels:
+    team: teamdigihot
 spec:
   image: {{ image }}
   team: teamdigihot

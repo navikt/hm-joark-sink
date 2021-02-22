@@ -38,7 +38,7 @@ jobs:
           docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
           docker push $IMAGE
 
-  deploy-dev:
+  deploy-dev-q1:
     name: Deploy to dev
     needs: build
     if: github.ref == 'refs/heads/main'
@@ -50,6 +50,22 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais-dev.yaml,nais/alerts-dev.yaml
+          VARS: nais/dev-q1.json
+
+#  deploy-dev:
+#    name: Deploy to dev
+#    needs: build
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: dev-gcp
+#          RESOURCE: nais/nais-dev.yaml,nais/alerts-dev.yaml
+#          VARS: nais/dev.json
+
 #  deploy-prod:
 #    name: Deploy to Production
 #    needs: [build, deploy-dev]
