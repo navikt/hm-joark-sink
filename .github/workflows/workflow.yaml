@@ -41,7 +41,6 @@ jobs:
   deploy-dev-q1:
     name: Deploy to dev
     needs: build
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
