@@ -31,6 +31,10 @@ private val localProperties = ConfigurationMap(
         "JOARK_SCOPE" to "123"
     )
 )
+
+// Joark har q2 som default i dev (q1 blir brukt til Ditt NAV-testing)
+private val JOARK_BASEURL_IN_DEV = System.getenv("joark.baseurl") ?: "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad"
+private val JOARK_SCOPE_IN_DEV = System.getenv("JOARK_SCOPE") ?: "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
@@ -39,8 +43,8 @@ private val devProperties = ConfigurationMap(
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
-        "JOARK_SCOPE" to "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
+        "joark.baseurl" to JOARK_BASEURL_IN_DEV,
+        "JOARK_SCOPE" to JOARK_SCOPE_IN_DEV
     )
 )
 private val prodProperties = ConfigurationMap(
