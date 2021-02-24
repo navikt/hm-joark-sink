@@ -28,10 +28,10 @@ spec:
       cpu: 200m
       memory: 512Mi
   env:
-    - name: JOARK_BASEURL
-      value: "{{ joark.baseurl }}"
-    - name: JOARK_SCOPE
-      value: "{{ JOARK_SCOPE }}"
+     - name: JOARK_BASEURL
+       value: "{{ joark.baseurl }}"
+     - name: JOARK_SCOPE
+       value: "{{ JOARK_SCOPE }}"
   secureLogs:
     enabled: true
   kafka:
