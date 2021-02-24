@@ -29,9 +29,9 @@ spec:
       memory: 512Mi
   env:
     - name: JOARK_BASEURL
-      value: {{ joark.baseurl }}
+      value: "{{ joark.baseurl }}"
     - name: JOARK_SCOPE
-      value: {{ JOARK_SCOPE }}
+      value: "{{ JOARK_SCOPE }}"
   secureLogs:
     enabled: true
   kafka:
