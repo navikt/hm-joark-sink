@@ -29,7 +29,7 @@ spec:
       memory: 512Mi
   env:
      - name: JOARK_BASEURL
-       value: "{{ joark.baseurl }}"
+       value: "{{ JOARK_BASEURL }}"
      - name: JOARK_SCOPE
        value: "{{ JOARK_SCOPE }}"
   secureLogs:

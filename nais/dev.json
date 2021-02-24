@@ -1,5 +1,5 @@
 {
   "appnavn": "hm-joark-sink",
-  "joark.baseurl": "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
+  "JOARK_BASEURL": "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
   "JOARK_SCOPE": "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
 }
