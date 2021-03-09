@@ -120,9 +120,10 @@ internal data class SoknadData(
     internal fun toJson(joarkRef: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
             it["soknadId"] = this.soknadId
-            it["@event_name"] = "SøknadArkivert"
-            it["@opprettet"] = LocalDateTime.now()
-            it["fodselNrBruker"] = this.fnrBruker
+            it["eventName"] = "hm-SøknadArkivert"
+            it["opprettet"] = LocalDateTime.now()
+            it["fodselNrBruker"] = this.fnrBruker // @deprecated
+            it["fnrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
             it["eventId"] = UUID.randomUUID()
         }.toJson()
