@@ -65,8 +65,15 @@ internal class JoarkDataSink(
                     )
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
-                    val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
-                    forward(soknadData, joarkRef, context)
+                    try {
+                        val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
+                        forward(soknadData, joarkRef, context)
+                    } catch (e: Exception) {
+                        // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
+                        // Dette skjer kun dersom vi har arkivert søknaden tidlegare (prosessering av samme melding fleire gongar)
+                        if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
+                        throw e
+                    }
                 }
             }
         }
