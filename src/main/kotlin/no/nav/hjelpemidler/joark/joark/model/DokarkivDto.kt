@@ -14,7 +14,7 @@ data class HjelpemidlerDigitalSoknad(
 data class AvsenderMottaker(
     val id: String,
     val idType: String,
-    val land: String,
+    val land: String, // TODO: Denne skal nok ikkje setjast
     val navn: String
 )
 

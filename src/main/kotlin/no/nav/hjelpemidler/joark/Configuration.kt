@@ -17,6 +17,7 @@ private val localProperties = ConfigurationMap(
         "application.profile" to "LOCAL",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
+        "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "kafka.truststore.password" to "",
         "KAFKA_TRUSTSTORE_PATH" to "",
         "KAFKA_CREDSTORE_PASSWORD" to "",
@@ -53,6 +54,7 @@ private val prodProperties = ConfigurationMap(
         "application.profile" to "PROD",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
+        "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
         "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
@@ -77,7 +79,7 @@ internal object Configuration {
         "RAPID_KAFKA_CLUSTER" to "gcp",
         "RAPID_APP_NAME" to "hm-joark-sink",
         "KAFKA_BOOTSTRAP_SERVERS" to config()[Key("kafka.brokers", stringType)],
-        "KAFKA_CONSUMER_GROUP_ID" to application.id,
+        "KAFKA_CONSUMER_GROUP_ID" to config()[Key("KAFKA_CONSUMER_GROUP_ID", stringType)],
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.topic", stringType)],
         "KAFKA_RESET_POLICY" to config()[Key("kafka.reset.policy", stringType)],
         "NAV_TRUSTSTORE_PATH" to config()[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
@@ -88,7 +90,6 @@ internal object Configuration {
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
     data class Application(
-        val id: String = config().getOrElse(Key("", stringType), "hm-joark-sink-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val httpPort: Int = config()[Key("application.httpPort", intType)]
     )

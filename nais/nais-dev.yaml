@@ -32,6 +32,8 @@ spec:
        value: "{{ JOARK_BASEURL }}"
      - name: JOARK_SCOPE
        value: "{{ JOARK_SCOPE }}"
+     - name: KAFKA_CONSUMER_GROUP_ID
+       value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
   secureLogs:
     enabled: true
   kafka:
