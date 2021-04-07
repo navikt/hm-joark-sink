@@ -35,7 +35,7 @@ private val localProperties = ConfigurationMap(
 
 // Joark har q2 som default i dev (q1 blir brukt til Ditt NAV-testing)
 private val JOARK_BASEURL_IN_DEV = System.getenv("JOARK_BASEURL") ?: "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad"
-private val JOARK_SCOPE_IN_DEV = System.getenv("JOARK_SCOPE") ?: "api://9a0d62f4-00cf-462a-9acc-0e76e7a360ae/.default"
+private val JOARK_SCOPE_IN_DEV = System.getenv("JOARK_SCOPE") ?: "api://dev-fss.teamdigihot.digihot-proxy/.default"
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
