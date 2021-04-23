@@ -43,7 +43,12 @@ internal class JoarkDataSink(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-Søknad") }
+            validate { it.demandValue("eventName","hm-Søknad") }
+            validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
+        }.register(this)
+
+        River(rapidsConnection).apply {
+            validate { it.demandValue("eventName","hm-SøknadGodkjentAvBruker") }
             validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
         }.register(this)
     }
