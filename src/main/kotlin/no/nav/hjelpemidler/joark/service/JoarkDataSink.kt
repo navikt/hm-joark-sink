@@ -30,8 +30,7 @@ internal class JoarkDataSink(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient
-) :
-    River.PacketListener {
+) : PacketListenerWithOnError {
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -44,6 +43,12 @@ internal class JoarkDataSink(
 
     init {
         River(rapidsConnection).apply {
+            validate { it.demandValue("eventName", "hm-Søknad") }
+            validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
+        }.register(this)
+
+        River(rapidsConnection).apply {
+            validate { it.demandValue("eventName", "hm-SøknadGodkjentAvBruker") }
             validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
         }.register(this)
     }
