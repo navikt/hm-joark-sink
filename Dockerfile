@@ -1,7 +1,3 @@
-FROM navikt/java:15
+FROM navikt/java:12
 
 COPY build/libs/hm-joark-sink-all.jar app.jar
-
-ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 \
-               -XX:+HeapDumpOnOutOfMemoryError \
-               -XX:HeapDumpPath=/oom-dump.hprof"
