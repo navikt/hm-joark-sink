@@ -14,5 +14,10 @@ then
     $@
 else
     set -x
-    exec bash -c "java ${DEFAULT_JVM_OPTS} ${JAVA_OPTS} -jar ${APP_JAR} ${RUNTIME_OPTS} $@ || sleep 3600"
+    exec /run-java.bin \
+    ${DEFAULT_JVM_OPTS} \
+    ${JAVA_OPTS} \
+    -jar ${APP_JAR} \
+    ${RUNTIME_OPTS} \
+    $@
 fi
