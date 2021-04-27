@@ -25,6 +25,6 @@ func main() {
         fmt.Println(http.ListenAndServe(":8080", nil))
     }()
 
-    fmt.Println("Sleeping for an hour to allow you to collect the output: /oom-dump.hprof")
+    fmt.Println("Sleeping for an hour to allow you to collect the output: /tmp/oom-dump.hprof")
     time.Sleep(time.Hour)
 }
