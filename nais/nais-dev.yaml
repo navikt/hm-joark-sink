@@ -11,10 +11,8 @@ spec:
   team: teamdigihot
   liveness:
     path: /isalive
-    initialDelay: 60
   readiness:
     path: /isready
-    initialDelay: 60
   port: 8080
   prometheus:
     enabled: true
@@ -25,10 +23,10 @@ spec:
   resources:
     limits:
       cpu: 500m
-      memory: 2048Mi
+      memory: 1024Mi
     requests:
       cpu: 200m
-      memory: 1500Mi
+      memory: 512Mi
   env:
      - name: JOARK_BASEURL
        value: "{{ JOARK_BASEURL }}"

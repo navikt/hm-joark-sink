@@ -14,7 +14,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
@@ -44,7 +43,12 @@ internal class JoarkDataSink(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandAny("eventName", listOf("hm-Søknad", "hm-SøknadGodkjentAvBruker")) }
+            validate { it.demandValue("eventName", "hm-Søknad") }
+            validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
+        }.register(this)
+
+        River(rapidsConnection).apply {
+            validate { it.demandValue("eventName", "hm-SøknadGodkjentAvBruker") }
             validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
         }.register(this)
     }
@@ -54,7 +58,7 @@ internal class JoarkDataSink(
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.soknad get() = this["soknad"]
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
@@ -100,9 +104,9 @@ internal class JoarkDataSink(
             logger.error(it) { "Feilet under arkivering av søknad: $soknadId" }
         }.getOrThrow()
 
-    private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
+    private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: RapidsConnection.MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef))
+            context.send(søknadData.fnrBruker, søknadData.toJson(joarkRef))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
