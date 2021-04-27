@@ -11,8 +11,10 @@ spec:
   team: teamdigihot
   liveness:
     path: /isalive
+    initialDelay: 60
   readiness:
     path: /isready
+    initialDelay: 60
   port: 8080
   prometheus:
     enabled: true
