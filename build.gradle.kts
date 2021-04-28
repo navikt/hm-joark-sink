@@ -40,7 +40,7 @@ dependencies {
     implementation(Jackson.kotlin)
     implementation(Jackson.jsr310)
     implementation("com.github.guepardoapps:kulid:1.1.2.0")
-    implementation("com.github.navikt:rapids-and-rivers:1.6d6256d")
+    implementation("com.github.navikt:rapids-and-rivers:20210428115805-514c80c")
     implementation(Ktor.serverNetty)
     implementation(Database.Kotlinquery)
     implementation(Fuel.fuel)
