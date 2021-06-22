@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ appnavn }}
+  name: hm-joark-sink
   namespace: teamdigihot
   labels:
     app: hm-joark-sink
@@ -27,13 +27,6 @@ spec:
     requests:
       cpu: 200m
       memory: 512Mi
-  env:
-     - name: JOARK_BASEURL
-       value: "{{ JOARK_BASEURL }}"
-     - name: JOARK_SCOPE
-       value: "{{ JOARK_SCOPE }}"
-     - name: KAFKA_CONSUMER_GROUP_ID
-       value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
   secureLogs:
     enabled: true
   kafka:

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +21,12 @@ import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.model.SoknadData
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class JoarkDataSink(
+internal class JoarkDataSinkQ1(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient
@@ -63,7 +63,7 @@ internal class JoarkDataSink(
                         soknadJson = soknadToJson(packet.soknad),
                         soknadId = UUID.fromString(packet.soknadId)
                     )
-                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
+                    logger.info { "Søknad til arkivering i Q1 mottatt: ${soknadData.soknadId}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
                         val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
@@ -83,7 +83,7 @@ internal class JoarkDataSink(
         kotlin.runCatching {
             pdfClient.genererPdf(soknadJson)
         }.onSuccess {
-            logger.info("PDF generert: $soknadId")
+            logger.info("PDF generert for arkivering til Q1: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
         }.onFailure {
             logger.error(it) { "Feilet under generering av PDF: $soknadId" }
@@ -93,20 +93,20 @@ internal class JoarkDataSink(
         kotlin.runCatching {
             joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf)
         }.onSuccess {
-            logger.info("Søknad arkivert: $soknadId")
+            logger.info("Søknad arkivert i Q1: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under arkivering av søknad: $soknadId" }
+            logger.error(it) { "Feilet under arkivering av søknad i Q1: $soknadId" }
         }.getOrThrow()
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, "hm-SøknadArkivert"))
+            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, "hm-SøknadArkivertQ1"))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
                 null -> {
-                    logger.info("Søknad arkivert i JOARK: ${søknadData.soknadId}")
+                    logger.info("Søknad arkivert i JOARK i Q1: ${søknadData.soknadId}")
                     sikkerlogg.info("Søknad arkivert med søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
