@@ -31,7 +31,8 @@ fun main() {
             JoarkDataSink(this, pdfClient, joarkClient)
             if (Configuration.application.profile == Profile.DEV) {
                 JoarkDataSinkQ1(
-                    this, pdfClient,
+                    this,
+                    pdfClient,
                     JoarkClient(
                         baseUrl = Configuration.joark.baseUrl + "-q1",
                         accesstokenScope = Configuration.joark.joarkScope,
