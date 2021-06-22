@@ -101,7 +101,7 @@ internal class JoarkDataSink(
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, "hm-SøknadArkivert"))
+            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, "hm-SøknadArkivert-q1"))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
