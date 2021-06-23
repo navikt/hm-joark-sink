@@ -22,20 +22,23 @@ fun main() {
     )
     val joarkClient = JoarkClient(
         baseUrl = Configuration.joark.baseUrl,
-        accesstokenScope = Configuration.joark.joarkScope,
+        accesstokenScope = Configuration.joark.scope,
         azureClient = azureClient
     )
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
             JoarkDataSink(this, pdfClient, joarkClient)
+
+            // River kun brukt i dev for testing av Ditt NAV/Dine saker
+            // Når vi tek over dokumentvisning kan det hende vi kan fjerne alle Q1-appane
             if (Configuration.application.profile == Profile.DEV) {
                 JoarkDataSinkQ1(
                     this,
                     pdfClient,
                     JoarkClient(
-                        baseUrl = Configuration.joark.baseUrl + "-q1",
-                        accesstokenScope = Configuration.joark.joarkScope,
+                        baseUrl = System.getenv("JOARK_BASEURL_Q1"),
+                        accesstokenScope = System.getenv("JOARK_SCOPE_Q1"),
                         azureClient = azureClient
                     )
                 )

@@ -27,6 +27,15 @@ spec:
     requests:
       cpu: 200m
       memory: 512Mi
+  env:
+    - name: JOARK_BASEURL
+      value: https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad
+    - name: JOARK_SCOPE
+      value: api://dev-fss.teamdigihot.digihot-proxy/.default
+    - name: JOARK_BASEURL_Q1
+      value: https://digihot-proxy-q1.dev-fss-pub.nais.io/dokarkiv-aad
+    - name: JOARK_SCOPE_Q1
+      value: api://dev-fss.teamdigihot.digihot-proxy-q1/.default
   secureLogs:
     enabled: true
   kafka:

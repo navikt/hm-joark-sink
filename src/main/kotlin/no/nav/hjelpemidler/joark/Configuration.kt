@@ -28,7 +28,7 @@ private val localProperties = ConfigurationMap(
         "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
-        "joark.baseurl" to "http://localhost:9099/dokarkiv",
+        "JOARK_BASEURL" to "http://localhost:9099/dokarkiv",
         "JOARK_SCOPE" to "123"
     )
 )
@@ -42,10 +42,11 @@ private val devProperties = ConfigurationMap(
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "JOARK_SCOPE" to "api://dev-fss.teamdigihot.digihot-proxy/.default",
-        "joark.baseurl" to "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
+        "JOARK_SCOPE" to System.getenv("JOARK_SCOPE"),
+        "JOARK_BASEURL" to System.getenv("JOARK_BASEURL"),
     )
 )
+
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
@@ -55,7 +56,7 @@ private val prodProperties = ConfigurationMap(
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
+        "JOARK_BASEURL" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
         "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default"
     )
 )
@@ -103,8 +104,8 @@ internal object Configuration {
     )
 
     data class Joark(
-        val baseUrl: String = config()[Key("joark.baseurl", stringType)],
-        val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)]
+        val baseUrl: String = config()[Key("JOARK_BASEURL", stringType)],
+        val scope: String = config()[Key("JOARK_SCOPE", stringType)]
     )
 }
 
