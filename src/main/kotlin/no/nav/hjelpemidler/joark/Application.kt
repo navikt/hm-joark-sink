@@ -5,7 +5,6 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
-import no.nav.hjelpemidler.joark.service.JoarkDataSinkQ1
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 fun main() {
@@ -22,26 +21,12 @@ fun main() {
     )
     val joarkClient = JoarkClient(
         baseUrl = Configuration.joark.baseUrl,
-        accesstokenScope = Configuration.joark.scope,
+        accesstokenScope = Configuration.joark.joarkScope,
         azureClient = azureClient
     )
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
             JoarkDataSink(this, pdfClient, joarkClient)
-
-            // River kun brukt i dev for testing av Ditt NAV/Dine saker
-            // Når vi tek over dokumentvisning kan det hende vi kan fjerne alle Q1-appane
-            if (Configuration.application.profile == Profile.DEV) {
-                JoarkDataSinkQ1(
-                    this,
-                    pdfClient,
-                    JoarkClient(
-                        baseUrl = System.getenv("JOARK_BASEURL_Q1"),
-                        accesstokenScope = System.getenv("JOARK_SCOPE_Q1"),
-                        azureClient = azureClient
-                    )
-                )
-            }
         }.start()
 }

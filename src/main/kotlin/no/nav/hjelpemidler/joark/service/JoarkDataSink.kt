@@ -15,12 +15,13 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClient
-import no.nav.hjelpemidler.joark.joark.model.SoknadData
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -101,7 +102,7 @@ internal class JoarkDataSink(
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, "hm-SøknadArkivert"))
+            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
@@ -115,5 +116,24 @@ internal class JoarkDataSink(
                 }
             }
         }
+    }
+}
+
+internal data class SoknadData(
+    val fnrBruker: String,
+    val navnBruker: String,
+    val soknadId: UUID,
+    val soknadJson: String,
+) {
+    internal fun toJson(joarkRef: String): String {
+        return JsonMessage("{}", MessageProblems("")).also {
+            it["soknadId"] = this.soknadId
+            it["eventName"] = "hm-SøknadArkivert"
+            it["opprettet"] = LocalDateTime.now()
+            it["fodselNrBruker"] = this.fnrBruker // @deprecated
+            it["fnrBruker"] = this.fnrBruker
+            it["joarkRef"] = joarkRef
+            it["eventId"] = UUID.randomUUID()
+        }.toJson()
     }
 }

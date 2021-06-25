@@ -28,25 +28,26 @@ private val localProperties = ConfigurationMap(
         "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
-        "JOARK_BASEURL" to "http://localhost:9099/dokarkiv",
+        "joark.baseurl" to "http://localhost:9099/dokarkiv",
         "JOARK_SCOPE" to "123"
     )
 )
 
+// Joark har q2 som default i dev (q1 blir brukt til Ditt NAV-testing)
+private val JOARK_BASEURL_IN_DEV = System.getenv("JOARK_BASEURL") ?: "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad"
+private val JOARK_SCOPE_IN_DEV = System.getenv("JOARK_SCOPE") ?: "api://dev-fss.teamdigihot.digihot-proxy/.default"
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
         "application.profile" to "DEV",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
-        "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "JOARK_SCOPE" to System.getenv("JOARK_SCOPE"),
-        "JOARK_BASEURL" to System.getenv("JOARK_BASEURL"),
+        "joark.baseurl" to JOARK_BASEURL_IN_DEV,
+        "JOARK_SCOPE" to JOARK_SCOPE_IN_DEV
     )
 )
-
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
@@ -56,7 +57,7 @@ private val prodProperties = ConfigurationMap(
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "JOARK_BASEURL" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
+        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
         "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default"
     )
 )
@@ -104,8 +105,9 @@ internal object Configuration {
     )
 
     data class Joark(
-        val baseUrl: String = config()[Key("JOARK_BASEURL", stringType)],
-        val scope: String = config()[Key("JOARK_SCOPE", stringType)]
+        val baseUrl: String = config()[Key("joark.baseurl", stringType)],
+        val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)]
+
     )
 }
 
