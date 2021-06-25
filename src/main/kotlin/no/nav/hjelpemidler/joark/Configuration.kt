@@ -23,31 +23,28 @@ private val localProperties = ConfigurationMap(
         "KAFKA_CREDSTORE_PASSWORD" to "",
         "KAFKA_KEYSTORE_PATH" to "",
         "kafka.brokers" to "host.docker.internal:9092",
-        "pdf.baseurl" to "http://host.docker.internal:8088",
+        "PDF_BASEURL" to "http://host.docker.internal:8088",
         "AZURE_TENANT_BASEURL" to "http://localhost:9099",
         "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
-        "joark.baseurl" to "http://localhost:9099/dokarkiv",
-        "JOARK_SCOPE" to "123"
+        "JOARK_BASEURL" to "http://localhost:9099/dokarkiv",
+        "JOARK_SCOPE" to "123",
+        "EVENT_NAME" to "hm-SøknadArkivert"
     )
 )
 
-// Joark har q2 som default i dev (q1 blir brukt til Ditt NAV-testing)
-private val JOARK_BASEURL_IN_DEV = System.getenv("JOARK_BASEURL") ?: "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad"
-private val JOARK_SCOPE_IN_DEV = System.getenv("JOARK_SCOPE") ?: "api://dev-fss.teamdigihot.digihot-proxy/.default"
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
         "application.profile" to "DEV",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
-        "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
-        "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to JOARK_BASEURL_IN_DEV,
-        "JOARK_SCOPE" to JOARK_SCOPE_IN_DEV
+        "PDF_BASEURL" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
+        "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com"
     )
 )
+
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
@@ -55,10 +52,11 @@ private val prodProperties = ConfigurationMap(
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
-        "pdf.baseurl" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
+        "PDF_BASEURL" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-        "joark.baseurl" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
-        "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default"
+        "JOARK_BASEURL" to "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
+        "JOARK_SCOPE" to "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default",
+        "EVENT_NAME" to "hm-SøknadArkivert"
     )
 )
 
@@ -90,11 +88,12 @@ internal object Configuration {
 
     data class Application(
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val httpPort: Int = config()[Key("application.httpPort", intType)]
+        val httpPort: Int = config()[Key("application.httpPort", intType)],
+        val eventName: String = config()[Key("EVENT_NAME", stringType)]
     )
 
     data class Pdf(
-        val baseUrl: String = config()[Key("pdf.baseurl", stringType)]
+        val baseUrl: String = config()[Key("PDF_BASEURL", stringType)]
     )
 
     data class Azure(
@@ -105,7 +104,7 @@ internal object Configuration {
     )
 
     data class Joark(
-        val baseUrl: String = config()[Key("joark.baseurl", stringType)],
+        val baseUrl: String = config()[Key("JOARK_BASEURL", stringType)],
         val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)]
 
     )

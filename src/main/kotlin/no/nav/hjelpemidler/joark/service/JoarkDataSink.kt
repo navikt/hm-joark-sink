@@ -18,6 +18,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -30,7 +31,8 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 internal class JoarkDataSink(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
-    private val joarkClient: JoarkClient
+    private val joarkClient: JoarkClient,
+    private val eventName: String = Configuration.application.eventName
 ) : PacketListenerWithOnError {
 
     companion object {
@@ -102,7 +104,7 @@ internal class JoarkDataSink(
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef))
+            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, eventName))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
@@ -125,10 +127,10 @@ internal data class SoknadData(
     val soknadId: UUID,
     val soknadJson: String,
 ) {
-    internal fun toJson(joarkRef: String): String {
+    internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
             it["soknadId"] = this.soknadId
-            it["eventName"] = "hm-SøknadArkivert"
+            it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()
             it["fodselNrBruker"] = this.fnrBruker // @deprecated
             it["fnrBruker"] = this.fnrBruker

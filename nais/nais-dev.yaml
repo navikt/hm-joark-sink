@@ -34,6 +34,8 @@ spec:
        value: "{{ JOARK_SCOPE }}"
      - name: KAFKA_CONSUMER_GROUP_ID
        value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
+     - name: EVENT_NAME
+       value: "{{ EVENT_NAME }}"
   secureLogs:
     enabled: true
   kafka:
