@@ -4,7 +4,6 @@ metadata:
   name: {{ APPNAVN }}
   namespace: teamdigihot
   labels:
-    app: {{ APPNAVN }}
     team: teamdigihot
 spec:
   image: {{ image }}
