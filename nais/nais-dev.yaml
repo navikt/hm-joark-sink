@@ -4,7 +4,7 @@ metadata:
   name: {{ APPNAVN }}
   namespace: teamdigihot
   labels:
-    app: hm-joark-sink
+    app: {{ APPNAVN }}
     team: teamdigihot
 spec:
   image: {{ image }}
