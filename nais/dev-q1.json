@@ -1,5 +1,5 @@
 {
-  "appnavn": "hm-joark-sink-q1",
+  "APPNAVN": "hm-joark-sink-q1",
   "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-q1-v1",
   "JOARK_BASEURL": "https://digihot-proxy-q1.dev-fss-pub.nais.io/dokarkiv-aad",
   "JOARK_SCOPE": "api://dev-fss.teamdigihot.digihot-proxy-q1/.default",

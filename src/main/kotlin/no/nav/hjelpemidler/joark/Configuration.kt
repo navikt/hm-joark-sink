@@ -15,6 +15,7 @@ private val localProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8083",
         "application.profile" to "LOCAL",
+        "APPNAVN" to "hm-joark-sink",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
@@ -49,6 +50,7 @@ private val prodProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
         "application.profile" to "PROD",
+        "APPNAVN" to "hm-joark-sink",
         "kafka.reset.policy" to "earliest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
@@ -75,7 +77,7 @@ internal object Configuration {
     val joark: Joark = Joark()
     val rapidApplication: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
-        "RAPID_APP_NAME" to "hm-joark-sink",
+        "RAPID_APP_NAME" to config()[Key("APPNAVN", stringType)],
         "KAFKA_BROKERS" to config()[Key("kafka.brokers", stringType)],
         "KAFKA_CONSUMER_GROUP_ID" to config()[Key("KAFKA_CONSUMER_GROUP_ID", stringType)],
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.topic", stringType)],

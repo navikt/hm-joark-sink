@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ appnavn }}
+  name: {{ APPNAVN }}
   namespace: teamdigihot
   labels:
     app: hm-joark-sink
@@ -36,6 +36,8 @@ spec:
        value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
      - name: EVENT_NAME
        value: "{{ EVENT_NAME }}"
+     - name: APPNAVN
+       value: "{{ APPNAVN }}"
   secureLogs:
     enabled: true
   kafka:
