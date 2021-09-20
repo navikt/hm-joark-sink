@@ -43,7 +43,6 @@ class JoarkClientV2(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
     }
 
-
     suspend fun opprettMidlertidigJournalføring(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray): String {
         logger.info { "opprett midlertidig journalføring" }
 
@@ -88,7 +87,6 @@ class JoarkClientV2(
         }
             .getOrThrow()
     }
-
 
     suspend fun oppdaterJournalpostTittel(journalpostNr: Int, tittel: String): String {
         logger.info { "Oppdaterer tittel på journalpost" }
@@ -153,7 +151,6 @@ class JoarkClientV2(
                             }
                         }
                     )
-
             }
                 .onSuccess {
 
@@ -188,7 +185,6 @@ class JoarkClientV2(
 }
 
 internal class JoarkExceptionV2(msg: String) : RuntimeException(msg)
-
 
 data class OppdaterJournalpostRequest(
     val tittel: String
