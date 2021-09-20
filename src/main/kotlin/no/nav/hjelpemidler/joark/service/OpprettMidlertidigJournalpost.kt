@@ -96,10 +96,10 @@ internal class OpprettMidlertidigJournalpost(
         kotlin.runCatching {
             joarkClientV2.opprettMidlertidigJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
         }.onSuccess {
-            logger.info("Søknad arkivert: $soknadId")
-            Prometheus.pdfGenerertCounter.inc()
+            logger.info("Opprettet midlertidig journalpost i joark: $soknadId")
+            Prometheus.midlertidigJournalpostCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under arkivering av søknad: $soknadId" }
+            logger.error(it) { "Feilet under opprettelse av midlertidig journalpost for søknad: $soknadId" }
         }.getOrThrow()
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
@@ -109,8 +109,8 @@ internal class OpprettMidlertidigJournalpost(
         }.invokeOnCompletion {
             when (it) {
                 null -> {
-                    logger.info("Søknad arkivert i JOARK: ${søknadData.soknadId}")
-                    sikkerlogg.info("Søknad arkivert med søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
+                    logger.info("Opprettet midlertidig journalpost i joark for: ${søknadData.soknadId}")
+                    sikkerlogg.info("Opprettet midlertidig journalpost for søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
