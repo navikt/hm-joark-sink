@@ -53,7 +53,7 @@ class JoarkClientV2(
             TEMA,
             DOKUMENT_TITTEL,
             KANAL,
-            soknadId.toString() + "HJE-DIGITAL-SOKNAD",
+            soknadId.toString() + "HJE-DIGITAL-SOKNAD_V2",
             JOURNALPOST_TYPE
         )
 
