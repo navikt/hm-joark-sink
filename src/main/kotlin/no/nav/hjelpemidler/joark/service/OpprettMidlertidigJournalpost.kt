@@ -54,7 +54,7 @@ internal class OpprettMidlertidigJournalpost(
     private val JsonMessage.etternavn get() = this["saksgrunnlag"]["person"]["etternavn"].textValue()
 
     private val JsonMessage.søknadId get() = this["søknadId"].textValue()
-    private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]
+    private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]["data"]
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {

@@ -43,7 +43,12 @@ class JoarkClientV2(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
     }
 
-    suspend fun opprettMidlertidigJournalføring(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray): String {
+    suspend fun opprettMidlertidigJournalføring(
+        fnrBruker: String,
+        navnAvsender: String,
+        soknadId: UUID,
+        soknadPdf: ByteArray
+    ): String {
         logger.info { "opprett midlertidig journalføring" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
