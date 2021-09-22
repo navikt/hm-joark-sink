@@ -44,17 +44,17 @@ internal class OpprettMidlertidigJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "søknad_fordelt_ny_flyt") }
-            validate { it.requireKey("søknadId", "saksgrunnlag", "fnrInnsender", "person") }
+            validate { it.requireKey("søknadId", "saksgrunnlag") }
         }.register(this)
     }
 
-    private val JsonMessage.fnrBruker get() = this["person"]["fødselsnummer"].textValue()
-    private val JsonMessage.fornavn get() = this["person"]["fornavn"].textValue()
-    private val JsonMessage.mellomnavn get() = this["person"]["mellomnavn"]?.textValue()
-    private val JsonMessage.etternavn get() = this["person"]["etternavn"].textValue()
+    private val JsonMessage.fnrBruker get() = this["saksgrunnlag"]["person"]["fødselsnummer"].textValue()
+    private val JsonMessage.fornavn get() = this["saksgrunnlag"]["person"]["fornavn"].textValue()
+    private val JsonMessage.mellomnavn get() = this["saksgrunnlag"]["person"]["mellomnavn"]?.textValue()
+    private val JsonMessage.etternavn get() = this["saksgrunnlag"]["person"]["etternavn"].textValue()
 
-    private val JsonMessage.soknadId get() = this["soknadId"].textValue()
-    private val JsonMessage.soknad get() = this["soknad"]
+    private val JsonMessage.søknadId get() = this["søknadId"].textValue()
+    private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
@@ -63,8 +63,8 @@ internal class OpprettMidlertidigJournalpost(
                     val soknadData = SoknadData(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = "${packet.fornavn} ${packet.mellomnavn?.let { "${packet.mellomnavn} ${packet.etternavn}" } ?: "${packet.etternavn}"}",
-                        soknadJson = soknadToJson(packet.soknad),
-                        soknadId = UUID.fromString(packet.soknadId)
+                        soknadJson = soknadToJson(packet.søknad),
+                        soknadId = UUID.fromString(packet.søknadId)
                     )
                     logger.info { "Søknad til midlertidig journalføring mottatt: ${soknadData.soknadId}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
