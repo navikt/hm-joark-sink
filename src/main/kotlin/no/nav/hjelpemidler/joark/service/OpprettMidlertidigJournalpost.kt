@@ -57,6 +57,10 @@ internal class OpprettMidlertidigJournalpost(
     private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]["data"]
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (System.getenv("NAIS_CLUSTER_NAME") != null && System.getenv("NAIS_CLUSTER_NAME") == "prod-gcp") {
+           return
+        }
+
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
