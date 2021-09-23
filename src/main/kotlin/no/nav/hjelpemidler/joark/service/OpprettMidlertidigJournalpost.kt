@@ -58,7 +58,7 @@ internal class OpprettMidlertidigJournalpost(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (System.getenv("NAIS_CLUSTER_NAME") != null && System.getenv("NAIS_CLUSTER_NAME") == "prod-gcp") {
-           return
+            return
         }
 
         runBlocking {
