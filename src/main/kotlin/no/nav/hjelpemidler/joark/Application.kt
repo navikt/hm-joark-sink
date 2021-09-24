@@ -35,6 +35,6 @@ fun main() {
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
             JoarkDataSink(this, pdfClient, joarkClient)
-            OpprettMidlertidigJournalpost(this, pdfClient, joarkClientv2)
+            //OpprettMidlertidigJournalpost(this, pdfClient, joarkClientv2)
         }.start()
 }
