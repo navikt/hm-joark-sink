@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.ktor.features.BadRequestException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -108,13 +109,15 @@ internal class OpprettOgFerdigstillJournalpost(
             joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
         }.onSuccess {
             if (it.ferdigstilt) {
-                logger.info("Opprettet og ferdigstilte journalpost i joark: $soknadId")
+                val journalpostnr = it.journalpostNr
+                logger.info("Opprettet og ferdigstilte journalpost i joark, journalpostNr: ${journalpostnr}")
+                throw BadRequestException("Klarte ikke å ferdigstille journalpost")
             } else {
                 logger.warn("Opprettet journalpost i joark: $soknadId, men klarte ikke å ferdigstille")
             }
             Prometheus.opprettettOgferdigstiltJournalpostCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under opprettelse av midlertidig journalpost for søknad: $soknadId" }
+            logger.error(it) { "Feilet under opprettelse og ferdigstillelse journalpost for søknad: $soknadId" }
         }.getOrThrow()
 
     private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
@@ -124,8 +127,8 @@ internal class OpprettOgFerdigstillJournalpost(
         }.invokeOnCompletion {
             when (it) {
                 null -> {
-                    logger.info("Opprettet midlertidig journalpost i joark for: ${søknadData.soknadId}")
-                    sikkerlogg.info("Opprettet midlertidig journalpost for søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
+                    logger.info("Opprettet og ferdigstilte journalpost i joark for: ${søknadData.soknadId}")
+                    sikkerlogg.info("Opprettet og ferdigstilte journalpost for søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
