@@ -108,12 +108,12 @@ internal class OpprettOgFerdigstillJournalpost(
         kotlin.runCatching {
             joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
         }.onSuccess {
+            val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
-                val journalpostnr = it.journalpostNr
                 logger.info("Opprettet og ferdigstilte journalpost i joark, journalpostNr: $journalpostnr")
                 throw BadRequestException("Klarte ikke å ferdigstille journalpost")
             } else {
-                logger.warn("Opprettet journalpost i joark: $soknadId, men klarte ikke å ferdigstille")
+                logger.warn("Opprettet journalpost i joark, søknadId: $soknadId og journalpostNr: $journalpostnr, men klarte ikke å ferdigstille")
             }
             Prometheus.opprettettOgferdigstiltJournalpostCounter.inc()
         }.onFailure {
