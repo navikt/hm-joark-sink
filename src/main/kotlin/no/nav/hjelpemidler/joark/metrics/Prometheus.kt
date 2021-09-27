@@ -18,9 +18,9 @@ internal object Prometheus {
         .help("Antall pdf'er generert for lagring joark")
         .register(collectorRegistry)
 
-    val midlertidigJournalpostCounter = Counter
+    val opprettettOgferdigstiltJournalpostCounter = Counter
         .build()
-        .name("hm_midlertidig_journalpost_opprettet")
-        .help("Antall midlertidige journalposter i joark")
+        .name("hm_ferdigstilt_journalpost_opprettet")
+        .help("Antall opprettete+ferdigstilte journalposter i joark")
         .register(collectorRegistry)
 }

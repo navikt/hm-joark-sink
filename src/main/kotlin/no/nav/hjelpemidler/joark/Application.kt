@@ -7,6 +7,7 @@ import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
+import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 private val logger = KotlinLogging.logger {}
@@ -40,7 +41,7 @@ fun main() {
             if (System.getenv("NAIS_CLUSTER_NAME") != null && System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
                 logger.info { "Vi er i dev-gcp" }
                 logger.info { "Cluster name: " + System.getenv("NAIS_CLUSTER_NAME") }
-                // OpprettMidlertidigJournalpost(this, pdfClient, joarkClientv2)
+                OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             }
         }.start()
 }

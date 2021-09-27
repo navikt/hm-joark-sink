@@ -25,7 +25,7 @@ import java.util.UUID
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class OpprettMidlertidigJournalpost(
+internal class OpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClientV2: JoarkClientV2,
@@ -57,9 +57,6 @@ internal class OpprettMidlertidigJournalpost(
     private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]["data"]
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (System.getenv("NAIS_CLUSTER_NAME") != null && System.getenv("NAIS_CLUSTER_NAME") == "prod-gcp") {
-            return
-        }
 
         runBlocking {
             withContext(Dispatchers.IO) {
@@ -73,8 +70,13 @@ internal class OpprettMidlertidigJournalpost(
                     logger.info { "Søknad til midlertidig journalføring mottatt: ${soknadData.soknadId}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
-                        val joarkRef = opprettMidlertidigJournalpost(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
-                        forward(soknadData, joarkRef, context)
+                        val journalpostResponse = opprettMidlertidigJournalpost(
+                            soknadData.fnrBruker,
+                            soknadData.navnBruker,
+                            soknadData.soknadId,
+                            pdf
+                        )
+                        forward(soknadData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
                         // Dette skjer kun dersom vi har arkivert søknaden tidlegare (prosessering av samme melding fleire gongar)
@@ -96,12 +98,21 @@ internal class OpprettMidlertidigJournalpost(
             logger.error(it) { "Feilet under generering av PDF: $soknadId" }
         }.getOrThrow()
 
-    private suspend fun opprettMidlertidigJournalpost(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray) =
+    private suspend fun opprettMidlertidigJournalpost(
+        fnrBruker: String,
+        navnAvsender: String,
+        soknadId: UUID,
+        soknadPdf: ByteArray
+    ) =
         kotlin.runCatching {
-            joarkClientV2.opprettMidlertidigJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
+            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
         }.onSuccess {
-            logger.info("Opprettet midlertidig journalpost i joark: $soknadId")
-            Prometheus.midlertidigJournalpostCounter.inc()
+            if (it.ferdigstilt) {
+                logger.info("Opprettet og ferdigstilte journalpost i joark: $soknadId")
+            } else {
+                logger.warn("Opprettet journalpost i joark: $soknadId, men klarte ikke å ferdigstille")
+            }
+            Prometheus.opprettettOgferdigstiltJournalpostCounter.inc()
         }.onFailure {
             logger.error(it) { "Feilet under opprettelse av midlertidig journalpost for søknad: $soknadId" }
         }.getOrThrow()

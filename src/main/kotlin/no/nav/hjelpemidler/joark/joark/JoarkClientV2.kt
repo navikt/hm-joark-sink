@@ -43,12 +43,12 @@ class JoarkClientV2(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
     }
 
-    suspend fun opprettMidlertidigJournalføring(
+    suspend fun opprettOgFerdigstillJournalføring(
         fnrBruker: String,
         navnAvsender: String,
         soknadId: UUID,
         soknadPdf: ByteArray
-    ): String {
+    ): OpprettetJournalpostResponse {
         logger.info { "opprett midlertidig journalføring" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
@@ -67,7 +67,7 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl".httpPost()
+                "$baseUrl/opprett-og-ferdigstill".httpPost()
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
@@ -81,7 +81,7 @@ class JoarkClientV2(
                     )
                     .let {
                         when (it.has("journalpostId")) {
-                            true -> it["journalpostId"].textValue()
+                            true -> OpprettetJournalpostResponse(it["journalpostId"].textValue(), it["journalpostferdigstilt"].booleanValue())
                             false -> throw JoarkException("Klarte ikke å arkivere søknad")
                         }
                     }
@@ -197,4 +197,9 @@ data class OppdaterJournalpostRequest(
 
 data class FerdigstillJournalpostRequest(
     val journalfoerendeEnhet: Int
+)
+
+data class OpprettetJournalpostResponse(
+    val journalpostNr: String,
+    val ferdigstilt: Boolean
 )
