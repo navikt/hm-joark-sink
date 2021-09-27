@@ -16,7 +16,6 @@ import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
-import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import java.util.Base64
 import java.util.UUID
