@@ -110,7 +110,7 @@ internal class OpprettOgFerdigstillJournalpost(
         }.onSuccess {
             if (it.ferdigstilt) {
                 val journalpostnr = it.journalpostNr
-                logger.info("Opprettet og ferdigstilte journalpost i joark, journalpostNr: ${journalpostnr}")
+                logger.info("Opprettet og ferdigstilte journalpost i joark, journalpostNr: $journalpostnr")
                 throw BadRequestException("Klarte ikke å ferdigstille journalpost")
             } else {
                 logger.warn("Opprettet journalpost i joark: $soknadId, men klarte ikke å ferdigstille")
