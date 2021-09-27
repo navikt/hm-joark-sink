@@ -11,6 +11,18 @@ data class HjelpemidlerDigitalSoknad(
     val journalpostType: String
 )
 
+data class OpprettOgFerdigstillJournalpostRequest(
+    val avsenderMottaker: AvsenderMottaker,
+    val bruker: Bruker,
+    val dokumenter: List<Dokumenter>?,
+    val tema: String,
+    val tittel: String,
+    val kanal: String,
+    val eksternReferanseId: String,
+    val journalpostType: String,
+    val journalfoerendeEnhet: String
+)
+
 data class MidlertidigJournalForing(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,

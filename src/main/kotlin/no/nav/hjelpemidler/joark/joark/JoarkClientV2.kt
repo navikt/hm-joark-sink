@@ -17,6 +17,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
+import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import java.util.Base64
 import java.util.UUID
 import kotlin.collections.ArrayList
@@ -49,9 +50,9 @@ class JoarkClientV2(
         soknadId: UUID,
         soknadPdf: ByteArray
     ): OpprettetJournalpostResponse {
-        logger.info { "opprett midlertidig journalføring" }
+        logger.info { "opprett og ferdigstill journalføring" }
 
-        val requestBody = HjelpemidlerDigitalSoknad(
+        val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
             hentlistDokumentTilJournalForening(Base64.getEncoder().encodeToString(soknadPdf)),
@@ -59,7 +60,8 @@ class JoarkClientV2(
             DOKUMENT_TITTEL,
             KANAL,
             soknadId.toString() + "HJE-DIGITAL-SOKNAD_V2",
-            JOURNALPOST_TYPE
+            JOURNALPOST_TYPE,
+            "9999"
         )
 
         val jsonBody = objectMapper.writeValueAsString(requestBody)
