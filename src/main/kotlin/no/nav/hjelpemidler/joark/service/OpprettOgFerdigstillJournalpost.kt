@@ -16,11 +16,13 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -30,8 +32,8 @@ internal class OpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClientV2: JoarkClientV2,
-    private val eventName: String = "hm-SøknadArkivertMidlertidig-NyFlyt"
-) : PacketListenerWithOnError {
+    private val eventName: String = "hm-opprettetOgFerdigstiltJournalpost"
+) : River.PacketListener {
 
     companion object {
         private val objectMapper = jacksonObjectMapper()
@@ -44,40 +46,44 @@ internal class OpprettOgFerdigstillJournalpost(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "søknad_fordelt_ny_flyt") }
-            validate { it.requireKey("søknadId", "saksgrunnlag") }
+            validate { it.demandValue("@eventName", "hm-sakOpprettet") }
+            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson") }
         }.register(this)
     }
 
-    private val JsonMessage.fnrBruker get() = this["saksgrunnlag"]["person"]["fødselsnummer"].textValue()
-    private val JsonMessage.fornavn get() = this["saksgrunnlag"]["person"]["fornavn"].textValue()
-    private val JsonMessage.mellomnavn get() = this["saksgrunnlag"]["person"]["mellomnavn"]?.textValue()
-    private val JsonMessage.etternavn get() = this["saksgrunnlag"]["person"]["etternavn"].textValue()
+    private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
+    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
 
-    private val JsonMessage.søknadId get() = this["søknadId"].textValue()
-    private val JsonMessage.søknad get() = this["saksgrunnlag"]["søknad"]["data"]
+    private val JsonMessage.søknadId get() = this["soknadId"].textValue()
+    private val JsonMessage.søknad get() = this["soknadJson"]
+    private val JsonMessage.sakId get() = this["sakId"].textValue()
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        logger.error(problems.toExtendedReport())
+    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
-                    val soknadData = SoknadData(
+                    val journalpostData = JournalpostData(
                         fnrBruker = packet.fnrBruker,
-                        navnBruker = "${packet.fornavn} ${packet.mellomnavn?.let { "${packet.mellomnavn} ${packet.etternavn}" } ?: "${packet.etternavn}"}",
+                        navnBruker = packet.navnBruker,
                         soknadJson = soknadToJson(packet.søknad),
-                        soknadId = UUID.fromString(packet.søknadId)
+                        soknadId = UUID.fromString(packet.søknadId),
+                        sakId = packet.sakId
                     )
-                    logger.info { "Søknad til midlertidig journalføring mottatt: ${soknadData.soknadId}" }
-                    val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
+                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId}" }
+                    val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
                     try {
-                        val journalpostResponse = opprettMidlertidigJournalpost(
-                            soknadData.fnrBruker,
-                            soknadData.navnBruker,
-                            soknadData.soknadId,
+                        val journalpostResponse = opprettOgFerdigstillJournalpost(
+                            journalpostData.fnrBruker,
+                            journalpostData.navnBruker,
+                            journalpostData.soknadId,
                             pdf
                         )
-                        forward(soknadData, journalpostResponse.journalpostNr, context)
+                        forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
                         // Dette skjer kun dersom vi har arkivert søknaden tidlegare (prosessering av samme melding fleire gongar)
@@ -99,7 +105,7 @@ internal class OpprettOgFerdigstillJournalpost(
             logger.error(it) { "Feilet under generering av PDF: $soknadId" }
         }.getOrThrow()
 
-    private suspend fun opprettMidlertidigJournalpost(
+    private suspend fun opprettOgFerdigstillJournalpost(
         fnrBruker: String,
         navnAvsender: String,
         soknadId: UUID,
@@ -120,21 +126,42 @@ internal class OpprettOgFerdigstillJournalpost(
             logger.error(it) { "Feilet under opprettelse og ferdigstillelse journalpost for søknad: $soknadId" }
         }.getOrThrow()
 
-    private fun CoroutineScope.forward(søknadData: SoknadData, joarkRef: String, context: MessageContext) {
+    private fun CoroutineScope.forward(journalpostData: JournalpostData, joarkRef: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(joarkRef, eventName))
+            context.publish(journalpostData.fnrBruker, journalpostData.toJson(joarkRef, eventName))
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
                 null -> {
-                    logger.info("Opprettet og ferdigstilte journalpost i joark for: ${søknadData.soknadId}")
-                    sikkerlogg.info("Opprettet og ferdigstilte journalpost for søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
+                    logger.info("Opprettet og ferdigstilte journalpost i joark for: ${journalpostData.soknadId}")
+                    sikkerlogg.info("Opprettet og ferdigstilte journalpost for søknadsId: ${journalpostData.soknadId}, fnr: ${journalpostData.fnrBruker})")
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
-                    logger.error("Failed: ${it.message}. Soknad: ${søknadData.soknadId}")
+                    logger.error("Failed: ${it.message}. Soknad: ${journalpostData.soknadId}")
                 }
             }
         }
+    }
+}
+
+internal data class JournalpostData(
+    val fnrBruker: String,
+    val navnBruker: String,
+    val soknadId: UUID,
+    val soknadJson: String,
+    val sakId: String,
+) {
+    internal fun toJson(joarkRef: String, eventName: String): String {
+        return JsonMessage("{}", MessageProblems("")).also {
+            it["soknadId"] = this.soknadId
+            it["eventName"] = eventName
+            it["opprettet"] = LocalDateTime.now()
+            it["fodselNrBruker"] = this.fnrBruker // @deprecated
+            it["fnrBruker"] = this.fnrBruker
+            it["joarkRef"] = joarkRef
+            it["sakId"] = sakId
+            it["eventId"] = UUID.randomUUID()
+        }.toJson()
     }
 }

@@ -20,7 +20,14 @@ data class OpprettOgFerdigstillJournalpostRequest(
     val kanal: String,
     val eksternReferanseId: String,
     val journalpostType: String,
-    val journalfoerendeEnhet: String
+    val journalfoerendeEnhet: String,
+    val sak: Sak
+)
+
+data class Sak(
+    val fagsakId: String,
+    val fagsaksystem: String,
+    val sakstype: String
 )
 
 data class MidlertidigJournalForing(

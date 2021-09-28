@@ -38,6 +38,24 @@ internal class WiremockServer(private val configuration: Configuration) {
                             )
                     )
             )
+
+        wiremockServer
+            .stubFor(
+                WireMock.post(WireMock.urlPathMatching("/dokarkiv/opprett-og-ferdigstill"))
+                    .willReturn(
+                        WireMock.aResponse().withStatus(200)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(
+                                """
+                                {
+                                    "journalpostId": "12345",
+                                    "journalpostferdigstilt": "true"
+                                }
+                                      """
+                            )
+                    )
+            )
+
         wiremockServer.start()
     }
 }

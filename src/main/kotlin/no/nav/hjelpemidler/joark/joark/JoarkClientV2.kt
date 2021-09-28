@@ -17,6 +17,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.joark.model.Sak
 import java.util.Base64
 import java.util.UUID
 import kotlin.collections.ArrayList
@@ -60,7 +61,12 @@ class JoarkClientV2(
             KANAL,
             soknadId.toString() + "HJE-DIGITAL-SOKNAD_V2",
             JOURNALPOST_TYPE,
-            "9999"
+            "9999",
+            Sak(
+                fagsakId = soknadId.toString(),
+                fagsaksystem = "AO01",
+                sakstype = "FAGSAK"
+            )
         )
 
         val jsonBody = objectMapper.writeValueAsString(requestBody)

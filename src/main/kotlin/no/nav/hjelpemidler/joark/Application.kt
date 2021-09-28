@@ -38,8 +38,8 @@ fun main() {
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
             JoarkDataSink(this, pdfClient, joarkClient)
-            if (System.getenv("NAIS_CLUSTER_NAME") != null && System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
-                logger.info { "Vi er i dev-gcp" }
+            if (System.getenv("NAIS_CLUSTER_NAME") == null || System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
+                logger.info { "Vi er lokalt eller i dev-gcp" }
                 logger.info { "Cluster name: " + System.getenv("NAIS_CLUSTER_NAME") }
                 OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             }
