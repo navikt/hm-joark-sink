@@ -117,9 +117,9 @@ internal class OpprettOgFerdigstillJournalpost(
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
                 logger.info("Opprettet og ferdigstilte journalpost i joark, journalpostNr: $journalpostnr")
-                throw BadRequestException("Klarte ikke å ferdigstille journalpost")
             } else {
                 logger.warn("Opprettet journalpost i joark, søknadId: $soknadId og journalpostNr: $journalpostnr, men klarte ikke å ferdigstille")
+                throw BadRequestException("Klarte ikke å ferdigstille journalpost")
             }
             Prometheus.opprettettOgferdigstiltJournalpostCounter.inc()
         }.onFailure {
