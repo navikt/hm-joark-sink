@@ -48,7 +48,8 @@ class JoarkClientV2(
         fnrBruker: String,
         navnAvsender: String,
         soknadId: UUID,
-        soknadPdf: ByteArray
+        soknadPdf: ByteArray,
+        sakId: String
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring" }
 
@@ -63,7 +64,7 @@ class JoarkClientV2(
             JOURNALPOST_TYPE,
             "9999",
             Sak(
-                fagsakId = soknadId.toString(),
+                fagsakId = sakId,
                 fagsaksystem = "HJELPEMIDLER",
                 sakstype = "FAGSAK"
             )

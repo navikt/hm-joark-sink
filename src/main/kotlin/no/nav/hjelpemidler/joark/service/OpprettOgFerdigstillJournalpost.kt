@@ -81,7 +81,8 @@ internal class OpprettOgFerdigstillJournalpost(
                             journalpostData.fnrBruker,
                             journalpostData.navnBruker,
                             journalpostData.soknadId,
-                            pdf
+                            pdf,
+                            journalpostData.sakId
                         )
                         forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -109,10 +110,11 @@ internal class OpprettOgFerdigstillJournalpost(
         fnrBruker: String,
         navnAvsender: String,
         soknadId: UUID,
-        soknadPdf: ByteArray
+        soknadPdf: ByteArray,
+        sakId: String
     ) =
         kotlin.runCatching {
-            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf)
+            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId)
         }.onSuccess {
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
