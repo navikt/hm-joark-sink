@@ -124,6 +124,7 @@ internal class OpprettOgFerdigstillJournalpost(
             Prometheus.opprettettOgferdigstiltJournalpostCounter.inc()
         }.onFailure {
             logger.error(it) { "Feilet under opprettelse og ferdigstillelse journalpost for søknad: $soknadId" }
+            throw it
         }.getOrThrow()
 
     private fun CoroutineScope.forward(journalpostData: JournalpostData, joarkRef: String, context: MessageContext) {

@@ -88,13 +88,17 @@ class JoarkClientV2(
                     )
                     .let {
                         when (it.has("journalpostId")) {
-                            true -> OpprettetJournalpostResponse(it["journalpostId"].textValue(), it["journalpostferdigstilt"].booleanValue())
+                            true -> OpprettetJournalpostResponse(
+                                it["journalpostId"].textValue(),
+                                it["journalpostferdigstilt"].booleanValue()
+                            )
                             false -> throw JoarkException("Klarte ikke å arkivere søknad")
                         }
                     }
             }
                 .onFailure {
                     logger.error { it.message }
+                    throw it
                 }
         }
             .getOrThrow()
