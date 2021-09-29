@@ -7,7 +7,7 @@ import no.nav.hjelpemidler.joark.Configuration
 internal class WiremockServer(private val configuration: Configuration) {
 
     fun startServer() {
-        val wiremockServer = WireMockServer(9999)
+        val wiremockServer = WireMockServer(9111)
         wiremockServer
             .stubFor(
                 WireMock.post(WireMock.urlPathMatching("/${configuration.azure.tenantId}/oauth2/v2.0/token"))

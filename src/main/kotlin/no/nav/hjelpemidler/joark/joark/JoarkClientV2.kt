@@ -90,7 +90,7 @@ class JoarkClientV2(
                         when (it.has("journalpostId")) {
                             true -> OpprettetJournalpostResponse(
                                 it["journalpostId"].textValue(),
-                                it["journalpostferdigstilt"].booleanValue()
+                                it["journalpostferdigstilt"].asBoolean()
                             )
                             false -> throw JoarkException("Klarte ikke å arkivere søknad")
                         }

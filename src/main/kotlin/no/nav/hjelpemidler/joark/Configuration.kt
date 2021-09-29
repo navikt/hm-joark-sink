@@ -25,11 +25,11 @@ private val localProperties = ConfigurationMap(
         "KAFKA_KEYSTORE_PATH" to "",
         "kafka.brokers" to "host.docker.internal:9092",
         "PDF_BASEURL" to "http://host.docker.internal:8088",
-        "AZURE_TENANT_BASEURL" to "http://localhost:9999",
+        "AZURE_TENANT_BASEURL" to "http://localhost:9111",
         "AZURE_APP_TENANT_ID" to "123",
         "AZURE_APP_CLIENT_ID" to "123",
         "AZURE_APP_CLIENT_SECRET" to "dummy",
-        "JOARK_BASEURL" to "http://localhost:9999/dokarkiv",
+        "JOARK_BASEURL" to "http://localhost:9111/dokarkiv",
         "JOARK_SCOPE" to "123",
         "EVENT_NAME" to "hm-SøknadArkivert"
     )
