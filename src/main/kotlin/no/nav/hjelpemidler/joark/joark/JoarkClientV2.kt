@@ -64,7 +64,7 @@ class JoarkClientV2(
             "9999",
             Sak(
                 fagsakId = soknadId.toString(),
-                fagsaksystem = "AO01",
+                fagsaksystem = "HJELPEMIDLER",
                 sakstype = "FAGSAK"
             )
         )
