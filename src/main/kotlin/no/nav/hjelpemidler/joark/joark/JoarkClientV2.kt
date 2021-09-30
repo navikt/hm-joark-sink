@@ -127,7 +127,7 @@ class JoarkClientV2(
                     .let {
                         when (it.has("journalpostId")) {
                             true -> it["journalpostId"].textValue()
-                            false -> "453657165" // todo: kast feil
+                            false -> "453657162" // todo: kast feil
                         }
                     }
             }
