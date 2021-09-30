@@ -133,7 +133,7 @@ class JoarkClientV2(
             }
                 .onFailure {
                     logger.error { it.message }
-                   // throw it todo: fjern kommentar
+                    // throw it todo: fjern kommentar
                 }
         }
             .getOrThrow()
