@@ -105,6 +105,40 @@ class JoarkClientV2(
             .getOrThrow()
     }
 
+    suspend fun feilregistrerJournalpostData(
+        journalpostNr: String
+    ): String {
+        logger.info { "feilregistrer sakstilknytning på journalpost" }
+
+        return withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+
+                "$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning".httpPatch()
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    .awaitObject(
+                        object : ResponseDeserializable<JsonNode> {
+                            override fun deserialize(content: String): JsonNode {
+                                return ObjectMapper().readTree(content)
+                            }
+                        }
+                    )
+                    .let {
+                        when (it.has("journalpostId")) {
+                            true -> it["journalpostId"].textValue()
+                            false -> "453657165" // todo: kast feil
+                        }
+                    }
+            }
+                .onFailure {
+                    logger.error { it.message }
+                   // throw it todo: fjern kommentar
+                }
+        }
+            .getOrThrow()
+    }
+
     suspend fun oppdaterJournalpostTittel(journalpostNr: Int, tittel: String): String {
         logger.info { "Oppdaterer tittel på journalpost" }
 

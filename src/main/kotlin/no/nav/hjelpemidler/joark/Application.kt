@@ -6,6 +6,7 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
@@ -42,6 +43,7 @@ fun main() {
                 logger.info { "Vi er lokalt eller i dev-gcp" }
                 logger.info { "Cluster name: " + System.getenv("NAIS_CLUSTER_NAME") }
                 OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
+                FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             }
         }.start()
 }
