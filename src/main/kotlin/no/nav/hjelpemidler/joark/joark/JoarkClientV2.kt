@@ -123,10 +123,7 @@ class JoarkClientV2(
                         }
                     )
                     .let {
-                        when (it.has("journalpostId")) {
-                            true -> it["journalpostId"].textValue()
-                            false -> throw JoarkExceptionV2("Klarte ikke å feilregistrere journalpost  $journalpostNr")
-                        }
+                        journalpostNr
                     }
             }
                 .onFailure {
