@@ -43,7 +43,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     }
 
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
-    private val JsonMessage.journalpostId get() = this["journalpostId"].textValue()
+    private val JsonMessage.journalpostId get() = this["joarkRef"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
