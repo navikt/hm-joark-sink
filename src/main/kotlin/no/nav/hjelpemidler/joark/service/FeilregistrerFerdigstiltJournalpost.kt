@@ -37,7 +37,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                     "navnBruker",
                     "fnrBruker",
                     "dokumentBeskrivelse",
-                    "soknadJson"
+                    "soknadJson",
+                    "soknadId"
                 )
             }
         }.register(this)
@@ -49,6 +50,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.soknadJson get() = this["soknadJson"]
+    private val JsonMessage.soknadId get() = this["soknadId"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -69,7 +71,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
                         dokumentBeskrivelse = packet.dokumentBeskrivelse,
-                        soknadJson = packet.soknadJson
+                        soknadJson = packet.soknadJson,
+                        soknadId = packet.soknadId
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt: ${journalpostData.sakId}, " +
@@ -145,7 +148,8 @@ internal data class FeilregistrerJournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
     val dokumentBeskrivelse: String,
-    val soknadJson: JsonNode
+    val soknadJson: JsonNode,
+    val soknadId: String
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -159,6 +163,7 @@ internal data class FeilregistrerJournalpostData(
             it["navnBruker"] = this.navnBruker
             it["dokumentBeskrivelse"] = this.dokumentBeskrivelse
             it["soknadJson"] = this.soknadJson
+            it["soknadId"] = this.soknadId
         }.toJson()
     }
 }
