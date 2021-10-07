@@ -111,7 +111,7 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning".httpPatch()
+                "$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning".httpPost()
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
