@@ -3,12 +3,10 @@ package no.nav.hjelpemidler.joark.joark
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.core.ResponseDeserializable
-import com.github.kittinunf.fuel.core.awaitResult
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
 import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
-import com.github.kittinunf.fuel.httpPut
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -127,7 +125,7 @@ class JoarkClientV2(
                     .let {
                         when (it.has("journalpostId")) {
                             true -> it["journalpostId"].textValue()
-                            false -> throw JoarkExceptionV2("Klarte ikke å feilregistrere journalpost  ${journalpostNr}")
+                            false -> throw JoarkExceptionV2("Klarte ikke å feilregistrere journalpost  $journalpostNr")
                         }
                     }
             }
