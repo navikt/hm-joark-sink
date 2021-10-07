@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +48,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
-    private val JsonMessage.soknadJson get() = this["soknadJson"].textValue()
+    private val JsonMessage.soknadJson get() = this["soknadJson"]
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -140,7 +141,7 @@ internal data class FeilregistrerJournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
     val dokumentBeskrivelse: String,
-    val soknadJson: String
+    val soknadJson: JsonNode
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
