@@ -40,7 +40,13 @@ class JoarkClient(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
     }
 
-    suspend fun arkiverSoknad(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray): String {
+    suspend fun arkiverSoknad(
+        fnrBruker: String,
+        navnAvsender: String,
+        soknadId: UUID,
+        soknadPdf: ByteArray,
+        eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD"
+    ): String {
         logger.info { "Arkiverer søknad" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
@@ -50,7 +56,7 @@ class JoarkClient(
             TEMA,
             DOKUMENT_TITTEL,
             KANAL,
-            soknadId.toString() + "HJE-DIGITAL-SOKNAD",
+            eksternRefId,
             JOURNALPOST_TYPE
         )
 
