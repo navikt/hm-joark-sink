@@ -127,96 +127,16 @@ class JoarkClientV2(
                     .let {
                         when (it.has("journalpostId")) {
                             true -> it["journalpostId"].textValue()
-                            false -> "453657162" // todo: kast feil
+                            false -> throw JoarkExceptionV2("Klarte ikke å feilregistrere journalpost  ${journalpostNr}")
                         }
                     }
             }
                 .onFailure {
                     logger.error { it.message }
-                    // throw it todo: fjern kommentar
+                    throw it
                 }
         }
             .getOrThrow()
-    }
-
-    suspend fun oppdaterJournalpostTittel(journalpostNr: Int, tittel: String): String {
-        logger.info { "Oppdaterer tittel på journalpost" }
-
-        val requestBody = OppdaterJournalpostRequest(
-            tittel = tittel
-        )
-
-        val jsonBody = objectMapper.writeValueAsString(requestBody)
-
-        return withContext(Dispatchers.IO) {
-            kotlin.runCatching {
-
-                "$baseUrl/$journalpostNr".httpPut()
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .jsonBody(jsonBody)
-                    .awaitObject(
-                        object : ResponseDeserializable<JsonNode> {
-                            override fun deserialize(content: String): JsonNode {
-                                return ObjectMapper().readTree(content)
-                            }
-                        }
-                    )
-                    .let {
-                        when (it.has("journalpostId")) {
-                            true -> it["journalpostId"].textValue()
-                            false -> throw JoarkException("Klarte ikke å oppdatere journalpost")
-                        }
-                    }
-            }
-                .onFailure {
-                    logger.error { it.message }
-                }
-        }
-            .getOrThrow()
-    }
-
-    suspend fun ferdigstillJournalpost(journalpostNr: Int, journalførendeEnhet: Int) {
-        logger.info { "Ferdigstiller journalpost" }
-
-        val requestBody = FerdigstillJournalpostRequest(
-            journalfoerendeEnhet = journalførendeEnhet
-        )
-
-        val jsonBody = objectMapper.writeValueAsString(requestBody)
-
-        withContext(Dispatchers.IO) {
-            kotlin.runCatching {
-
-                "$baseUrl/$journalpostNr/ferdigstill".httpPatch()
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .jsonBody(jsonBody)
-
-                    .awaitResult(
-                        object : ResponseDeserializable<JsonNode> {
-                            override fun deserialize(content: String): JsonNode {
-                                return ObjectMapper().readTree(content)
-                            }
-                        }
-                    )
-            }
-                .onSuccess {
-
-                    val fuelError = it.component2()
-                    if (fuelError != null) {
-                        throw fuelError.exception
-                    }
-                    logger.info { "suksess" }
-                }
-                .onFailure {
-                    logger.error { it.message }
-                    throw JoarkExceptionV2(it.message.toString())
-                }
-                .getOrThrow()
-        }
     }
 
     private fun hentlistDokumentTilJournalForening(soknadPdf: String): List<Dokumenter> {
@@ -236,14 +156,6 @@ class JoarkClientV2(
 }
 
 internal class JoarkExceptionV2(msg: String) : RuntimeException(msg)
-
-data class OppdaterJournalpostRequest(
-    val tittel: String
-)
-
-data class FerdigstillJournalpostRequest(
-    val journalfoerendeEnhet: Int
-)
 
 data class OpprettetJournalpostResponse(
     val journalpostNr: String,
