@@ -24,6 +24,12 @@ internal object Prometheus {
         .help("Antall opprettete+ferdigstilte journalposter i joark")
         .register(collectorRegistry)
 
+    val opprettettJournalpostMedStatusMottattCounter = Counter
+        .build()
+        .name("hm_ferdigstilt_journalpost_opprettet")
+        .help("Antall opprettete+ferdigstilte journalposter i joark")
+        .register(collectorRegistry)
+
     val feilregistrerteSakstilknytningForJournalpostCounter = Counter
         .build()
         .name("hm_feilregistrert_sakstilknytning_journalpost")

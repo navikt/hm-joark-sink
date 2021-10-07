@@ -28,14 +28,26 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@eventName", eventName) }
-            validate { it.requireKey("sakId", "journalpostId", "fnrBruker") }
+            validate { it.demandValue("eventName", eventName) }
+            validate {
+                it.requireKey(
+                    "saksnummer",
+                    "joarkRef",
+                    "navnBruker",
+                    "fnrBruker",
+                    "dokumentBeskrivelse",
+                    "soknadJson"
+                )
+            }
         }.register(this)
     }
 
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.journalpostId get() = this["journalpostId"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
+    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
+    private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
+    private val JsonMessage.soknadJson get() = this["soknadJson"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -49,7 +61,10 @@ internal class FeilregistrerFerdigstiltJournalpost(
                     val journalpostData = FeilregistrerJournalpostData(
                         sakId = packet.sakId,
                         journalpostId = packet.journalpostId,
-                        fnrBruker = packet.fnrBruker
+                        fnrBruker = packet.fnrBruker,
+                        navnBruker = packet.navnBruker,
+                        dokumentBeskrivelse = packet.dokumentBeskrivelse,
+                        soknadJson = packet.soknadJson
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt: ${journalpostData.sakId}, " +
@@ -93,7 +108,10 @@ internal class FeilregistrerFerdigstiltJournalpost(
         context: MessageContext
     ) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(journalpostData.fnrBruker, journalpostData.toJson(nyJournalpostId, "hm-feilregistrerteSakstilknytningForJournalpost"))
+            context.publish(
+                journalpostData.fnrBruker,
+                journalpostData.toJson(nyJournalpostId, "hm-feilregistrerteSakstilknytningForJournalpost")
+            )
             Prometheus.soknadArkivertCounter.inc()
         }.invokeOnCompletion {
             when (it) {
@@ -119,7 +137,10 @@ internal class FeilregistrerFerdigstiltJournalpost(
 internal data class FeilregistrerJournalpostData(
     val sakId: String,
     val journalpostId: String,
-    val fnrBruker: String
+    val fnrBruker: String,
+    val navnBruker: String,
+    val dokumentBeskrivelse: String,
+    val soknadJson: String
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -130,6 +151,9 @@ internal data class FeilregistrerJournalpostData(
             it["nyJournalpostId"] = nyJournalpostId
             it["eventId"] = UUID.randomUUID()
             it["fnrBruker"] = this.fnrBruker
+            it["navnBruker"] = this.navnBruker
+            it["dokumentBeskrivelse"] = this.dokumentBeskrivelse
+            it["soknadJson"] = this.soknadJson
         }.toJson()
     }
 }
