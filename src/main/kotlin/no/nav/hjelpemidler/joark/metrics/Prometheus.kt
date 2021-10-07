@@ -26,7 +26,7 @@ internal object Prometheus {
 
     val opprettettJournalpostMedStatusMottattCounter = Counter
         .build()
-        .name("hm_ferdigstilt_journalpost_opprettet")
+        .name("hm_mottatt_journalpost_opprettet")
         .help("Antall opprettete+ferdigstilte journalposter i joark")
         .register(collectorRegistry)
 
