@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
+import com.github.kittinunf.fuel.coroutines.awaitString
 import com.github.kittinunf.fuel.httpPost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -114,20 +115,14 @@ class JoarkClientV2(
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .awaitObject(
-                        object : ResponseDeserializable<JsonNode> {
-                            override fun deserialize(content: String): JsonNode {
-                                return ObjectMapper().readTree(content)
-                            }
-                        }
-                    )
+                    .awaitString()
                     .let {
                         journalpostNr
                     }
             }
                 .onFailure {
                     logger.error { it.message }
-                    // throw it
+                    throw it
                 }
         }
             .getOrThrow()

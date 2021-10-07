@@ -56,6 +56,10 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
+        if(packet.journalpostId == "453657828"){
+            return
+        }
+
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
