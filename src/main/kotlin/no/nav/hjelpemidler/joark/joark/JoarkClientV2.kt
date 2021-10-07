@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
-import com.github.kittinunf.fuel.httpPatch
 import com.github.kittinunf.fuel.httpPost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
