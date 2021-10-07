@@ -102,7 +102,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
         }.onSuccess {
             logger.info(
                 "Feilregistrerte sakstilknytning for journalpostNr: " +
-                    "$journalpostId, sak: $sakId og opprettet ny journalpost: $it"
+                    "$journalpostId, sak: $sakId"
             )
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
