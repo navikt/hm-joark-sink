@@ -127,7 +127,7 @@ class JoarkClientV2(
             }
                 .onFailure {
                     logger.error { it.message }
-                   // throw it
+                    // throw it
                 }
         }
             .getOrThrow()
