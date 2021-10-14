@@ -111,7 +111,7 @@ internal class OpprettMottattJournalpost(
         soknadPdf: ByteArray
     ) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf, soknadId.toString() + "HOTSAK_TIL_OEBS")
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf, soknadId.toString() + "HOTSAK_TIL_GOSYS")
         }.onSuccess {
             val journalpostnr = it
             logger.info("Opprettet journalpost med status mottatt i joark, journalpostNr: $journalpostnr")
