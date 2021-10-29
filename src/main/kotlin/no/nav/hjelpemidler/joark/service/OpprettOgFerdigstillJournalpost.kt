@@ -46,7 +46,7 @@ internal class OpprettOgFerdigstillJournalpost(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@eventName", "hm-sakOpprettet") }
+            validate { it.demandValue("eventName", "hm-sakOpprettet") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson") }
         }.register(this)
     }
