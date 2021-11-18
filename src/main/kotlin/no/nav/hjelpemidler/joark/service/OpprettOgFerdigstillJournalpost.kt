@@ -47,7 +47,7 @@ internal class OpprettOgFerdigstillJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-sakOpprettet") }
-            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson") }
+            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "soknadGjelder") }
         }.register(this)
     }
 
@@ -57,6 +57,7 @@ internal class OpprettOgFerdigstillJournalpost(
     private val JsonMessage.søknadId get() = this["soknadId"].textValue()
     private val JsonMessage.søknad get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
+    private val JsonMessage.soknadGjelder get() = this["soknadGjelder"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -72,17 +73,19 @@ internal class OpprettOgFerdigstillJournalpost(
                         navnBruker = packet.navnBruker,
                         soknadJson = soknadToJson(packet.søknad),
                         soknadId = UUID.fromString(packet.søknadId),
-                        sakId = packet.sakId
+                        sakId = packet.sakId,
+                        dokumentTittel = packet.soknadGjelder
                     )
                     logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId}" }
                     val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettOgFerdigstillJournalpost(
-                            journalpostData.fnrBruker,
-                            journalpostData.navnBruker,
-                            journalpostData.soknadId,
-                            pdf,
-                            journalpostData.sakId
+                            fnrBruker = journalpostData.fnrBruker,
+                            navnAvsender = journalpostData.navnBruker,
+                            soknadId = journalpostData.soknadId,
+                            soknadPdf = pdf,
+                            sakId = journalpostData.sakId,
+                            dokumentTittel = journalpostData.dokumentTittel
                         )
                         forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -111,10 +114,11 @@ internal class OpprettOgFerdigstillJournalpost(
         navnAvsender: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
-        sakId: String
+        sakId: String,
+        dokumentTittel: String
     ) =
         kotlin.runCatching {
-            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId)
+            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId, dokumentTittel)
         }.onSuccess {
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
@@ -154,6 +158,7 @@ internal data class JournalpostData(
     val soknadId: UUID,
     val soknadJson: String,
     val sakId: String,
+    val dokumentTittel: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -164,6 +169,7 @@ internal data class JournalpostData(
             it["fnrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
             it["sakId"] = sakId
+            it["dokumentTittel"] = dokumentTittel
             it["eventId"] = UUID.randomUUID()
         }.toJson()
     }

@@ -30,7 +30,6 @@ class JoarkClientV2(
 
     companion object {
         private val objectMapper = ObjectMapper()
-        const val DOKUMENT_TITTEL = "Søknad om hjelpemidler"
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
         const val BREV_KODE = "NAV 10-07.03"
@@ -47,7 +46,8 @@ class JoarkClientV2(
         navnAvsender: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
-        sakId: String
+        sakId: String,
+        dokumentTittel: String
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring" }
 
@@ -56,7 +56,7 @@ class JoarkClientV2(
             Bruker(fnrBruker, ID_TYPE),
             hentlistDokumentTilJournalForening(Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
-            DOKUMENT_TITTEL,
+            dokumentTittel,
             KANAL,
             soknadId.toString() + "HOTSAK",
             JOURNALPOST_TYPE,
