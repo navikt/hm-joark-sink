@@ -49,7 +49,7 @@ class JoarkClientV2(
         sakId: String,
         dokumentTittel: String
     ): OpprettetJournalpostResponse {
-        logger.info { "opprett og ferdigstill journalføring $dokumentTittel"  }
+        logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
