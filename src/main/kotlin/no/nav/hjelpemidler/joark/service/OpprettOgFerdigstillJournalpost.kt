@@ -76,7 +76,7 @@ internal class OpprettOgFerdigstillJournalpost(
                         sakId = packet.sakId,
                         dokumentTittel = packet.soknadGjelder
                     )
-                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId}" }
+                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} med dokumenttittel ${journalpostData.dokumentTittel}" }
                     val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettOgFerdigstillJournalpost(
