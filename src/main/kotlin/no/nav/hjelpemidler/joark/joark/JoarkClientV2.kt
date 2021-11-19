@@ -39,6 +39,7 @@ class JoarkClientV2(
         const val TEMA = "HJE"
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "INNGAAENDE"
+        const val JOURNALPOSTBESKRIVELSE = "Søknad om hjelpemidler"
     }
 
     suspend fun opprettOgFerdigstillJournalføring(
@@ -54,9 +55,9 @@ class JoarkClientV2(
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
-            dokumentTittel,
+            JOURNALPOSTBESKRIVELSE,
             KANAL,
             soknadId.toString() + "HOTSAK",
             JOURNALPOST_TYPE,
@@ -128,16 +129,16 @@ class JoarkClientV2(
             .getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(dokumentTittel: String,  soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
-        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, "Søknad om hjelpemidler")
+        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
     }
 
     private fun forbredeHjelpemidlerDokumentVariant(soknadPdf: String): Dokumentvarianter =
