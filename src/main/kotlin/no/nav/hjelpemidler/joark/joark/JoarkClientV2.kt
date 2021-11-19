@@ -135,7 +135,7 @@ class JoarkClientV2(
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(dokumentTittel: String,  soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(dokumentTittel: String, soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
         return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
