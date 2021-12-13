@@ -37,3 +37,4 @@ spec:
     outbound:
       rules:
         - application: hm-soknad-pdfgen
+        - application: hm-grunndata-api
