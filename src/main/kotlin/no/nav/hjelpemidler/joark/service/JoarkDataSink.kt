@@ -73,7 +73,7 @@ internal class JoarkDataSink(
                         soknadJson = soknadToJson(packet.soknad),
                         soknadId = UUID.fromString(packet.soknadId),
                         soknadGjelder = packet.runCatching {
-                           packet.soknadGjelder
+                            packet.soknadGjelder
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
