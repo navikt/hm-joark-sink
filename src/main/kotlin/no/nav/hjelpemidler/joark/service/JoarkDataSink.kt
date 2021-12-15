@@ -61,22 +61,20 @@ internal class JoarkDataSink(
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.soknad get() = this["soknad"]
+    private val JsonMessage.soknadGjelder get() = this["soknadGjelder"].textValue()
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
-                    val soknadGjelder = try {
-                        packet["soknadGjelder"].asText()
-                    } catch (e: Exception) {
-                        "Søknad om hjelpemidler"
-                    }
                     val soknadData = SoknadData(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
                         soknadJson = soknadToJson(packet.soknad),
                         soknadId = UUID.fromString(packet.soknadId),
-                        soknadGjelder = soknadGjelder,
+                        soknadGjelder = packet.runCatching {
+                           packet.soknadGjelder
+                        }.getOrDefault("Søknad om hjelpemidler"),
                     )
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
