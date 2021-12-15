@@ -27,30 +27,30 @@ jobs:
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
       - name: Build and Publish Docker image
-        if: github.ref == 'refs/heads/57-generere-dokumentbeskrivelse-for-alle-digitale-søknader'
+        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker build -t $IMAGE .
           docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
           docker push $IMAGE
-  deploy-dev-q1:
-    name: Deploy to dev-q1
-    needs: build
-    if: github.ref == 'refs/heads/57-generere-dokumentbeskrivelse-for-alle-digitale-søknader'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-gcp
-          RESOURCE: nais/nais-dev.yaml
-          VARS: nais/dev-q1.json
+#  deploy-dev-q1:
+#    name: Deploy to dev-q1
+#    needs: build
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: dev-gcp
+#          RESOURCE: nais/nais-dev.yaml
+#          VARS: nais/dev-q1.json
   deploy-dev:
     name: Deploy to dev
     needs: build
-    if: github.ref == 'refs/heads/57-generere-dokumentbeskrivelse-for-alle-digitale-søknader'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
