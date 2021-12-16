@@ -78,7 +78,7 @@ internal class OpprettMottattJournalpost(
                             this.dokumentBeskrivelse
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
-                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId}" }
+                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
                     val pdf = genererPdf(mottattJournalpostData.soknadJson, mottattJournalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettMottattJournalpost(

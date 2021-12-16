@@ -76,7 +76,7 @@ internal class JoarkDataSink(
                             packet.soknadGjelder
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
-                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
+                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId} med dokumenttittel ${soknadData.soknadGjelder}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
                         val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadGjelder, soknadData.soknadId, pdf)
