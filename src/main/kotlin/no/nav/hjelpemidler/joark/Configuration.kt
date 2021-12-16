@@ -16,7 +16,7 @@ private val localProperties = ConfigurationMap(
         "application.httpPort" to "8083",
         "application.profile" to "LOCAL",
         "APPNAVN" to "hm-joark-sink",
-        "kafka.reset.policy" to "earliest",
+        "kafka.reset.policy" to "latest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v1",
         "kafka.truststore.password" to "",
@@ -39,7 +39,7 @@ private val devProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8080",
         "application.profile" to "DEV",
-        "kafka.reset.policy" to "earliest",
+        "kafka.reset.policy" to "latest",
         "kafka.topic" to "teamdigihot.hm-soknadsbehandling-v1",
         "PDF_BASEURL" to "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
         "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com"

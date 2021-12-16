@@ -47,6 +47,7 @@ internal class OpprettMottattJournalpost(
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson") }
+            validate { it.interestedIn("dokumentBeskrivelse") }
         }.register(this)
     }
 
@@ -56,6 +57,7 @@ internal class OpprettMottattJournalpost(
     private val JsonMessage.søknadId get() = this["soknadId"].textValue()
     private val JsonMessage.soknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
+    private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -71,7 +73,10 @@ internal class OpprettMottattJournalpost(
                         navnBruker = packet.navnBruker,
                         soknadJson = soknadToJson(packet.soknadJson),
                         soknadId = UUID.fromString(packet.søknadId),
-                        sakId = packet.sakId
+                        sakId = packet.sakId,
+                        dokumentBeskrivelse = packet.runCatching {
+                            this.dokumentBeskrivelse
+                        }.getOrDefault("Søknad om hjelpemidler"),
                     )
                     logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId}" }
                     val pdf = genererPdf(mottattJournalpostData.soknadJson, mottattJournalpostData.soknadId)
@@ -79,6 +84,7 @@ internal class OpprettMottattJournalpost(
                         val journalpostResponse = opprettMottattJournalpost(
                             mottattJournalpostData.fnrBruker,
                             mottattJournalpostData.navnBruker,
+                            mottattJournalpostData.dokumentBeskrivelse,
                             mottattJournalpostData.soknadId,
                             pdf
                         )
@@ -107,11 +113,12 @@ internal class OpprettMottattJournalpost(
     private suspend fun opprettMottattJournalpost(
         fnrBruker: String,
         navnAvsender: String,
+        dokumentBeskrivelse: String,
         soknadId: UUID,
         soknadPdf: ByteArray
     ) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf, soknadId.toString() + "HOTSAK_TIL_GOSYS")
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentBeskrivelse, soknadId, soknadPdf, soknadId.toString() + "HOTSAK_TIL_GOSYS")
         }.onSuccess {
             val journalpostnr = it
             logger.info("Opprettet journalpost med status mottatt i joark, journalpostNr: $journalpostnr")
@@ -145,6 +152,7 @@ internal data class MottattJournalpostData(
     val soknadId: UUID,
     val soknadJson: String,
     val sakId: String,
+    val dokumentBeskrivelse: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
