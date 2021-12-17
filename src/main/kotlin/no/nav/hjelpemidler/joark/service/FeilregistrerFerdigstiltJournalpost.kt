@@ -58,7 +58,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
-        if (packet.journalpostId == "453656272" || packet.journalpostId == "453657158") {
+        if (packet.journalpostId == "510879728") {
             return
         }
 
