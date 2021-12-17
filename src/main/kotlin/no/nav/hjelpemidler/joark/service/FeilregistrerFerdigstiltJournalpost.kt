@@ -14,6 +14,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.Profile
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import java.time.LocalDateTime
@@ -58,8 +60,10 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
-        if (packet.journalpostId == "510879728") {
-            return
+        if (Configuration.application.profile != Profile.PROD) {
+            if (packet.journalpostId == "510879728") {
+                return
+            }
         }
 
         runBlocking {
