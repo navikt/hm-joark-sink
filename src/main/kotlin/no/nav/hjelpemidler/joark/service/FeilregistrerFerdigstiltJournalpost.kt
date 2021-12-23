@@ -61,7 +61,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
         if (Configuration.application.profile != Profile.PROD) {
-            if (packet.journalpostId == "510879728") {
+            if (packet.journalpostId == "510878774") {
                 return
             }
         }
