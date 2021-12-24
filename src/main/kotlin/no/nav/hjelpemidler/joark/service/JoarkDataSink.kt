@@ -61,7 +61,7 @@ internal class JoarkDataSink(
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.soknad get() = this["soknad"]
-    private val JsonMessage.soknadGjelder get() = this["soknadGjelder"].textValue()
+    private val JsonMessage.soknadGjelder get() = this["soknadGjelder"].textValue() ?: "Søknad om hjelpemidler"
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
