@@ -53,6 +53,7 @@ internal class JoarkDataSink(
                 )
             }
             validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
+            validate { it.interestedIn("soknadGjelder") }
         }.register(this)
     }
 
@@ -60,6 +61,7 @@ internal class JoarkDataSink(
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.soknad get() = this["soknad"]
+    private val JsonMessage.soknadGjelder get() = this["soknadGjelder"].textValue() ?: "Søknad om hjelpemidler"
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
@@ -69,12 +71,15 @@ internal class JoarkDataSink(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
                         soknadJson = soknadToJson(packet.soknad),
-                        soknadId = UUID.fromString(packet.soknadId)
+                        soknadId = UUID.fromString(packet.soknadId),
+                        soknadGjelder = packet.runCatching {
+                            packet.soknadGjelder
+                        }.getOrDefault("Søknad om hjelpemidler"),
                     )
-                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId}" }
+                    logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId} med dokumenttittel ${soknadData.soknadGjelder}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
-                        val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadId, pdf)
+                        val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadGjelder, soknadData.soknadId, pdf)
                         forward(soknadData, joarkRef, context)
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
@@ -97,9 +102,9 @@ internal class JoarkDataSink(
             logger.error(it) { "Feilet under generering av PDF: $soknadId" }
         }.getOrThrow()
 
-    private suspend fun arkiver(fnrBruker: String, navnAvsender: String, soknadId: UUID, soknadPdf: ByteArray) =
+    private suspend fun arkiver(fnrBruker: String, navnAvsender: String, dokumentTittel: String, soknadId: UUID, soknadPdf: ByteArray) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, soknadId, soknadPdf)
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentTittel, soknadId, soknadPdf)
         }.onSuccess {
             logger.info("Søknad arkivert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
@@ -131,6 +136,7 @@ internal data class SoknadData(
     val navnBruker: String,
     val soknadId: UUID,
     val soknadJson: String,
+    val soknadGjelder: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -141,6 +147,7 @@ internal data class SoknadData(
             it["fnrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
             it["eventId"] = UUID.randomUUID()
+            it["soknadGjelder"] = soknadGjelder
         }.toJson()
     }
 }

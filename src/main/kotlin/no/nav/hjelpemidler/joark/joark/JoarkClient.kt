@@ -43,6 +43,7 @@ class JoarkClient(
     suspend fun arkiverSoknad(
         fnrBruker: String,
         navnAvsender: String,
+        dokumentTittel: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
         eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD"
@@ -52,7 +53,7 @@ class JoarkClient(
         val requestBody = HjelpemidlerDigitalSoknad(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
             DOKUMENT_TITTEL,
             KANAL,
@@ -91,16 +92,16 @@ class JoarkClient(
             .getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(dokumentTittel: String, soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
-        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, "Søknad om hjelpemidler")
+        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
     }
 
     private fun forbredeHjelpemidlerDokumentVariant(soknadPdf: String): Dokumentvarianter =

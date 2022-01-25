@@ -30,7 +30,6 @@ class JoarkClientV2(
 
     companion object {
         private val objectMapper = ObjectMapper()
-        const val DOKUMENT_TITTEL = "Søknad om hjelpemidler"
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
         const val BREV_KODE = "NAV 10-07.03"
@@ -40,6 +39,7 @@ class JoarkClientV2(
         const val TEMA = "HJE"
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "INNGAAENDE"
+        const val JOURNALPOSTBESKRIVELSE = "Søknad om hjelpemidler"
     }
 
     suspend fun opprettOgFerdigstillJournalføring(
@@ -47,16 +47,17 @@ class JoarkClientV2(
         navnAvsender: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
-        sakId: String
+        sakId: String,
+        dokumentTittel: String
     ): OpprettetJournalpostResponse {
-        logger.info { "opprett og ferdigstill journalføring" }
+        logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
-            DOKUMENT_TITTEL,
+            JOURNALPOSTBESKRIVELSE,
             KANAL,
             soknadId.toString() + "HOTSAK",
             JOURNALPOST_TYPE,
@@ -128,16 +129,16 @@ class JoarkClientV2(
             .getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(dokumentTittel: String, soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
-        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, "Søknad om hjelpemidler")
+        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
     }
 
     private fun forbredeHjelpemidlerDokumentVariant(soknadPdf: String): Dokumentvarianter =
