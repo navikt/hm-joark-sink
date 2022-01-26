@@ -130,7 +130,7 @@ class JoarkClientV2(
             kotlin.runCatching {
 
                 val response =
-                    client.post<io.ktor.client.statement.HttpResponse>("baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
+                    client.post<io.ktor.client.statement.HttpResponse>("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
                         contentType(ContentType.Application.Json)
                         header(
                             HttpHeaders.Authorization,
