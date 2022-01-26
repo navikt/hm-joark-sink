@@ -107,7 +107,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
             )
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under feilregistrering av sakstilknytning for journalpost: $$journalpostId, sak: $sakId" }
+            logger.error(it) { "Feilet under feilregistrering av sakstilknytning for journalpost: $journalpostId, sak: $sakId" }
             throw it
         }.getOrThrow()
 

@@ -30,12 +30,7 @@ application {
     mainClassName = "no.nav.hjelpemidler.joark.ApplicationKt"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_12
-    targetCompatibility = JavaVersion.VERSION_12
-}
-
-fun ktor(name: String) = "io.ktor:ktor-$name:1.4.0"
+fun ktor(name: String) = "io.ktor:ktor-$name:1.6.7"
 
 dependencies {
     implementation(Jackson.core)
@@ -54,13 +49,11 @@ dependencies {
     implementation(ktor("client-cio"))
     implementation(ktor("client-jackson"))
 
-    testImplementation(Junit5.api)
     testImplementation(KoTest.assertions)
     testImplementation(KoTest.runner)
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
-    implementation(Wiremock.standalone)
-    testRuntimeOnly(Junit5.engine)
+    implementation("com.github.tomakehurst:wiremock-jre8-standalone:2.32.0")
 }
 
 spotless {
@@ -73,11 +66,6 @@ spotless {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.freeCompilerArgs = listOf()
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
@@ -86,10 +74,6 @@ tasks.withType<Test> {
         exceptionFormat = TestExceptionFormat.FULL
         events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
     }
-}
-
-tasks.withType<Wrapper> {
-    gradleVersion = "6.2.2"
 }
 
 tasks.named("shadowJar") {
@@ -102,4 +86,8 @@ tasks.named("jar") {
 
 tasks.named("compileKotlin") {
     dependsOn("spotlessCheck")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = "17"
 }

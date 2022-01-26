@@ -121,11 +121,11 @@ object Konfig {
 }
 
 object Kotlin {
-    const val version = "1.4.0"
+    const val version = "1.6.10"
     const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$version"
 
     object Coroutines {
-        const val version = "1.3.7"
+        const val version = "1.6.0"
         fun module(name: String) = "org.jetbrains.kotlinx:kotlinx-coroutines-$name:$version"
     }
 
@@ -156,7 +156,7 @@ object Kotlinx {
 }
 
 object Ktor {
-    const val version = "1.4.0"
+    const val version = "1.6.7"
     const val server = "io.ktor:ktor-server:$version"
     const val serverNetty = "io.ktor:ktor-server-netty:$version"
     const val auth = "io.ktor:ktor-auth:$version"
@@ -257,7 +257,7 @@ object Vault {
 }
 
 object Wiremock {
-    const val version = "2.21.0"
+    const val version = "2.32.0"
     const val standalone = "com.github.tomakehurst:wiremock-standalone:$version"
 }
 
