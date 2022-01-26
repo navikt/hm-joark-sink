@@ -13,6 +13,7 @@ import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -129,14 +130,13 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                val response =
-                    client.post<io.ktor.client.statement.HttpResponse>("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
-                        contentType(ContentType.Application.Json)
-                        header(
-                            HttpHeaders.Authorization,
-                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
-                        )
-                    }
+                val response: io.ktor.client.statement.HttpResponse = client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
+                    contentType(ContentType.Application.Json)
+                    header(
+                        HttpHeaders.Authorization,
+                        "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
+                    )
+                }
 
                 when (response.status) {
                     HttpStatusCode.BadRequest -> {
