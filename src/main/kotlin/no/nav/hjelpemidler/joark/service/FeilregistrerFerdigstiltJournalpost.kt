@@ -85,6 +85,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         )
                         forward(journalpostData, nyJournalpostId, context)
                     } catch (e: Exception) {
+                        logger.error { e.message }
                         if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
                         throw e
                     }
