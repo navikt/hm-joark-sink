@@ -35,6 +35,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_12
 }
 
+fun ktor(name: String) = "io.ktor:ktor-$name:1.4.0"
+
 dependencies {
     implementation(Jackson.core)
     implementation(Jackson.kotlin)
@@ -48,6 +50,9 @@ dependencies {
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
     implementation(kotlin("stdlib-jdk8"))
+    implementation(ktor("client-core"))
+    implementation(ktor("client-cio"))
+    implementation(ktor("client-jackson"))
 
     testImplementation(Junit5.api)
     testImplementation(KoTest.assertions)

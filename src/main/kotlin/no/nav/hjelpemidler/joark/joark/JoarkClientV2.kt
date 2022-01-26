@@ -5,8 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
-import com.github.kittinunf.fuel.coroutines.awaitString
 import com.github.kittinunf.fuel.httpPost
+import io.ktor.client.HttpClient
+import io.ktor.client.call.receive
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.json.JacksonSerializer
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -27,6 +37,13 @@ class JoarkClientV2(
     private val accesstokenScope: String,
     private val azureClient: AzureClient
 ) {
+
+    private val client = HttpClient(CIO) {
+        install(JsonFeature) {
+            serializer = JacksonSerializer()
+        }
+        expectSuccess = false
+    }
 
     companion object {
         private val objectMapper = ObjectMapper()
@@ -112,21 +129,45 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning".httpPost()
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .awaitString()
-                    .let {
+                val response =
+                    client.post<io.ktor.client.statement.HttpResponse>("baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
+                        contentType(ContentType.Application.Json)
+                        header(
+                            HttpHeaders.Authorization,
+                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
+                        )
+                    }
+
+                when (response.status) {
+                    HttpStatusCode.BadRequest -> {
+                        val resp = response.receive<JsonNode>()
+
+                        if (resp.has("message") && resp.get("message")
+                            .textValue() == "Saksrelasjonen er allerede feilregistrert"
+                        ) {
+                            logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: " + journalpostNr }
+                            return@withContext journalpostNr
+                        } else {
+                            throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
+                        }
+                    }
+                    HttpStatusCode.Conflict -> {
+                        logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet:  " + journalpostNr }
                         journalpostNr
                     }
+                    HttpStatusCode.OK -> {
+                        journalpostNr
+                    }
+                    else -> {
+                        throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
+                    }
+                }
             }
                 .onFailure {
                     logger.error { it.message }
                     throw it
-                }
+                }.getOrThrow()
         }
-            .getOrThrow()
     }
 
     private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
