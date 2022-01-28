@@ -76,6 +76,11 @@ internal class JoarkDataSink(
                             packet.soknadGjelder
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
+
+                    if (soknadData.soknadId == UUID.fromString("8370a153-cf24-488b-a6a1-20b251d69442")) {
+                        return@launch
+                    }
+
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId} med dokumenttittel ${soknadData.soknadGjelder}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
