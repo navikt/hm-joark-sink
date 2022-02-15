@@ -1,4 +1,4 @@
-name: reviewdog
+name: ktlint code style
 on: [push]
 
 jobs:
