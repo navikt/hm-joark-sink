@@ -80,7 +80,8 @@ internal class JoarkDataSink(
                     if (soknadData.soknadId in listOf<UUID>(
                             UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6"),
                             UUID.fromString("16565b25-1d9a-4dbb-b62e-8c68cc6a64c8"),
-                            UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0")
+                            UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0"),
+                            UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3")
                         )
 
 
