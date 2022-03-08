@@ -77,7 +77,7 @@ internal class JoarkDataSink(
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
 
-                    if (soknadData.soknadId == UUID.fromString("75e3dac8-791d-42e5-b7b2-161d615ac21c")) {
+                    if (soknadData.soknadId == UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6")) {
                         return@launch
                     }
 
