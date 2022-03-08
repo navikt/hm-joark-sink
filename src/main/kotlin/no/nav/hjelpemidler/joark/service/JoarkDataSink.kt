@@ -77,14 +77,27 @@ internal class JoarkDataSink(
                         }.getOrDefault("Søknad om hjelpemidler"),
                     )
 
-                    if (soknadData.soknadId == UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6")) {
+                    if (soknadData.soknadId in listOf<UUID>(
+                            UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6"),
+                            UUID.fromString("16565b25-1d9a-4dbb-b62e-8c68cc6a64c8"),
+                            UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0")
+                        )
+
+
+                    ) {
                         return@launch
                     }
 
                     logger.info { "Søknad til arkivering mottatt: ${soknadData.soknadId} med dokumenttittel ${soknadData.soknadGjelder}" }
                     val pdf = genererPdf(soknadData.soknadJson, soknadData.soknadId)
                     try {
-                        val joarkRef = arkiver(soknadData.fnrBruker, soknadData.navnBruker, soknadData.soknadGjelder, soknadData.soknadId, pdf)
+                        val joarkRef = arkiver(
+                            soknadData.fnrBruker,
+                            soknadData.navnBruker,
+                            soknadData.soknadGjelder,
+                            soknadData.soknadId,
+                            pdf
+                        )
                         forward(soknadData, joarkRef, context)
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
@@ -107,7 +120,13 @@ internal class JoarkDataSink(
             logger.error(it) { "Feilet under generering av PDF: $soknadId" }
         }.getOrThrow()
 
-    private suspend fun arkiver(fnrBruker: String, navnAvsender: String, dokumentTittel: String, soknadId: UUID, soknadPdf: ByteArray) =
+    private suspend fun arkiver(
+        fnrBruker: String,
+        navnAvsender: String,
+        dokumentTittel: String,
+        soknadId: UUID,
+        soknadPdf: ByteArray
+    ) =
         kotlin.runCatching {
             joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentTittel, soknadId, soknadPdf)
         }.onSuccess {
