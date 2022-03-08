@@ -66,30 +66,22 @@ class JoarkClient(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl".httpPost()
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
+                "$baseUrl".httpPost().header("Content-Type", "application/json").header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .jsonBody(jsonBody)
-                    .awaitObject(
-                        object : ResponseDeserializable<JsonNode> {
-                            override fun deserialize(content: String): JsonNode {
-                                return ObjectMapper().readTree(content)
-                            }
+                    .jsonBody(jsonBody).awaitObject(object : ResponseDeserializable<JsonNode> {
+                        override fun deserialize(content: String): JsonNode {
+                            return ObjectMapper().readTree(content)
                         }
-                    )
-                    .let {
+                    }).let {
                         when (it.has("journalpostId")) {
                             true -> it["journalpostId"].textValue()
                             false -> throw JoarkException("Klarte ikke å arkivere søknad")
                         }
                     }
+            }.onFailure {
+                logger.error { it.message }
             }
-                .onFailure {
-                    logger.error { it.message }
-                }
-        }
-            .getOrThrow()
+        }.getOrThrow()
     }
 
     private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {

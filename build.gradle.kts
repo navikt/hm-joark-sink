@@ -56,15 +56,6 @@ dependencies {
     implementation("com.github.tomakehurst:wiremock-jre8-standalone:2.32.0")
 }
 
-spotless {
-    kotlin {
-        ktlint(Ktlint.version)
-    }
-    kotlinGradle {
-        target("*.gradle.kts", "buildSrc/*.gradle.kts")
-        ktlint(Ktlint.version)
-    }
-}
 
 tasks.withType<Test> {
     useJUnitPlatform()
