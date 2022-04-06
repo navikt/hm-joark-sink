@@ -136,7 +136,7 @@ object Kotlin {
 }
 
 object KoTest {
-    const val version = "4.2.0.RC2"
+    const val version = "5.1.0"
 
     // for kotest framework
     const val runner = "io.kotest:kotest-runner-junit5-jvm:$version"
@@ -198,7 +198,7 @@ object Moshi {
 }
 
 object Mockk {
-    const val version = "1.10.0"
+    const val version = "1.12.2"
     const val mockk = "io.mockk:mockk:$version"
 }
 
@@ -232,7 +232,7 @@ object Ktlint {
 }
 
 object Spotless {
-    const val version = "5.1.0"
+    const val version = "6.2.0"
     const val spotless = "com.diffplug.spotless"
 }
 

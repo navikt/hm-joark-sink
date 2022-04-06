@@ -37,23 +37,25 @@ dependencies {
     implementation(Jackson.kotlin)
     implementation(Jackson.jsr310)
     implementation("com.github.guepardoapps:kulid:1.1.2.0")
-    implementation("com.github.navikt:rapids-and-rivers:20210428115805-514c80c")
+    implementation("com.github.navikt:rapids-and-rivers:2022.04.05-09.40.11a466d7ac70")
+    implementation("org.slf4j:slf4j-api:2.0.0-alpha6") // fordi rapids-and-rivers er på logback-classic:1.3.0-alpha10 som krever slf4j >= 2.0.0-alpha4
+    implementation("io.github.microutils:kotlin-logging:2.1.21")
     implementation(Ktor.serverNetty)
     implementation(Database.Kotlinquery)
     implementation(Fuel.fuel)
     implementation(Fuel.library("coroutines"))
     implementation(Konfig.konfig)
-    implementation(Kotlin.Logging.kotlinLogging)
     implementation(kotlin("stdlib-jdk8"))
     implementation(ktor("client-core"))
     implementation(ktor("client-cio"))
     implementation(ktor("client-jackson"))
 
+    testImplementation(kotlin("test"))
     testImplementation(KoTest.assertions)
     testImplementation(KoTest.runner)
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
-    implementation("com.github.tomakehurst:wiremock-jre8-standalone:2.32.0")
+    implementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
 }
 
 
