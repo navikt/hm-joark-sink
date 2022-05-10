@@ -64,6 +64,12 @@ internal class OpprettOgFerdigstillJournalpost(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        // FIXME: Remove again, temporary skipping of event
+        if (packet.søknadId == "aa63c5a9-4c51-4979-82b7-c435ffca55fb") {
+            // 409 conflict.
+            logger.info("Skipping event with sakId=${packet.sakId} and soknadsId=${packet.søknadId}")
+            return
+        }
 
         runBlocking {
             withContext(Dispatchers.IO) {
