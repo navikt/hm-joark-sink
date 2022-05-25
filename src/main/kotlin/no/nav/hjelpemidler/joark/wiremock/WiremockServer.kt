@@ -43,7 +43,7 @@ internal class WiremockServer(private val configuration: Configuration) {
             .stubFor(
                 WireMock.post(WireMock.urlPathMatching("/dokarkiv/opprett-og-ferdigstill"))
                     .willReturn(
-                        WireMock.aResponse().withStatus(200)
+                        WireMock.aResponse().withStatus(201)
                             .withHeader("Content-Type", "application/json")
                             .withBody(
                                 """

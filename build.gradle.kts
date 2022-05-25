@@ -58,7 +58,6 @@ dependencies {
     implementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
 }
 
-
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {

@@ -2,15 +2,12 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.kittinunf.fuel.core.ResponseDeserializable
-import com.github.kittinunf.fuel.core.extensions.jsonBody
-import com.github.kittinunf.fuel.coroutines.awaitObject
-import com.github.kittinunf.fuel.httpPost
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
@@ -20,6 +17,7 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -28,13 +26,12 @@ import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequ
 import no.nav.hjelpemidler.joark.joark.model.Sak
 import java.util.Base64
 import java.util.UUID
-import kotlin.collections.ArrayList
 
 private val logger = KotlinLogging.logger {}
 
 class JoarkClientV2(
-    private val baseUrl: String,
-    private val accesstokenScope: String,
+    private val baseUrl: String = Configuration.joark.baseUrl,
+    private val accesstokenScope: String = Configuration.joark.joarkScope,
     private val azureClient: AzureClient
 ) {
 
@@ -57,7 +54,10 @@ class JoarkClientV2(
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "INNGAAENDE"
         const val JOURNALPOSTBESKRIVELSE = "Søknad om hjelpemidler"
+        const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
     }
+
+    private val opprettOfFerdigstillUrl = "$baseUrl$OPPRETT_OG_FERDIGSTILL_URL_PATH"
 
     suspend fun opprettOgFerdigstillJournalføring(
         fnrBruker: String,
@@ -91,34 +91,34 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl/opprett-og-ferdigstill".httpPost()
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    .jsonBody(jsonBody)
-                    .awaitObject(
-                        object : ResponseDeserializable<JsonNode> {
-                            override fun deserialize(content: String): JsonNode {
-                                return ObjectMapper().readTree(content)
-                            }
-                        }
-                    )
-                    .let {
-                        when (it.has("journalpostId")) {
-                            true -> OpprettetJournalpostResponse(
-                                it["journalpostId"].textValue(),
-                                it["journalpostferdigstilt"].asBoolean()
+                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    body = jsonBody
+                }
+
+                when (response.status) {
+                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        val responseBody = response.receive<JsonNode>()
+                        if (responseBody.has("journalpostId")) {
+                            OpprettetJournalpostResponse(
+                                responseBody["journalpostId"].textValue(),
+                                responseBody["journalpostferdigstilt"].asBoolean()
                             )
-                            false -> throw JoarkException("Klarte ikke å arkivere søknad")
+                        } else {
+                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                         }
                     }
-            }
-                .onFailure {
-                    logger.error { it.message }
-                    throw it
+                    else -> {
+                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                    }
                 }
-        }
-            .getOrThrow()
+            }.onFailure {
+                logger.error(it) { it.message }
+                throw it
+            }
+        }.getOrThrow()
     }
 
     suspend fun feilregistrerJournalpostData(
@@ -129,13 +129,14 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                val response: io.ktor.client.statement.HttpResponse = client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
-                    contentType(ContentType.Application.Json)
-                    header(
-                        HttpHeaders.Authorization,
-                        "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
-                    )
-                }
+                val response: io.ktor.client.statement.HttpResponse =
+                    client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
+                        contentType(ContentType.Application.Json)
+                        header(
+                            HttpHeaders.Authorization,
+                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
+                        )
+                    }
 
                 when (response.status) {
                     HttpStatusCode.BadRequest -> {

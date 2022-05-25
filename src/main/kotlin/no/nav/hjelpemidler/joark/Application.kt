@@ -32,8 +32,6 @@ fun main() {
         azureClient = azureClient
     )
     val joarkClientv2 = JoarkClientV2(
-        baseUrl = Configuration.joark.baseUrl,
-        accesstokenScope = Configuration.joark.joarkScope,
         azureClient = azureClient
     )
 
