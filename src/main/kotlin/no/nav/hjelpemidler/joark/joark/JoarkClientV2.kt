@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -43,7 +42,6 @@ class JoarkClientV2(
     }
 
     companion object {
-        private val objectMapper = ObjectMapper()
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
         const val BREV_KODE = "NAV 10-07.03"
@@ -86,8 +84,6 @@ class JoarkClientV2(
             )
         )
 
-        val jsonBody = objectMapper.writeValueAsString(requestBody)
-
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
@@ -95,7 +91,7 @@ class JoarkClientV2(
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
                     header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    body = jsonBody
+                    body = requestBody
                 }
 
                 when (response.status) {
