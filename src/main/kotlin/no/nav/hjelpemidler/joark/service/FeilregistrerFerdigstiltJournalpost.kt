@@ -72,16 +72,19 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         navnBruker = packet.navnBruker,
                         dokumentBeskrivelse = packet.dokumentBeskrivelse,
                         soknadJson = packet.soknadJson,
-                        soknadId = packet.soknadId
+                        soknadId = packet.soknadId,
+                    )
+                    val behovsmeldingType = BehovsmeldingType.valueOf(
+                        packet.soknadJson.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                     )
                     logger.info {
-                        "Journalpost til feilregistrering av sak mottatt: ${journalpostData.sakId}, " +
+                        "Journalpost til feilregistrering av sak mottatt ($behovsmeldingType): ${journalpostData.sakId}, " +
                             "journalpostId: ${journalpostData.journalpostId}"
                     }
                     try {
                         val nyJournalpostId = feilregistrerJournalpost(
                             journalpostData.sakId,
-                            journalpostData.journalpostId
+                            journalpostData.journalpostId,
                         )
                         forward(journalpostData, nyJournalpostId, context)
                     } catch (e: Exception) {
@@ -150,7 +153,7 @@ internal data class FeilregistrerJournalpostData(
     val navnBruker: String,
     val dokumentBeskrivelse: String,
     val soknadJson: JsonNode,
-    val soknadId: String
+    val soknadId: String,
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

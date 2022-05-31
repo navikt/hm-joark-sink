@@ -129,7 +129,7 @@ internal class JoarkDataSink(
         soknadPdf: ByteArray
     ) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentTittel, soknadId, soknadPdf)
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentTittel, soknadId, soknadPdf, BehovsmeldingType.SØKNAD)
         }.onSuccess {
             logger.info("Søknad arkivert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
