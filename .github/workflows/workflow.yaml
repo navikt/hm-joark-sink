@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - fix-json-body
+      - DIGIHOT-850/bestilling-brevkode-journalfoering
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"
