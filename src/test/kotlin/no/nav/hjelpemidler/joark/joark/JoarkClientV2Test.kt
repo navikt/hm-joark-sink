@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.joark.service.BehovsmeldingType
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -52,7 +53,8 @@ internal class JoarkClientV2Test {
             soknadId = UUID.randomUUID(),
             soknadPdf = ByteArray(0),
             sakId = "1234",
-            dokumentTittel = "Søknad om: rullator"
+            dokumentTittel = "Søknad om: rullator",
+            BehovsmeldingType.SØKNAD,
         )
         val expected = OpprettetJournalpostResponse("467010363", true)
         assertEquals(expected, response)
@@ -75,7 +77,8 @@ internal class JoarkClientV2Test {
             soknadId = UUID.randomUUID(),
             soknadPdf = ByteArray(0),
             sakId = "1234",
-            dokumentTittel = "Søknad om: rullator"
+            dokumentTittel = "Søknad om: rullator",
+            BehovsmeldingType.SØKNAD,
         )
         val expected = OpprettetJournalpostResponse("467010363", true)
         assertEquals(expected, response)

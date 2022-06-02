@@ -14,6 +14,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
+import no.nav.hjelpemidler.joark.service.BehovsmeldingType
 import java.util.Base64
 import java.util.UUID
 import kotlin.collections.ArrayList
@@ -28,11 +29,13 @@ class JoarkClient(
 
     companion object {
         private val objectMapper = ObjectMapper()
-        const val DOKUMENT_TITTEL = "Søknad om hjelpemidler"
+        const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
+        const val DOKUMENT_TITTEL_BEST = "Bestilling av hjelpemidler"
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
-        const val BREV_KODE = "NAV 10-07.03"
-        const val DOKUMENT_KATEGORI = "SOK"
+        const val BREV_KODE_SOK = "NAV 10-07.03"
+        const val BREV_KODE_BEST = "NAV 10-07.05"
+        const val DOKUMENT_KATEGORI_SOK = "SOK"
         const val FIL_TYPE = "PDFA"
         const val VARIANT_FORMAT = "ARKIV"
         const val TEMA = "HJE"
@@ -46,16 +49,17 @@ class JoarkClient(
         dokumentTittel: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
-        eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD"
+        behovsmeldingType: BehovsmeldingType,
+        eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD",
     ): String {
         logger.info { "Arkiverer søknad" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(behovsmeldingType, dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
-            DOKUMENT_TITTEL,
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
             KANAL,
             eksternRefId,
             JOURNALPOST_TYPE
@@ -65,7 +69,6 @@ class JoarkClient(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-
                 "$baseUrl".httpPost().header("Content-Type", "application/json").header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
                     .jsonBody(jsonBody).awaitObject(object : ResponseDeserializable<JsonNode> {
@@ -84,20 +87,30 @@ class JoarkClient(
         }.getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(dokumentTittel, soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(dokumentTittel: String, soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
-        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
-        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
+        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
+        return Dokumenter(
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
+            dokumentVariants,
+            dokumentTittel
+        )
     }
 
-    private fun forbredeHjelpemidlerDokumentVariant(soknadPdf: String): Dokumentvarianter =
-        Dokumentvarianter("hjelpemidlerdigitalsoknad.pdf", FIL_TYPE, VARIANT_FORMAT, soknadPdf)
+    private fun forbredeHjelpemidlerDokumentVariant(behovsmeldingType: BehovsmeldingType, soknadPdf: String): Dokumentvarianter =
+        Dokumentvarianter(
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
+            FIL_TYPE,
+            VARIANT_FORMAT,
+            soknadPdf
+        )
 }
 
 internal class JoarkException(msg: String) : RuntimeException(msg)

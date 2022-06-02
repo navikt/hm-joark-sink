@@ -23,6 +23,7 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
+import no.nav.hjelpemidler.joark.service.BehovsmeldingType
 import java.util.Base64
 import java.util.UUID
 
@@ -44,14 +45,16 @@ class JoarkClientV2(
     companion object {
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
-        const val BREV_KODE = "NAV 10-07.03"
-        const val DOKUMENT_KATEGORI = "SOK"
+        const val BREV_KODE_SOK = "NAV 10-07.03"
+        const val BREV_KODE_BEST = "NAV 10-07.05"
+        const val DOKUMENT_KATEGORI_SOK = "SOK"
         const val FIL_TYPE = "PDFA"
         const val VARIANT_FORMAT = "ARKIV"
         const val TEMA = "HJE"
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "INNGAAENDE"
-        const val JOURNALPOSTBESKRIVELSE = "Søknad om hjelpemidler"
+        const val JOURNALPOSTBESKRIVELSE_SOK = "Søknad om hjelpemidler"
+        const val JOURNALPOSTBESKRIVELSE_BEST = "Bestilling av hjelpemidler"
         const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
     }
 
@@ -63,16 +66,17 @@ class JoarkClientV2(
         soknadId: UUID,
         soknadPdf: ByteArray,
         sakId: String,
-        dokumentTittel: String
+        dokumentTittel: String,
+        behovsmeldingType: BehovsmeldingType,
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(behovsmeldingType, dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
             TEMA,
-            JOURNALPOSTBESKRIVELSE,
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) JOURNALPOSTBESKRIVELSE_BEST else JOURNALPOSTBESKRIVELSE_SOK,
             KANAL,
             soknadId.toString() + "HOTSAK",
             JOURNALPOST_TYPE,
@@ -118,7 +122,7 @@ class JoarkClientV2(
     }
 
     suspend fun feilregistrerJournalpostData(
-        journalpostNr: String
+        journalpostNr: String,
     ): String {
         logger.info { "feilregistrer sakstilknytning på journalpost" }
 
@@ -166,20 +170,30 @@ class JoarkClientV2(
         }
     }
 
-    private fun hentlistDokumentTilJournalForening(dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(dokumentTittel, soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(dokumentTittel: String, soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
-        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(soknadPdf))
-        return Dokumenter(BREV_KODE, DOKUMENT_KATEGORI, dokumentVariants, dokumentTittel)
+        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
+        return Dokumenter(
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
+            dokumentVariants,
+            dokumentTittel
+        )
     }
 
-    private fun forbredeHjelpemidlerDokumentVariant(soknadPdf: String): Dokumentvarianter =
-        Dokumentvarianter("hjelpemidlerdigitalsoknad.pdf", FIL_TYPE, VARIANT_FORMAT, soknadPdf)
+    private fun forbredeHjelpemidlerDokumentVariant(behovsmeldingType: BehovsmeldingType, soknadPdf: String): Dokumentvarianter =
+        Dokumentvarianter(
+            if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
+            FIL_TYPE,
+            VARIANT_FORMAT,
+            soknadPdf
+        )
 }
 
 internal class JoarkExceptionV2(msg: String) : RuntimeException(msg)

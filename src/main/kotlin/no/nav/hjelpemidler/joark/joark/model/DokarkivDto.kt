@@ -62,7 +62,7 @@ data class Dokumentvarianter(
 
 data class Dokumenter(
     val brevkode: String,
-    val dokumentKategori: String,
+    val dokumentKategori: String?,
     val dokumentvarianter: List<Dokumentvarianter>,
     val tittel: String
 )

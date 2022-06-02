@@ -18,6 +18,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Configuration.pdf
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -71,22 +72,24 @@ internal class OpprettMottattJournalpost(
                     val mottattJournalpostData = MottattJournalpostData(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
-                        soknadJson = soknadToJson(packet.soknadJson),
+                        soknadJson = packet.soknadJson,
                         soknadId = UUID.fromString(packet.søknadId),
                         sakId = packet.sakId,
-                        dokumentBeskrivelse = packet.runCatching {
-                            this.dokumentBeskrivelse
-                        }.getOrDefault("Søknad om hjelpemidler"),
+                        dokumentBeskrivelse = packet.dokumentBeskrivelse,
                     )
-                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
-                    val pdf = genererPdf(mottattJournalpostData.soknadJson, mottattJournalpostData.soknadId)
+                    val behovsmeldingType = BehovsmeldingType.valueOf(
+                        packet.soknadJson.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
+                    )
+                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
+                    val pdf = genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettMottattJournalpost(
                             mottattJournalpostData.fnrBruker,
                             mottattJournalpostData.navnBruker,
                             mottattJournalpostData.dokumentBeskrivelse,
                             mottattJournalpostData.soknadId,
-                            pdf
+                            pdf,
+                            behovsmeldingType,
                         )
                         forward(mottattJournalpostData, journalpostResponse, context)
                     } catch (e: Exception) {
@@ -115,10 +118,11 @@ internal class OpprettMottattJournalpost(
         navnAvsender: String,
         dokumentBeskrivelse: String,
         soknadId: UUID,
-        soknadPdf: ByteArray
+        soknadPdf: ByteArray,
+        behovsmeldingType: BehovsmeldingType,
     ) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentBeskrivelse, soknadId, soknadPdf, soknadId.toString() + "HOTSAK_TIL_GOSYS")
+            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentBeskrivelse, soknadId, soknadPdf, behovsmeldingType, soknadId.toString() + "HOTSAK_TIL_GOSYS")
         }.onSuccess {
             val journalpostnr = it
             logger.info("Opprettet journalpost med status mottatt i joark, journalpostNr: $journalpostnr")
@@ -150,7 +154,7 @@ internal data class MottattJournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
     val soknadId: UUID,
-    val soknadJson: String,
+    val soknadJson: JsonNode,
     val sakId: String,
     val dokumentBeskrivelse: String,
 ) {
@@ -164,6 +168,7 @@ internal data class MottattJournalpostData(
             it["joarkRef"] = joarkRef
             it["sakId"] = sakId
             it["eventId"] = UUID.randomUUID()
+            it["soknadJson"] = this.soknadJson
         }.toJson()
     }
 }

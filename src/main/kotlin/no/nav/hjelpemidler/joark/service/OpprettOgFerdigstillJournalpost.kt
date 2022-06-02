@@ -19,6 +19,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Configuration.pdf
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -75,7 +76,10 @@ internal class OpprettOgFerdigstillJournalpost(
                         sakId = packet.sakId,
                         dokumentTittel = packet.soknadGjelder
                     )
-                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} med dokumenttittel ${journalpostData.dokumentTittel}" }
+                    val behovsmeldingType = BehovsmeldingType.valueOf(
+                        packet.søknad.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
+                    )
+                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${journalpostData.dokumentTittel}" }
                     val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettOgFerdigstillJournalpost(
@@ -84,7 +88,8 @@ internal class OpprettOgFerdigstillJournalpost(
                             soknadId = journalpostData.soknadId,
                             soknadPdf = pdf,
                             sakId = journalpostData.sakId,
-                            dokumentTittel = journalpostData.dokumentTittel
+                            dokumentTittel = journalpostData.dokumentTittel,
+                            behovsmeldingType = behovsmeldingType,
                         )
                         forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -114,10 +119,11 @@ internal class OpprettOgFerdigstillJournalpost(
         soknadId: UUID,
         soknadPdf: ByteArray,
         sakId: String,
-        dokumentTittel: String
+        dokumentTittel: String,
+        behovsmeldingType: BehovsmeldingType,
     ) =
         kotlin.runCatching {
-            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId, dokumentTittel)
+            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId, dokumentTittel, behovsmeldingType)
         }.onSuccess {
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
@@ -172,4 +178,8 @@ internal data class JournalpostData(
             it["eventId"] = UUID.randomUUID()
         }.toJson()
     }
+}
+
+enum class BehovsmeldingType {
+    SØKNAD, BESTILLING
 }
