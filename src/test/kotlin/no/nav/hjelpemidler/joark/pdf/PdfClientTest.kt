@@ -50,7 +50,7 @@ internal class PdfClientTest {
 
             WireMock.stubFor(WireMock.post("/api/v1/genpdf/hmb/hmb").willReturn(WireMock.ok(stringPdfMock)))
 
-            pdfClient.genererPdf(pdfResponse)
+            pdfClient.genererSoknadPdf(pdfResponse)
 
             WireMock.verify(1, postRequestedFor(urlEqualTo("/api/v1/genpdf/hmb/hmb")))
         }

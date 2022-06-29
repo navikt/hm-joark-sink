@@ -47,7 +47,9 @@ class JoarkClientV2(
         const val LAND = "NORGE"
         const val BREV_KODE_SOK = "NAV 10-07.03"
         const val BREV_KODE_BEST = "NAV 10-07.05"
+        const val BREV_KODE_BARNEBRILLE = "NAV 10-07.03" // TODO: bytt til riktig
         const val DOKUMENT_KATEGORI_SOK = "SOK"
+        const val DOKUMENT_KATEGORI_BARNEBRILLE = "SOK" // TODO: bytt til riktig
         const val FIL_TYPE = "PDFA"
         const val VARIANT_FORMAT = "ARKIV"
         const val TEMA = "HJE"
@@ -55,6 +57,7 @@ class JoarkClientV2(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
         const val JOURNALPOSTBESKRIVELSE_SOK = "Søknad om hjelpemidler"
         const val JOURNALPOSTBESKRIVELSE_BEST = "Bestilling av hjelpemidler"
+        const val JOURNALPOSTBESKRIVELSE_BARNEBRILLE = "Vedtak for barnebrille" // TODO: bytt til riktig
         const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
     }
 
@@ -79,6 +82,78 @@ class JoarkClientV2(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) JOURNALPOSTBESKRIVELSE_BEST else JOURNALPOSTBESKRIVELSE_SOK,
             KANAL,
             soknadId.toString() + "HOTSAK",
+            JOURNALPOST_TYPE,
+            "9999",
+            Sak(
+                fagsakId = sakId,
+                fagsaksystem = "HJELPEMIDLER",
+                sakstype = "FAGSAK"
+            )
+        )
+
+        return withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+
+                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    body = requestBody
+                }
+
+                when (response.status) {
+                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        val responseBody = response.receive<JsonNode>()
+                        if (responseBody.has("journalpostId")) {
+                            OpprettetJournalpostResponse(
+                                responseBody["journalpostId"].textValue(),
+                                responseBody["journalpostferdigstilt"].asBoolean()
+                            )
+                        } else {
+                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                        }
+                    }
+                    else -> {
+                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                    }
+                }
+            }.onFailure {
+                logger.error(it) { it.message }
+                throw it
+            }
+        }.getOrThrow()
+    }
+
+    suspend fun opprettOgFerdigstillJournalføringBarnebriller(
+        fnr: String,
+        orgnr: String,
+        //soknadId: UUID,
+        pdf: ByteArray,
+        sakId: String,
+        dokumentTittel: String,
+        navnAvsender: String
+    ): OpprettetJournalpostResponse {
+        logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
+
+        val requestBody = OpprettOgFerdigstillJournalpostRequest(
+            AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
+            Bruker(fnr, ID_TYPE),
+            listOf(Dokumenter(
+                BREV_KODE_BARNEBRILLE,
+                DOKUMENT_KATEGORI_BARNEBRILLE,
+                listOf(
+                    Dokumentvarianter(
+                        "barnebrille.pdf",
+                        FIL_TYPE,
+                        VARIANT_FORMAT,
+                        Base64.getEncoder().encodeToString(pdf),
+                )),
+                dokumentTittel
+            )),
+            TEMA,
+            JOURNALPOSTBESKRIVELSE_BARNEBRILLE,
+            KANAL,
+            sakId + "BARNEBRILLEAPI",
             JOURNALPOST_TYPE,
             "9999",
             Sak(

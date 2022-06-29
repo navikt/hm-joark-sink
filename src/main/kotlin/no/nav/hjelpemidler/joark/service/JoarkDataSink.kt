@@ -113,7 +113,7 @@ internal class JoarkDataSink(
 
     private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
-            pdfClient.genererPdf(soknadJson)
+            pdfClient.genererSoknadPdf(soknadJson)
         }.onSuccess {
             logger.info("PDF generert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()
