@@ -158,7 +158,7 @@ class JoarkClientV2(
             "9999",
             Sak(
                 fagsakId = sakId,
-                fagsaksystem = "HJELPEMIDLER",
+                fagsaksystem = "BARNEBRILLER",
                 sakstype = "FAGSAK"
             )
         )
