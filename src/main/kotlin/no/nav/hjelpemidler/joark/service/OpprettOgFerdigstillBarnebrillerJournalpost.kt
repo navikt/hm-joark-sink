@@ -80,7 +80,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                             fnr = journalpostBarnebrillerData.fnr,
                             orgnr = journalpostBarnebrillerData.orgnr,
                             pdf = pdf,
-                            //soknadId = journalpostBarnebrillerData.soknadId,
+                            //soknadId = journalpostBarnebrillerData.soknadId, // TODO: skal det følge med en soknadId fra hm-brille-api?
                             sakId = journalpostBarnebrillerData.sakId,
                             navnAvsender = journalpostBarnebrillerData.navnAvsender,
                             dokumentTittel = DOKUMENTTITTEL,
