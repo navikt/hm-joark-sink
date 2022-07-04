@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -24,6 +25,7 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
 import no.nav.hjelpemidler.joark.service.BehovsmeldingType
+import java.nio.charset.CodingErrorAction.IGNORE
 import java.util.Base64
 import java.util.UUID
 
@@ -77,7 +79,11 @@ class JoarkClientV2(
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(behovsmeldingType, dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(
+                behovsmeldingType,
+                dokumentTittel,
+                Base64.getEncoder().encodeToString(soknadPdf)
+            ),
             TEMA,
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) JOURNALPOSTBESKRIVELSE_BEST else JOURNALPOSTBESKRIVELSE_SOK,
             KANAL,
@@ -127,7 +133,7 @@ class JoarkClientV2(
     suspend fun opprettOgFerdigstillJournalføringBarnebriller(
         fnr: String,
         orgnr: String,
-        //soknadId: UUID,
+        // soknadId: UUID,
         pdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
@@ -138,18 +144,20 @@ class JoarkClientV2(
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
             AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
             Bruker(fnr, ID_TYPE),
-            listOf(Dokumenter(
-                BREV_KODE_BARNEBRILLE,
-                DOKUMENT_KATEGORI_BARNEBRILLE,
-                listOf(
-                    Dokumentvarianter(
-                        "barnebrille.pdf",
-                        FIL_TYPE,
-                        VARIANT_FORMAT,
-                        Base64.getEncoder().encodeToString(pdf),
-                )),
-                dokumentTittel
-            )),
+            listOf(
+                Dokumenter(
+                    dokumentKategori = DOKUMENT_KATEGORI_BARNEBRILLE,
+                    dokumentvarianter = listOf(
+                        Dokumentvarianter(
+                            "barnebrille.pdf",
+                            FIL_TYPE,
+                            VARIANT_FORMAT,
+                            Base64.getEncoder().encodeToString(pdf),
+                        )
+                    ),
+                    tittel = dokumentTittel
+                )
+            ),
             TEMA,
             JOURNALPOSTBESKRIVELSE_BARNEBRILLE,
             KANAL,
@@ -245,13 +253,21 @@ class JoarkClientV2(
         }
     }
 
-    private fun hentlistDokumentTilJournalForening(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(
+        behovsmeldingType: BehovsmeldingType,
+        dokumentTittel: String,
+        soknadPdf: String
+    ): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
         dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(
+        behovsmeldingType: BehovsmeldingType,
+        dokumentTittel: String,
+        soknadPdf: String
+    ): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
         return Dokumenter(
@@ -262,7 +278,10 @@ class JoarkClientV2(
         )
     }
 
-    private fun forbredeHjelpemidlerDokumentVariant(behovsmeldingType: BehovsmeldingType, soknadPdf: String): Dokumentvarianter =
+    private fun forbredeHjelpemidlerDokumentVariant(
+        behovsmeldingType: BehovsmeldingType,
+        soknadPdf: String
+    ): Dokumentvarianter =
         Dokumentvarianter(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
