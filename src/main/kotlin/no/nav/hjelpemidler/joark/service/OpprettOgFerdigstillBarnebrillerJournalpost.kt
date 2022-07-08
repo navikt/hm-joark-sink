@@ -22,6 +22,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -45,16 +46,37 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-barnebrillevedtak-opprettet") }
-            validate { it.requireKey("fnr", "orgnr", "navnAvsender", "eventId", "opprettetDato", "sakId") }
+            validate {
+                it.requireKey(
+                    "fnr",
+                    "brukersNavn",
+                    "orgnr",
+                    "orgNavn",
+                    "orgAdresse",
+                    "navnAvsender",
+                    "eventId",
+                    "opprettetDato",
+                    "sakId",
+                    "brilleseddel",
+                    "bestillingsdato",
+                    "bestillingsreferanse"
+                )
+            }
         }.register(this)
     }
 
     private val JsonMessage.fnr get() = this["fnr"].textValue()
+    private val JsonMessage.brukersNavn get() = this["brukersNavn"].textValue()
     private val JsonMessage.orgnr get() = this["orgnr"].textValue()
+    private val JsonMessage.orgNavn get() = this["orgNavn"].textValue()
+    private val JsonMessage.orgAdresse get() = this["orgAdresse"].textValue()
     private val JsonMessage.navnAvsender get() = this["navnAvsender"].textValue()
     private val JsonMessage.eventId get() = this["eventId"].textValue()
-    private val JsonMessage.opprettetDato get() = this["opprettetDato"].textValue()
+    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue()).toLocalDate()
     private val JsonMessage.sakId get() = this["sakId"].textValue()
+    private val JsonMessage.brilleseddel get() = this["brilleseddel"]
+    private val JsonMessage.bestillingsdato get() = LocalDate.parse(this["bestillingsdato"].textValue())
+    private val JsonMessage.bestillingsreferanse get() = this["bestillingsreferanse"].textValue()
 
     private val DOKUMENTTITTEL = "Journalføring barnebriller" // TODO: finn ut hva denne skal være
 
@@ -68,22 +90,32 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                 launch {
                     val journalpostBarnebrillerData = JournalpostBarnebrillerData(
                         fnr = packet.fnr,
+                        brukersNavn = packet.brukersNavn,
                         orgnr = packet.orgnr,
+                        orgNavn = packet.orgNavn,
+                        orgAdresse = packet.orgAdresse,
                         sakId = packet.sakId,
                         navnAvsender = packet.navnAvsender,
-                        dokumentTittel = DOKUMENTTITTEL
+                        dokumentTittel = DOKUMENTTITTEL,
+                        brilleseddel = packet.brilleseddel,
+                        opprettet = packet.opprettetDato,
+                        bestillingsdato = packet.bestillingsdato,
+                        bestillingsreferanse = packet.bestillingsreferanse
                     )
                     logger.info { "Sak til journalføring barnebriller mottatt" }
-                    val pdf = genererPdf(objectMapper.writeValueAsString(journalpostBarnebrillerData), journalpostBarnebrillerData.sakId)
+                    val pdf = genererPdf(
+                        objectMapper.writeValueAsString(journalpostBarnebrillerData),
+                        journalpostBarnebrillerData.sakId
+                    )
                     try {
                         val journalpostResponse = opprettOgFerdigstillBarnebrillerJournalpost(
                             fnr = journalpostBarnebrillerData.fnr,
                             orgnr = journalpostBarnebrillerData.orgnr,
                             pdf = pdf,
-                            //soknadId = journalpostBarnebrillerData.soknadId, // TODO: skal det følge med en soknadId fra hm-brille-api?
+                            // soknadId = journalpostBarnebrillerData.soknadId, // TODO: skal det følge med en soknadId fra hm-brille-api?
                             sakId = journalpostBarnebrillerData.sakId,
                             navnAvsender = journalpostBarnebrillerData.navnAvsender,
-                            dokumentTittel = DOKUMENTTITTEL,
+                            dokumentTittel = DOKUMENTTITTEL
                         )
                         forward(journalpostBarnebrillerData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -111,10 +143,10 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
         fnr: String,
         orgnr: String,
         pdf: ByteArray,
-        //soknadId: String
+        // soknadId: String
         sakId: String,
         dokumentTittel: String,
-        navnAvsender: String,
+        navnAvsender: String
     ) =
         kotlin.runCatching {
             joarkClientV2.opprettOgFerdigstillJournalføringBarnebriller(
@@ -123,7 +155,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                 sakId = sakId,
                 dokumentTittel = dokumentTittel,
                 navnAvsender = navnAvsender,
-                pdf = pdf,
+                pdf = pdf
             )
         }.onSuccess {
             val journalpostnr = it.journalpostNr
@@ -139,7 +171,11 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
             throw it
         }.getOrThrow()
 
-    private fun CoroutineScope.forward(journalpostBarnebrillerData: JournalpostBarnebrillerData, joarkRef: String, context: MessageContext) {
+    private fun CoroutineScope.forward(
+        journalpostBarnebrillerData: JournalpostBarnebrillerData,
+        joarkRef: String,
+        context: MessageContext
+    ) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(journalpostBarnebrillerData.fnr, journalpostBarnebrillerData.toJson(joarkRef, eventName))
             Prometheus.soknadArkivertCounter.inc()
@@ -160,10 +196,17 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
 
 internal data class JournalpostBarnebrillerData(
     val fnr: String,
+    val brukersNavn: String,
     val orgnr: String,
+    val orgNavn: String,
+    val orgAdresse: String,
     val sakId: String,
     val navnAvsender: String,
-    val dokumentTittel: String
+    val dokumentTittel: String,
+    val brilleseddel: JsonNode,
+    val opprettet: LocalDate,
+    val bestillingsdato: LocalDate,
+    val bestillingsreferanse: String
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
