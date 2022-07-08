@@ -11,17 +11,19 @@ import java.net.HttpURLConnection.HTTP_OK
 private val logger = KotlinLogging.logger {}
 
 internal class PdfClient(private val baseUrl: String) {
-    companion object {
-        const val PATH = "api/v1/genpdf/hmb/hmb"
-    }
+    private val API_BASE_PATH = "api/v1/genpdf"
 
-    suspend fun genererPdf(soknadJson: String): ByteArray {
-        logger.info { "Generer PDF" }
+    suspend fun genererSoknadPdf(soknadJson: String): ByteArray = genererPdf(soknadJson, "$API_BASE_PATH/hmb/hmb")
+
+    suspend fun genererBarnebrillePdf(soknadJson: String): ByteArray = genererPdf(soknadJson, "$API_BASE_PATH/barnebrille/barnebrille")
+
+    suspend fun genererPdf(soknadJson: String, path: String): ByteArray {
+        logger.info { "Generer PDF for path ${path}" }
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
 
-                "$baseUrl/$PATH".httpPost()
+                "$baseUrl/$path".httpPost()
                     .header("Content-Type", "application/json")
                     .jsonBody(soknadJson)
                     .awaitByteArrayResponse()

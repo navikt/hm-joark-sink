@@ -18,7 +18,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.joark.Configuration.pdf
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -105,7 +104,7 @@ internal class OpprettMottattJournalpost(
 
     private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
-            pdfClient.genererPdf(soknadJson)
+            pdfClient.genererSoknadPdf(soknadJson)
         }.onSuccess {
             logger.info("PDF generert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()

@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
+import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
@@ -41,5 +42,6 @@ fun main() {
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
+            OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
         }.start()
 }

@@ -1,5 +1,7 @@
 package no.nav.hjelpemidler.joark.joark.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
 data class HjelpemidlerDigitalSoknad(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
@@ -61,7 +63,8 @@ data class Dokumentvarianter(
 )
 
 data class Dokumenter(
-    val brevkode: String,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val brevkode: String? = null,
     val dokumentKategori: String?,
     val dokumentvarianter: List<Dokumentvarianter>,
     val tittel: String

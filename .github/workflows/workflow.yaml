@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - DIGIHOT-850/bestilling-brevkode-journalfoering
+      - barnebriller
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"
