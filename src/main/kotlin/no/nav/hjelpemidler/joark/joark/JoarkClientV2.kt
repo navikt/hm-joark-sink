@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -25,7 +24,6 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
 import no.nav.hjelpemidler.joark.service.BehovsmeldingType
-import java.nio.charset.CodingErrorAction.IGNORE
 import java.util.Base64
 import java.util.UUID
 
@@ -51,7 +49,6 @@ class JoarkClientV2(
         const val BREV_KODE_BEST = "NAV 10-07.05"
         const val BREV_KODE_BARNEBRILLE = "NAV 10-07.03" // TODO: bytt til riktig
         const val DOKUMENT_KATEGORI_SOK = "SOK"
-        const val DOKUMENT_KATEGORI_BARNEBRILLE = "SOK" // TODO: bytt til riktig
         const val FIL_TYPE = "PDFA"
         const val VARIANT_FORMAT = "ARKIV"
         const val TEMA = "HJE"
@@ -72,7 +69,7 @@ class JoarkClientV2(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType,
+        behovsmeldingType: BehovsmeldingType
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
@@ -99,7 +96,6 @@ class JoarkClientV2(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-
                 val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
@@ -146,13 +142,13 @@ class JoarkClientV2(
             Bruker(fnr, ID_TYPE),
             listOf(
                 Dokumenter(
-                    dokumentKategori = DOKUMENT_KATEGORI_BARNEBRILLE,
+                    dokumentKategori = DOKUMENT_KATEGORI_SOK,
                     dokumentvarianter = listOf(
                         Dokumentvarianter(
                             "barnebrille.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
-                            Base64.getEncoder().encodeToString(pdf),
+                            Base64.getEncoder().encodeToString(pdf)
                         )
                     ),
                     tittel = dokumentTittel
@@ -173,7 +169,6 @@ class JoarkClientV2(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-
                 val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
@@ -205,13 +200,12 @@ class JoarkClientV2(
     }
 
     suspend fun feilregistrerJournalpostData(
-        journalpostNr: String,
+        journalpostNr: String
     ): String {
         logger.info { "feilregistrer sakstilknytning på journalpost" }
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-
                 val response: io.ktor.client.statement.HttpResponse =
                     client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
                         contentType(ContentType.Application.Json)
