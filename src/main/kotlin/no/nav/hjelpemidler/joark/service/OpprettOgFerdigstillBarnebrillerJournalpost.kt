@@ -22,6 +22,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -59,7 +60,10 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                     "sakId",
                     "brilleseddel",
                     "bestillingsdato",
-                    "bestillingsreferanse"
+                    "bestillingsreferanse",
+                    "satsBeskrivelse",
+                    "satsBeløp",
+                    "beløp"
                 )
             }
         }.register(this)
@@ -77,6 +81,9 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
     private val JsonMessage.brilleseddel get() = this["brilleseddel"]
     private val JsonMessage.bestillingsdato get() = LocalDate.parse(this["bestillingsdato"].textValue())
     private val JsonMessage.bestillingsreferanse get() = this["bestillingsreferanse"].textValue()
+    private val JsonMessage.satsBeskrivelse get() = this["satsBeskrivelse"].textValue()
+    private val JsonMessage.satsBeløp get() = this["satsBeløp"].decimalValue()
+    private val JsonMessage.beløp get() = this["beløp"].decimalValue()
 
     private val DOKUMENTTITTEL = "Journalføring barnebriller" // TODO: finn ut hva denne skal være
 
@@ -100,7 +107,10 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                         brilleseddel = packet.brilleseddel,
                         opprettet = packet.opprettetDato,
                         bestillingsdato = packet.bestillingsdato,
-                        bestillingsreferanse = packet.bestillingsreferanse
+                        bestillingsreferanse = packet.bestillingsreferanse,
+                        satsBeskrivelse = packet.satsBeskrivelse,
+                        satsBeløp = packet.satsBeløp,
+                        beløp = packet.beløp
                     )
                     logger.info { "Sak til journalføring barnebriller mottatt" }
                     val pdf = genererPdf(
@@ -206,7 +216,10 @@ internal data class JournalpostBarnebrillerData(
     val brilleseddel: JsonNode,
     val opprettet: LocalDate,
     val bestillingsdato: LocalDate,
-    val bestillingsreferanse: String
+    val bestillingsreferanse: String,
+    val satsBeskrivelse: String,
+    val satsBeløp: BigDecimal,
+    val beløp: BigDecimal
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
