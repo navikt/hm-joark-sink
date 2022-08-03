@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -53,11 +54,34 @@ fun main() {
 
 val statusListener = object : RapidsConnection.StatusListener {
     override fun onReady(rapidsConnection: RapidsConnection) {
+
+        val azureClient = AzureClient(
+            tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
+            clientId = Configuration.azure.clientId,
+            clientSecret = Configuration.azure.clientSecret
+        )
+
+        val joarkClientv2 = JoarkClientV2(
+            azureClient = azureClient
+        )
+
         logger.info { "App har starta" }
-        val file = File("test.csv")
+        val file = File("jpfeil.csv")
         val rows: List<List<String>> = csvReader().readAll(file)
         rows.forEach { row ->
             logger.info { "jp: ${row.first()}" }
+            kotlin.runCatching {
+                runBlocking {
+                   // joarkClientv2.feilregistrerJournalpostData("")
+                }
+            }.onFailure {
+                logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+            }.onSuccess {
+                logger.info { "Feilregistrerte jp med id: ${row.first()}" }
+            }
         }
+
+
+
     }
 }
