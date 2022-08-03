@@ -66,28 +66,50 @@ val statusListener = object : RapidsConnection.StatusListener {
         )
 
         logger.info { "App har starta" }
-        val rows: List<List<String>> = csvReader().readAll(jpFeil)
-        rows.forEach { row ->
-            logger.info { "jp: ${row.first()}" }
-            kotlin.runCatching {
-                runBlocking {
-                   // joarkClientv2.feilregistrerJournalpostData("")
+
+        if(Configuration.application.profile === Profile.PROD){
+            val rows: List<List<String>> = csvReader().readAll(jpFeil)
+            rows.forEach { row ->
+                logger.info { "jp: ${row.first()}" }
+                kotlin.runCatching {
+                    runBlocking {
+                        if(Configuration.application.profile == Profile.PROD){
+                            joarkClientv2.feilregistrerJournalpostData(row.first())
+                        }
+                    }
+                }.onFailure {
+                    logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+                }.onSuccess {
+                    logger.info { "Feilregistrerte jp med id: ${row.first()}" }
                 }
-            }.onFailure {
-                logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
-            }.onSuccess {
-                logger.info { "Feilregistrerte jp med id: ${row.first()}" }
+            }
+        } else if(Configuration.application.profile === Profile.DEV){
+            val rows: List<List<String>> = csvReader().readAll(jpFeilDev)
+            rows.forEach { row ->
+                logger.info { "jp: ${row.first()}" }
+                kotlin.runCatching {
+                    runBlocking {
+                        if(Configuration.application.profile == Profile.PROD){
+                            joarkClientv2.feilregistrerJournalpostData(row.first())
+                        }
+                    }
+                }.onFailure {
+                    logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+                }.onSuccess {
+                    logger.info { "Feilregistrerte jp med id: ${row.first()}" }
+                }
             }
         }
-
-
 
     }
 }
 
 
+val jpFeilDev = """
+    453809946; 40
+""".trimIndent()
+
 val jpFeil = """
-    ournalpostId;sakId
     576824388; 121
     576822312; 120
     576821953; 119
