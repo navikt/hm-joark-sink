@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark
 
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
@@ -38,10 +39,20 @@ fun main() {
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
+            register(statusListener)
             JoarkDataSink(this, pdfClient, joarkClient)
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
         }.start()
+
+
+}
+
+
+val statusListener = object : RapidsConnection.StatusListener {
+    override fun onReady(rapidsConnection: RapidsConnection) {
+        logger.info { "App har starta" }
+    }
 }
