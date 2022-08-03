@@ -56,6 +56,7 @@ dependencies {
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
     implementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.5.1")
 }
 
 tasks.withType<Test> {
