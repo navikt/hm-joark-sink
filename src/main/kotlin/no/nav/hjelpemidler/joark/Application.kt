@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark
 
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -13,6 +14,7 @@ import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
+import java.io.File
 
 private val logger = KotlinLogging.logger {}
 
@@ -46,13 +48,16 @@ fun main() {
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
         }.start()
-
-
 }
 
 
 val statusListener = object : RapidsConnection.StatusListener {
     override fun onReady(rapidsConnection: RapidsConnection) {
         logger.info { "App har starta" }
+        val file = File("test.csv")
+        val rows: List<List<String>> = csvReader().readAll(file)
+        rows.forEach { row ->
+            logger.info { "jp: ${row.first()}" }
+        }
     }
 }
