@@ -269,7 +269,7 @@ class JoarkClientV2(
                     dokumentKategori = DOKUMENT_KATEGORI_SOK,
                     dokumentvarianter = listOf(
                         Dokumentvarianter(
-                            "barnebrille.pdf",
+                            "barnebrille-${sakId}.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
                             Base64.getEncoder().encodeToString(pdf)
@@ -281,7 +281,7 @@ class JoarkClientV2(
             TEMA,
             JOURNALPOSTBESKRIVELSE_BARNEBRILLE,
             KANAL,
-            sakId + "BARNEBRILLEAPI_RE",
+            "RE_" + sakId + "BARNEBRILLEAPI",
             JOURNALPOST_TYPE,
             "9999",
             Sak(
