@@ -74,7 +74,8 @@ internal class ResendBarnebrillerJournalpost(
     private val JsonMessage.orgAdresse get() = this["orgAdresse"].textValue()
     private val JsonMessage.navnAvsender get() = this["navnAvsender"].textValue()
     private val JsonMessage.eventId get() = this["eventId"].textValue()
-    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue())
+    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue()).toLocalDate()
+    private val JsonMessage.opprettetDatoTid get() = LocalDateTime.parse(this["opprettetDato"].textValue())
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.brilleseddel get() = this["brilleseddel"]
     private val JsonMessage.bestillingsdato get() = LocalDate.parse(this["bestillingsdato"].textValue())
@@ -124,7 +125,7 @@ internal class ResendBarnebrillerJournalpost(
                             sakId = journalpostBarnebrillerData.sakId,
                             navnAvsender = journalpostBarnebrillerData.navnAvsender,
                             dokumentTittel = DOKUMENTTITTEL,
-                            datoMottatt =journalpostBarnebrillerData.opprettet.toString() + "Z"
+                            datoMottatt = packet.opprettetDatoTid.toString() + "Z"
                         )
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
@@ -192,7 +193,7 @@ internal data class ResendJournalpostBarnebrillerData(
     val navnAvsender: String,
     val dokumentTittel: String,
     val brilleseddel: JsonNode,
-    val opprettet: LocalDateTime,
+    val opprettet: LocalDate,
     val bestillingsdato: LocalDate,
     val bestillingsreferanse: String,
     val satsBeskrivelse: String,
