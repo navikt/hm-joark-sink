@@ -9,11 +9,13 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.*
 import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.ResendBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 private val logger = KotlinLogging.logger {}
@@ -46,6 +48,7 @@ fun main() {
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
+            ResendBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
         }.start()
 }
 
