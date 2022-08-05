@@ -178,6 +178,9 @@ class JoarkClientV2(
 
                 when (response.status) {
                     HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        if (response.status == HttpStatusCode.Conflict) {
+                            logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId ${requestBody.sak.fagsakId}" }
+                        }
                         val responseBody = response.receive<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             OpprettetJournalpostResponse(
@@ -220,7 +223,7 @@ class JoarkClientV2(
                         val resp = response.receive<JsonNode>()
 
                         if (resp.has("message") && resp.get("message")
-                            .textValue() == "Saksrelasjonen er allerede feilregistrert"
+                                .textValue() == "Saksrelasjonen er allerede feilregistrert"
                         ) {
                             logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: " + journalpostNr }
                             return@withContext journalpostNr
