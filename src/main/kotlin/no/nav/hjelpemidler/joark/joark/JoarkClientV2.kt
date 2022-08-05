@@ -250,6 +250,82 @@ class JoarkClientV2(
         }
     }
 
+    suspend fun rekjørJournalføringBarnebriller(
+        fnr: String,
+        orgnr: String,
+        // soknadId: UUID,
+        pdf: ByteArray,
+        sakId: String,
+        dokumentTittel: String,
+        navnAvsender: String
+    ): OpprettetJournalpostResponse {
+        logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
+
+        val requestBody = OpprettOgFerdigstillJournalpostRequest(
+            AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
+            Bruker(fnr, ID_TYPE),
+            listOf(
+                Dokumenter(
+                    dokumentKategori = DOKUMENT_KATEGORI_SOK,
+                    dokumentvarianter = listOf(
+                        Dokumentvarianter(
+                            "barnebrille.pdf",
+                            FIL_TYPE,
+                            VARIANT_FORMAT,
+                            Base64.getEncoder().encodeToString(pdf)
+                        )
+                    ),
+                    tittel = dokumentTittel
+                )
+            ),
+            TEMA,
+            JOURNALPOSTBESKRIVELSE_BARNEBRILLE,
+            KANAL,
+            sakId + "BARNEBRILLEAPI_RE",
+            JOURNALPOST_TYPE,
+            "9999",
+            Sak(
+                fagsakId = sakId,
+                fagsaksystem = "BARNEBRILLER",
+                sakstype = "FAGSAK"
+            )
+        )
+
+        return withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    body = requestBody
+                }
+
+                when (response.status) {
+                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        if (response.status == HttpStatusCode.Conflict) {
+                            logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId ${requestBody.sak.fagsakId}" }
+                        }
+                        val responseBody = response.receive<JsonNode>()
+                        if (responseBody.has("journalpostId")) {
+                            OpprettetJournalpostResponse(
+                                responseBody["journalpostId"].textValue(),
+                                responseBody["journalpostferdigstilt"].asBoolean()
+                            )
+                        } else {
+                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                        }
+                    }
+                    else -> {
+                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                    }
+                }
+            }.onFailure {
+                logger.error(it) { it.message }
+                throw it
+            }
+        }.getOrThrow()
+    }
+
     private fun hentlistDokumentTilJournalForening(
         behovsmeldingType: BehovsmeldingType,
         dokumentTittel: String,

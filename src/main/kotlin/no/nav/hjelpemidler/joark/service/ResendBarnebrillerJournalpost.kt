@@ -156,7 +156,7 @@ internal class ResendBarnebrillerJournalpost(
         navnAvsender: String
     ) =
         kotlin.runCatching {
-            joarkClientV2.opprettOgFerdigstillJournalføringBarnebriller(
+            joarkClientV2.rekjørJournalføringBarnebriller(
                 fnr = fnr,
                 orgnr = orgnr,
                 sakId = sakId,
