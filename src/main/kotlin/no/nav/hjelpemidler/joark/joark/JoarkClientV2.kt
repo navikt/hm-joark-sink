@@ -17,12 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
-import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
-import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
-import no.nav.hjelpemidler.joark.joark.model.Sak
+import no.nav.hjelpemidler.joark.joark.model.*
 import no.nav.hjelpemidler.joark.service.BehovsmeldingType
 import java.util.Base64
 import java.util.UUID
@@ -257,11 +252,12 @@ class JoarkClientV2(
         pdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        navnAvsender: String
+        navnAvsender: String,
+        datoMottatt: String
     ): OpprettetJournalpostResponse {
-        logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
+        logger.info { "rekjør journalføring barnebriller $dokumentTittel" }
 
-        val requestBody = OpprettOgFerdigstillJournalpostRequest(
+        val requestBody = OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
             AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
             Bruker(fnr, ID_TYPE),
             listOf(
@@ -288,7 +284,8 @@ class JoarkClientV2(
                 fagsakId = sakId,
                 fagsaksystem = "BARNEBRILLER",
                 sakstype = "FAGSAK"
-            )
+            ),
+            datoMottatt
         )
 
         return withContext(Dispatchers.IO) {

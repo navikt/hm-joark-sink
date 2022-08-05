@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark.joark.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import java.time.LocalDateTime
 
 data class HjelpemidlerDigitalSoknad(
     val avsenderMottaker: AvsenderMottaker,
@@ -24,6 +25,20 @@ data class OpprettOgFerdigstillJournalpostRequest(
     val journalpostType: String,
     val journalfoerendeEnhet: String,
     val sak: Sak
+)
+
+data class OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
+    val avsenderMottaker: AvsenderMottaker,
+    val bruker: Bruker,
+    val dokumenter: List<Dokumenter>?,
+    val tema: String,
+    val tittel: String,
+    val kanal: String,
+    val eksternReferanseId: String,
+    val journalpostType: String,
+    val journalfoerendeEnhet: String,
+    val sak: Sak,
+    val datoMottatt: String
 )
 
 data class Sak(

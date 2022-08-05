@@ -74,7 +74,7 @@ internal class ResendBarnebrillerJournalpost(
     private val JsonMessage.orgAdresse get() = this["orgAdresse"].textValue()
     private val JsonMessage.navnAvsender get() = this["navnAvsender"].textValue()
     private val JsonMessage.eventId get() = this["eventId"].textValue()
-    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue()).toLocalDate()
+    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue())
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.brilleseddel get() = this["brilleseddel"]
     private val JsonMessage.bestillingsdato get() = LocalDate.parse(this["bestillingsdato"].textValue())
@@ -93,7 +93,7 @@ internal class ResendBarnebrillerJournalpost(
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
-                    val journalpostBarnebrillerData = JournalpostBarnebrillerData(
+                    val journalpostBarnebrillerData = ResendJournalpostBarnebrillerData(
                         fnr = packet.fnr,
                         brukersNavn = packet.brukersNavn,
                         orgnr = packet.orgnr,
@@ -123,7 +123,8 @@ internal class ResendBarnebrillerJournalpost(
                             // soknadId = journalpostBarnebrillerData.soknadId, // TODO: skal det følge med en soknadId fra hm-brille-api?
                             sakId = journalpostBarnebrillerData.sakId,
                             navnAvsender = journalpostBarnebrillerData.navnAvsender,
-                            dokumentTittel = DOKUMENTTITTEL
+                            dokumentTittel = DOKUMENTTITTEL,
+                            datoMottatt =journalpostBarnebrillerData.opprettet.toString() + "Z"
                         )
                     } catch (e: Exception) {
                         // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
@@ -153,7 +154,8 @@ internal class ResendBarnebrillerJournalpost(
         // soknadId: String
         sakId: String,
         dokumentTittel: String,
-        navnAvsender: String
+        navnAvsender: String,
+        datoMottatt: String
     ) =
         kotlin.runCatching {
             joarkClientV2.rekjørJournalføringBarnebriller(
@@ -162,7 +164,8 @@ internal class ResendBarnebrillerJournalpost(
                 sakId = sakId,
                 dokumentTittel = dokumentTittel,
                 navnAvsender = navnAvsender,
-                pdf = pdf
+                pdf = pdf,
+                datoMottatt = datoMottatt
             )
         }.onSuccess {
             val journalpostnr = it.journalpostNr
@@ -178,5 +181,23 @@ internal class ResendBarnebrillerJournalpost(
         }.getOrThrow()
 
 }
+
+internal data class ResendJournalpostBarnebrillerData(
+    val fnr: String,
+    val brukersNavn: String,
+    val orgnr: String,
+    val orgNavn: String,
+    val orgAdresse: String,
+    val sakId: String,
+    val navnAvsender: String,
+    val dokumentTittel: String,
+    val brilleseddel: JsonNode,
+    val opprettet: LocalDateTime,
+    val bestillingsdato: LocalDate,
+    val bestillingsreferanse: String,
+    val satsBeskrivelse: String,
+    val satsBeløp: BigDecimal,
+    val beløp: BigDecimal
+)
 
 
