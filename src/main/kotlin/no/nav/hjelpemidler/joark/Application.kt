@@ -43,6 +43,7 @@ fun main() {
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
+            register(statusListener)
             JoarkDataSink(this, pdfClient, joarkClient)
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
@@ -53,3 +54,68 @@ fun main() {
 }
 
 
+val statusListener = object : RapidsConnection.StatusListener {
+    override fun onReady(rapidsConnection: RapidsConnection) {
+
+        val azureClient = AzureClient(
+            tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
+            clientId = Configuration.azure.clientId,
+            clientSecret = Configuration.azure.clientSecret
+        )
+
+        val joarkClientv2 = JoarkClientV2(
+            azureClient = azureClient
+        )
+
+        logger.info { "App har starta" }
+
+        if (Configuration.application.profile === Profile.PROD) {
+            val rows: List<List<String>> = csvReader().readAll(jpFeil)
+            rows.forEach { row ->
+                logger.info { "jp: ${row.first()}" }
+                kotlin.runCatching {
+                    runBlocking {
+                        if (Configuration.application.profile == Profile.PROD) {
+                            joarkClientv2.feilregistrerJournalpostData(row.first())
+                        }
+                    }
+                }.onFailure {
+                    logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+                }.onSuccess {
+                    logger.info { "Feilregistrerte jp med id: ${row.first()}" }
+                }
+            }
+        } else if (Configuration.application.profile === Profile.DEV) {
+            val rows: List<List<String>> = csvReader().readAll(jpFeilDev)
+            rows.forEach { row ->
+                logger.info { "jp: ${row.first()}" }
+                kotlin.runCatching {
+                    runBlocking {
+                        if (Configuration.application.profile == Profile.PROD) {
+                            joarkClientv2.feilregistrerJournalpostData(row.first())
+                        }
+                    }
+                }.onFailure {
+                    logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+                }.onSuccess {
+                    logger.info { "Feilregistrerte jp med id: ${row.first()}" }
+                }
+            }
+        }
+
+    }
+}
+
+
+val jpFeilDev = """
+    453810843
+    453810837
+""".trimIndent()
+
+val jpFeil = """
+    577269682
+    577447922
+    577738423
+    577521706
+    577448291
+""".trimIndent()

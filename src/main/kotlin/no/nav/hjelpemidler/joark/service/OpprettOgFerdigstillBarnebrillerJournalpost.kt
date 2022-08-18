@@ -170,7 +170,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
         }.onSuccess {
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
-                logger.info("Opprettet og ferdigstilte journalpost  for barnebriller i joark, journalpostNr: $journalpostnr")
+                logger.info("Opprettet og ferdigstilte journalpost  for barnebriller i joark, journalpostNr: $journalpostnr og sakId: $sakId")
             } else {
                 logger.warn("Opprettet journalpost for barnebriller i joark, sakId: $sakId og journalpostNr: $journalpostnr, men klarte ikke å ferdigstille")
                 throw BadRequestException("Klarte ikke å ferdigstille journalpost")
