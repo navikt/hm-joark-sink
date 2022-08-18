@@ -53,7 +53,6 @@ fun main() {
         }.start()
 }
 
-
 val statusListener = object : RapidsConnection.StatusListener {
     override fun onReady(rapidsConnection: RapidsConnection) {
 
@@ -69,13 +68,13 @@ val statusListener = object : RapidsConnection.StatusListener {
 
         logger.info { "App har starta" }
 
-        if (Configuration.application.profile === Profile.DEV) {
-            val rows: List<List<String>> = csvReader().readAll(jpFeilDev)
+        if (Configuration.application.profile === Profile.PROD) {
+            val rows: List<List<String>> = csvReader().readAll(jpFeil)
             rows.forEach { row ->
                 logger.info { "jp: ${row.first()}" }
                 kotlin.runCatching {
                     runBlocking {
-                        if (Configuration.application.profile == Profile.DEV) {
+                        if (Configuration.application.profile == Profile.PROD) {
                             joarkClientv2.feilregistrerJournalpostData(row.first())
                         }
                     }
@@ -86,20 +85,9 @@ val statusListener = object : RapidsConnection.StatusListener {
                 }
             }
         }
-
     }
 }
 
-
-val jpFeilDev = """
-    453810843
-    453810837
-""".trimIndent()
-
 val jpFeil = """
-    577269682
-    577447922
-    577738423
-    577521706
-    577448291
+    577930519
 """.trimIndent()
