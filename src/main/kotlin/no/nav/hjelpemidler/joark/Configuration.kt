@@ -37,6 +37,7 @@ private val localProperties = ConfigurationMap(
 
 private val devProperties = ConfigurationMap(
     mapOf(
+        "KAFKA_CONSUMER_GROUP_ID" to "hm-joark-sink-v2",
         "application.httpPort" to "8080",
         "application.profile" to "DEV",
         "kafka.reset.policy" to "latest",
