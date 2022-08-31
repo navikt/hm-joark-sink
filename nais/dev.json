@@ -1,6 +1,6 @@
 {
   "APPNAVN": "hm-joark-sink",
-  "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-v1",
+  "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-v2",
   "JOARK_BASEURL": "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
   "JOARK_SCOPE": "api://dev-fss.teamdigihot.digihot-proxy/.default",
   "EVENT_NAME": "hm-SøknadArkivert"
