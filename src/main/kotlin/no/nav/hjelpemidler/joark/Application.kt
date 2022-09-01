@@ -75,7 +75,7 @@ val statusListener = object : RapidsConnection.StatusListener {
                 kotlin.runCatching {
                     runBlocking {
                         if (Configuration.application.profile == Profile.PROD) {
-                            //joarkClientv2.feilregistrerJournalpostData(row.first())
+                            joarkClientv2.feilregistrerJournalpostData(row.first())
                         }
                     }
                 }.onFailure {
@@ -89,5 +89,8 @@ val statusListener = object : RapidsConnection.StatusListener {
 }
 
 val jpFeil = """
-    576647970
+    578396504
+    577716319
+    579145769
+    578545080
 """.trimIndent()
