@@ -89,8 +89,5 @@ val statusListener = object : RapidsConnection.StatusListener {
 }
 
 val jpFeil = """
-    578396504
-    577716319
-    579145769
-    578545080
+    577988268
 """.trimIndent()
