@@ -9,7 +9,6 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.*
 import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
@@ -89,8 +88,6 @@ val statusListener = object : RapidsConnection.StatusListener {
 }
 
 val jpFeil = """
-    578396504
-    577716319
-    579145769
-    578545080
+    579831561
+    577837187
 """.trimIndent()
