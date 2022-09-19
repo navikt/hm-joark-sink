@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import java.util.UUID
@@ -27,14 +28,18 @@ internal class FeilregistrerBarnebrillerJournalpost(
             validate {
                 it.requireKey(
                     "eventId",
+                    "sakId",
                     "joarkRef",
+                    "opprettet",
                 )
             }
         }.register(this)
     }
 
     private val JsonMessage.eventId get() = this["eventId"].textValue().let { UUID.fromString(it)!! }
+    private val JsonMessage.sakId get() = this["sakId"].textValue()!!
     private val JsonMessage.joarkRef get() = this["joarkRef"].textValue()!!
+    private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (skipEvent(packet.eventId)) {
@@ -44,9 +49,9 @@ internal class FeilregistrerBarnebrillerJournalpost(
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
-                    logger.info("Feilregistrerer barnebrille-sak: eventId=${packet.eventId}, joarkRef=${packet.joarkRef}")
+                    logger.info("Feilregistrerer barnebrille-sak: eventId=${packet.eventId}, sakId=${packet.sakId}, joarkRef=${packet.joarkRef}, opprettet=${packet.opprettet}")
                     try {
-                        feilregistrerJournalpost(packet.joarkRef)
+                        feilregistrerJournalpost(packet.sakId, packet.joarkRef)
                     } catch (e: Exception) {
                         logger.error { e.message }
                         if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
@@ -58,15 +63,16 @@ internal class FeilregistrerBarnebrillerJournalpost(
     }
 
     private suspend fun feilregistrerJournalpost(
+        sakId: String,
         joarkRef: String,
     ) =
         kotlin.runCatching {
             joarkClientV2.feilregistrerJournalpostData(joarkRef)
         }.onSuccess {
-            logger.info("Feilregistrerte sakstilknytning for joarkRef=$joarkRef")
+            logger.info("Feilregistrerte sakstilknytning for sakId=$sakId, joarkRef=$joarkRef")
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under feilregistrering av sakstilknytning for journalpost: $joarkRef" }
+            logger.error(it) { "Feilet under feilregistrering av sakstilknytning for journalpost: sakId=$sakId, joarkRef=$joarkRef" }
             throw it
         }.getOrThrow()
 
