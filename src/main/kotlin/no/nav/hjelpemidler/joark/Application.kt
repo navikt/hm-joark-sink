@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.FeilregistrerBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
@@ -48,45 +49,46 @@ fun main() {
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
+            FeilregistrerBarnebrillerJournalpost(this, joarkClientv2)
             ResendBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
         }.start()
 }
 
 val statusListener = object : RapidsConnection.StatusListener {
     override fun onReady(rapidsConnection: RapidsConnection) {
+        /*
+            val jpFeil = """
+            """.trimIndent()
 
-        val azureClient = AzureClient(
-            tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
-            clientId = Configuration.azure.clientId,
-            clientSecret = Configuration.azure.clientSecret
-        )
+            val azureClient = AzureClient(
+                tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
+                clientId = Configuration.azure.clientId,
+                clientSecret = Configuration.azure.clientSecret
+            )
 
-        val joarkClientv2 = JoarkClientV2(
-            azureClient = azureClient
-        )
+            val joarkClientv2 = JoarkClientV2(
+                azureClient = azureClient
+            )
 
-        logger.info { "App har starta" }
+            logger.info { "App har starta" }
 
-        if (Configuration.application.profile === Profile.PROD) {
-            val rows: List<List<String>> = csvReader().readAll(jpFeil)
-            rows.forEach { row ->
-                logger.info { "jp: ${row.first()}" }
-                kotlin.runCatching {
-                    runBlocking {
-                        if (Configuration.application.profile == Profile.PROD) {
-                            joarkClientv2.feilregistrerJournalpostData(row.first())
+            if (Configuration.application.profile === Profile.PROD) {
+                val rows: List<List<String>> = csvReader().readAll(jpFeil)
+                rows.forEach { row ->
+                    logger.info { "jp: ${row.first()}" }
+                    kotlin.runCatching {
+                        runBlocking {
+                            if (Configuration.application.profile == Profile.PROD) {
+                                joarkClientv2.feilregistrerJournalpostData(row.first())
+                            }
                         }
+                    }.onFailure {
+                        logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
+                    }.onSuccess {
+                        logger.info { "Feilregistrerte jp med id: ${row.first()}" }
                     }
-                }.onFailure {
-                    logger.warn { "Klarte ikke å feilregistrere jp med id: ${row.first()}" }
-                }.onSuccess {
-                    logger.info { "Feilregistrerte jp med id: ${row.first()}" }
                 }
             }
-        }
+        */
     }
 }
-
-val jpFeil = """
-    582429639
-""".trimIndent()
