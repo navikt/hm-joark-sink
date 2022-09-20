@@ -69,10 +69,10 @@ internal class FeilregistrerBarnebrillerJournalpost(
         kotlin.runCatching {
             joarkClientV2.feilregistrerJournalpostData(joarkRef)
         }.onSuccess {
-            logger.info("Feilregistrerte sakstilknytning for sakId=$sakId, joarkRef=$joarkRef")
+            logger.info("Feilregistrerte barnebrille-sakstilknytning for sakId=$sakId, joarkRef=$joarkRef")
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
-            logger.error(it) { "Feilet under feilregistrering av sakstilknytning for journalpost: sakId=$sakId, joarkRef=$joarkRef" }
+            logger.error(it) { "Feilet under feilregistrering av barnebrille-sakstilknytning for journalpost: sakId=$sakId, joarkRef=$joarkRef" }
             throw it
         }.getOrThrow()
 
