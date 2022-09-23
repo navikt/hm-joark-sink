@@ -12,6 +12,7 @@ import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJ
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstiltJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.MerkAvvistBestilling
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
@@ -43,9 +44,14 @@ fun main() {
         .build().apply {
             register(statusListener)
             JoarkDataSink(this, pdfClient, joarkClient)
+
+            // Hotsak
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientv2)
             FeilregistrerFerdigstiltJournalpost(this, joarkClientv2)
             OpprettMottattJournalpost(this, pdfClient, joarkClient)
+            MerkAvvistBestilling(this, joarkClientv2)
+
+            // Barnebriller
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
             FeilregistrerBarnebrillerJournalpost(this, joarkClientv2)
             ResendBarnebrillerJournalpost(this, pdfClient, joarkClientv2)
