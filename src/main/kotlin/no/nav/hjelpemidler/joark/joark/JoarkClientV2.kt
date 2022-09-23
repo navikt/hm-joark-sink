@@ -363,16 +363,8 @@ class JoarkClientV2(
                     header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
                     body = requestBody
                 }
-
                 when (response.status) {
-                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
-                        if (response.status == HttpStatusCode.Conflict) {
-                            logger.warn("HttpStatusCode.Conflict ved omdøping av jp med joarkRef=$joarkRef")
-                        }
-                        val responseBody = response.receive<JsonNode>()
-                        // FIXME: Remove before prod.
-                        logger.info("DEBUG: Response body: ${jacksonObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody)}")
-                    }
+                    HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict -> {}
                     else -> {
                         throw JoarkException("Klarte ikke å omdøpe avvist bestilling. Feilet med response <$response>")
                     }
