@@ -54,6 +54,7 @@ internal class MerkAvvistBestilling(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         if (packet.joarkRef == null) {
             logger.info("Ignoring event due to joarkRef=null eventId=${packet.eventId}, sakId=${packet.sakId}, søknadId=${packet.søknadId}, opprettet=${packet.opprettet}")
+            return
         }
 
         if (inSkipList(packet.eventId)) {
