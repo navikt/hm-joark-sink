@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -9,6 +10,7 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -17,10 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.Configuration.pdf
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.OmdøpAvvistBestillingRequest
+import no.nav.hjelpemidler.joark.joark.model.OmdøpDokument
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostMedMottattDatoRequest
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
@@ -59,6 +64,7 @@ class JoarkClientV2(
         const val JOURNALPOSTBESKRIVELSE_BEST = "Bestilling av hjelpemidler"
         const val JOURNALPOSTBESKRIVELSE_BARNEBRILLE = "Vedtak for barnebrille" // TODO: bytt til riktig
         const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
+        const val OMDØP_AVVIST_BESTILLING_URL_PATH = "/omdop-avvist-bestilling"
     }
 
     private val opprettOfFerdigstillUrl = "$baseUrl$OPPRETT_OG_FERDIGSTILL_URL_PATH"
@@ -327,6 +333,54 @@ class JoarkClientV2(
                 throw it
             }
         }.getOrThrow()
+    }
+
+    private val omdøpAvvistBestillingUrl = "$baseUrl$OMDØP_AVVIST_BESTILLING_URL_PATH"
+
+    suspend fun omdøpAvvistBestilling(
+        joarkRef: String,
+        tittel: String,
+        dokumenter: List<Pair<String, String>>,
+    ) {
+        logger.info("Omdøper avvist bestilling: joarkRef=$joarkRef gammelTittel=\"$tittel\" gamleDokumenter=<$dokumenter>")
+
+        val prefix = "Avvist: "
+        val requestBody = OmdøpAvvistBestillingRequest(
+            tittel = "$prefix$tittel",
+            dokumenter = dokumenter.map {
+                OmdøpDokument(
+                    dokumentInfoId = it.first,
+                    tittel = "$prefix${it.second}",
+                )
+            },
+        )
+
+        withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                val response: io.ktor.client.statement.HttpResponse = client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    body = requestBody
+                }
+
+                when (response.status) {
+                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        if (response.status == HttpStatusCode.Conflict) {
+                            logger.warn("HttpStatusCode.Conflict ved omdøping av jp med joarkRef=$joarkRef")
+                        }
+                        val responseBody = response.receive<JsonNode>()
+                        // FIXME: Remove before prod.
+                        logger.info("DEBUG: Response body: ${jacksonObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody)}")
+                    }
+                    else -> {
+                        throw JoarkException("Klarte ikke å omdøpe avvist bestilling. Feilet med response <$response>")
+                    }
+                }
+            }.onFailure {
+                logger.error(it) { "Feilet i å omdøpe avvist bestilling i joark, ignorerer" }
+            }.getOrNull()
+        }
     }
 
     private fun hentlistDokumentTilJournalForening(
