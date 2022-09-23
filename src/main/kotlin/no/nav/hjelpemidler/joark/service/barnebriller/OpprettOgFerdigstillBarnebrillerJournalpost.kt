@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode

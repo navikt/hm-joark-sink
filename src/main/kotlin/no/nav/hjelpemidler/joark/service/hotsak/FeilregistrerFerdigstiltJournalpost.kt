@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.CancellationException
@@ -75,11 +75,12 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         soknadId = packet.soknadId,
                     )
                     val behovsmeldingType = BehovsmeldingType.valueOf(
-                        packet.soknadJson.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
+                        packet.soknadJson.at("/behovsmeldingType").textValue()
+                            .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt ($behovsmeldingType): ${journalpostData.sakId}, " +
-                            "journalpostId: ${journalpostData.journalpostId}"
+                                "journalpostId: ${journalpostData.journalpostId}"
                     }
                     try {
                         val nyJournalpostId = feilregistrerJournalpost(
@@ -106,7 +107,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
         }.onSuccess {
             logger.info(
                 "Feilregistrerte sakstilknytning for journalpostNr: " +
-                    "$journalpostId, sak: $sakId"
+                        "$journalpostId, sak: $sakId"
             )
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
@@ -130,15 +131,15 @@ internal class FeilregistrerFerdigstiltJournalpost(
                 null -> {
                     logger.info(
                         "Feilregistrerte sakstilknytning for sakId: " +
-                            "${journalpostData.sakId}, journalpostNr: ${journalpostData.journalpostId}"
+                                "${journalpostData.sakId}, journalpostNr: ${journalpostData.journalpostId}"
                     )
                 }
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error(
                         "Klarte ikke å feilregistrere sakstilknytning for journalpost: ${journalpostData.journalpostId}" +
-                            " sak: ${journalpostData.sakId}" +
-                            " Feil: ${it.message}"
+                                " sak: ${journalpostData.sakId}" +
+                                " Feil: ${it.message}"
                     )
                 }
             }

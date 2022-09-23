@@ -1,7 +1,5 @@
 package no.nav.hjelpemidler.joark
 
-import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -9,13 +7,13 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.FeilregistrerBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
-import no.nav.hjelpemidler.joark.service.OpprettMottattJournalpost
-import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.OpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.ResendBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstiltJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 
 private val logger = KotlinLogging.logger {}

@@ -14,10 +14,9 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
-import no.nav.hjelpemidler.joark.service.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
 import java.util.Base64
 import java.util.UUID
-import kotlin.collections.ArrayList
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,7 +56,11 @@ class JoarkClient(
         val requestBody = HjelpemidlerDigitalSoknad(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
-            hentlistDokumentTilJournalForening(behovsmeldingType, dokumentTittel, Base64.getEncoder().encodeToString(soknadPdf)),
+            hentlistDokumentTilJournalForening(
+                behovsmeldingType,
+                dokumentTittel,
+                Base64.getEncoder().encodeToString(soknadPdf)
+            ),
             TEMA,
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
             KANAL,
@@ -87,13 +90,21 @@ class JoarkClient(
         }.getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): List<Dokumenter> {
+    private fun hentlistDokumentTilJournalForening(
+        behovsmeldingType: BehovsmeldingType,
+        dokumentTittel: String,
+        soknadPdf: String
+    ): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
         dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
         return dokuments
     }
 
-    private fun forbredeHjelpemidlerDokument(behovsmeldingType: BehovsmeldingType, dokumentTittel: String, soknadPdf: String): Dokumenter {
+    private fun forbredeHjelpemidlerDokument(
+        behovsmeldingType: BehovsmeldingType,
+        dokumentTittel: String,
+        soknadPdf: String
+    ): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
         return Dokumenter(
@@ -104,7 +115,10 @@ class JoarkClient(
         )
     }
 
-    private fun forbredeHjelpemidlerDokumentVariant(behovsmeldingType: BehovsmeldingType, soknadPdf: String): Dokumentvarianter =
+    private fun forbredeHjelpemidlerDokumentVariant(
+        behovsmeldingType: BehovsmeldingType,
+        soknadPdf: String
+    ): Dokumentvarianter =
         Dokumentvarianter(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,

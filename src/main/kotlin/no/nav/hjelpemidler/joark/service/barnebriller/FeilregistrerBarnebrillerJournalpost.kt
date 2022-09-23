@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.joark.service.barnebriller
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,6 +12,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.service.PacketListenerWithOnError
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}

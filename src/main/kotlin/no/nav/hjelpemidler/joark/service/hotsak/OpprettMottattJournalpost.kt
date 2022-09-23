@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
@@ -77,10 +77,12 @@ internal class OpprettMottattJournalpost(
                         dokumentBeskrivelse = packet.dokumentBeskrivelse,
                     )
                     val behovsmeldingType = BehovsmeldingType.valueOf(
-                        packet.soknadJson.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
+                        packet.soknadJson.at("/behovsmeldingType").textValue()
+                            .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                     )
                     logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
-                    val pdf = genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
+                    val pdf =
+                        genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettMottattJournalpost(
                             mottattJournalpostData.fnrBruker,
@@ -121,7 +123,15 @@ internal class OpprettMottattJournalpost(
         behovsmeldingType: BehovsmeldingType,
     ) =
         kotlin.runCatching {
-            joarkClient.arkiverSoknad(fnrBruker, navnAvsender, dokumentBeskrivelse, soknadId, soknadPdf, behovsmeldingType, soknadId.toString() + "HOTSAK_TIL_GOSYS")
+            joarkClient.arkiverSoknad(
+                fnrBruker,
+                navnAvsender,
+                dokumentBeskrivelse,
+                soknadId,
+                soknadPdf,
+                behovsmeldingType,
+                soknadId.toString() + "HOTSAK_TIL_GOSYS"
+            )
         }.onSuccess {
             val journalpostnr = it
             logger.info("Opprettet journalpost med status mottatt i joark, journalpostNr: $journalpostnr")
@@ -131,7 +141,11 @@ internal class OpprettMottattJournalpost(
             throw it
         }.getOrThrow()
 
-    private fun CoroutineScope.forward(mottattJournalpostData: MottattJournalpostData, joarkRef: String, context: MessageContext) {
+    private fun CoroutineScope.forward(
+        mottattJournalpostData: MottattJournalpostData,
+        joarkRef: String,
+        context: MessageContext
+    ) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(mottattJournalpostData.fnrBruker, mottattJournalpostData.toJson(joarkRef, eventName))
         }.invokeOnCompletion {

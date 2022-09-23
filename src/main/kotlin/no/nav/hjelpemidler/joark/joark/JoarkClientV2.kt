@@ -17,8 +17,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.joark.model.*
-import no.nav.hjelpemidler.joark.service.BehovsmeldingType
+import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
+import no.nav.hjelpemidler.joark.joark.model.Bruker
+import no.nav.hjelpemidler.joark.joark.model.Dokumenter
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostMedMottattDatoRequest
+import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.joark.model.Sak
+import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
 import java.util.Base64
 import java.util.UUID
 

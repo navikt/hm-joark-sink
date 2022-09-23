@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.hjelpemidler.joark.service.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
