@@ -112,6 +112,9 @@ class JoarkClientV2(
 
                 when (response.status) {
                     HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        if (response.status == HttpStatusCode.Conflict) {
+                            logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId $sakId og søknadId $soknadId" }
+                        }
                         val responseBody = response.receive<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             OpprettetJournalpostResponse(
@@ -119,11 +122,11 @@ class JoarkClientV2(
                                 responseBody["journalpostferdigstilt"].asBoolean()
                             )
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                            throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                         }
                     }
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                        throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
