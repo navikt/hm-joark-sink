@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - avvist-bestilling-beriket-melding
+      - mottatt-dato-tilbakeforing
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"

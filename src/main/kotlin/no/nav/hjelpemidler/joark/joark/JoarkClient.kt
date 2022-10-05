@@ -1,7 +1,11 @@
 package no.nav.hjelpemidler.joark.joark
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
@@ -15,6 +19,7 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import java.time.LocalDateTime
 import java.util.Base64
 import java.util.UUID
 
@@ -27,7 +32,11 @@ class JoarkClient(
 ) {
 
     companion object {
-        private val objectMapper = ObjectMapper()
+        private val objectMapper = jacksonObjectMapper()
+            .registerModule(JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
         const val DOKUMENT_TITTEL_BEST = "Bestilling av hjelpemidler"
         const val ID_TYPE = "FNR"
@@ -50,12 +59,14 @@ class JoarkClient(
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
         eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD",
+        mottattDato: LocalDateTime? = null,
     ): String {
         logger.info { "Arkiverer søknad" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
+            datoMottatt = mottattDato,
             hentlistDokumentTilJournalForening(
                 behovsmeldingType,
                 dokumentTittel,
@@ -76,7 +87,7 @@ class JoarkClient(
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
                     .jsonBody(jsonBody).awaitObject(object : ResponseDeserializable<JsonNode> {
                         override fun deserialize(content: String): JsonNode {
-                            return ObjectMapper().readTree(content)
+                            return objectMapper.readTree(content)
                         }
                     }).let {
                         when (it.has("journalpostId")) {
