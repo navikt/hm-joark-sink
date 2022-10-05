@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 data class HjelpemidlerDigitalSoknad(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
+    val datoMottatt: LocalDateTime?,
     val dokumenter: List<Dokumenter>?,
     val tema: String,
     val tittel: String,

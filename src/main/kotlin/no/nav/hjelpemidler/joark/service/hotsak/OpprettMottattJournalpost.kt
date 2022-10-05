@@ -18,6 +18,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -46,7 +48,7 @@ internal class OpprettMottattJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
-            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson") }
+            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
             validate { it.interestedIn("dokumentBeskrivelse") }
         }.register(this)
     }
@@ -58,6 +60,7 @@ internal class OpprettMottattJournalpost(
     private val JsonMessage.soknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
+    private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -91,6 +94,7 @@ internal class OpprettMottattJournalpost(
                             mottattJournalpostData.soknadId,
                             pdf,
                             behovsmeldingType,
+                            packet.mottattDato.atStartOfDay(),
                         )
                         forward(mottattJournalpostData, journalpostResponse, context)
                     } catch (e: Exception) {
@@ -121,6 +125,7 @@ internal class OpprettMottattJournalpost(
         soknadId: UUID,
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
+        mottattDato: LocalDateTime? = null,
     ) =
         kotlin.runCatching {
             joarkClient.arkiverSoknad(
@@ -130,7 +135,8 @@ internal class OpprettMottattJournalpost(
                 soknadId,
                 soknadPdf,
                 behovsmeldingType,
-                soknadId.toString() + "HOTSAK_TIL_GOSYS"
+                soknadId.toString() + "HOTSAK_TIL_GOSYS",
+                mottattDato,
             )
         }.onSuccess {
             val journalpostnr = it

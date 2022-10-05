@@ -15,6 +15,7 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import java.time.LocalDateTime
 import java.util.Base64
 import java.util.UUID
 
@@ -50,12 +51,14 @@ class JoarkClient(
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
         eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD",
+        mottattDato: LocalDateTime? = null,
     ): String {
         logger.info { "Arkiverer søknad" }
 
         val requestBody = HjelpemidlerDigitalSoknad(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
+            datoMottatt = mottattDato,
             hentlistDokumentTilJournalForening(
                 behovsmeldingType,
                 dokumentTittel,
