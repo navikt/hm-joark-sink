@@ -19,7 +19,6 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -67,7 +66,6 @@ internal class OpprettMottattJournalpost(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-
         runBlocking {
             withContext(Dispatchers.IO) {
                 launch {
@@ -77,7 +75,7 @@ internal class OpprettMottattJournalpost(
                         soknadJson = packet.soknadJson,
                         soknadId = UUID.fromString(packet.søknadId),
                         sakId = packet.sakId,
-                        dokumentBeskrivelse = packet.dokumentBeskrivelse,
+                        dokumentBeskrivelse = packet.dokumentBeskrivelse
                     )
                     val behovsmeldingType = BehovsmeldingType.valueOf(
                         packet.soknadJson.at("/behovsmeldingType").textValue()
@@ -94,7 +92,7 @@ internal class OpprettMottattJournalpost(
                             mottattJournalpostData.soknadId,
                             pdf,
                             behovsmeldingType,
-                            packet.mottattDato.atStartOfDay(),
+                            packet.mottattDato.atStartOfDay()
                         )
                         forward(mottattJournalpostData, journalpostResponse, context)
                     } catch (e: Exception) {
@@ -125,7 +123,7 @@ internal class OpprettMottattJournalpost(
         soknadId: UUID,
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
-        mottattDato: LocalDateTime? = null,
+        mottattDato: LocalDateTime? = null
     ) =
         kotlin.runCatching {
             joarkClient.arkiverSoknad(
@@ -136,7 +134,7 @@ internal class OpprettMottattJournalpost(
                 soknadPdf,
                 behovsmeldingType,
                 soknadId.toString() + "HOTSAK_TIL_GOSYS",
-                mottattDato,
+                mottattDato
             )
         }.onSuccess {
             val journalpostnr = it
@@ -175,7 +173,7 @@ internal data class MottattJournalpostData(
     val soknadId: UUID,
     val soknadJson: JsonNode,
     val sakId: String,
-    val dokumentBeskrivelse: String,
+    val dokumentBeskrivelse: String
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

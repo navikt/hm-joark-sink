@@ -20,7 +20,6 @@ import no.nav.hjelpemidler.joark.wiremock.WiremockServer
 private val logger = KotlinLogging.logger {}
 
 fun main() {
-
     if (Configuration.application.profile == Profile.LOCAL) {
         WiremockServer(Configuration).startServer()
     }

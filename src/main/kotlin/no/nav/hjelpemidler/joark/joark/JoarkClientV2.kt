@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -233,7 +232,7 @@ class JoarkClientV2(
                         val resp = response.receive<JsonNode>()
 
                         if (resp.has("message") && resp.get("message")
-                                .textValue() == "Saksrelasjonen er allerede feilregistrert"
+                            .textValue() == "Saksrelasjonen er allerede feilregistrert"
                         ) {
                             logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: " + journalpostNr }
                             return@withContext journalpostNr
@@ -280,7 +279,7 @@ class JoarkClientV2(
                     dokumentKategori = DOKUMENT_KATEGORI_SOK,
                     dokumentvarianter = listOf(
                         Dokumentvarianter(
-                            "barnebrille-${sakId}.pdf",
+                            "barnebrille-$sakId.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
                             Base64.getEncoder().encodeToString(pdf)
@@ -343,7 +342,7 @@ class JoarkClientV2(
     suspend fun omdøpAvvistBestilling(
         joarkRef: String,
         tittel: String,
-        dokumenter: List<Pair<String, String>>,
+        dokumenter: List<Pair<String, String>>
     ) {
         logger.info("Omdøper avvist bestilling: joarkRef=$joarkRef gammelTittel=\"$tittel\" gamleDokumenter=<$dokumenter>")
 
@@ -353,9 +352,9 @@ class JoarkClientV2(
             dokumenter = dokumenter.map {
                 OmdøpDokument(
                     dokumentInfoId = it.first,
-                    tittel = "$prefix${it.second}",
+                    tittel = "$prefix${it.second}"
                 )
-            },
+            }
         )
 
         withContext(Dispatchers.IO) {

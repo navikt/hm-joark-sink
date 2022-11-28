@@ -18,11 +18,10 @@ internal class PdfClient(private val baseUrl: String) {
     suspend fun genererBarnebrillePdf(soknadJson: String): ByteArray = genererPdf(soknadJson, "$API_BASE_PATH/barnebrille/barnebrille")
 
     suspend fun genererPdf(soknadJson: String, path: String): ByteArray {
-        logger.info { "Generer PDF for path ${path}" }
+        logger.info { "Generer PDF for path $path" }
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-
                 "$baseUrl/$path".httpPost()
                     .header("Content-Type", "application/json")
                     .jsonBody(soknadJson)

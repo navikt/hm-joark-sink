@@ -86,7 +86,7 @@ internal object Configuration {
         "KAFKA_TRUSTSTORE_PATH" to config()[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
         "KAFKA_KEYSTORE_PATH" to config()[Key("KAFKA_KEYSTORE_PATH", stringType)],
         "KAFKA_CREDSTORE_PASSWORD" to config()[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
-        "HTTP_PORT" to config()[Key("application.httpPort", stringType)],
+        "HTTP_PORT" to config()[Key("application.httpPort", stringType)]
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
     data class Application(

@@ -43,7 +43,6 @@ internal class AzureClientTest {
 
     @Test
     fun `henter bare et token ved to kall`() {
-
         WireMock.stubFor(WireMock.post("/oauth2/v2.0/token").willReturn(WireMock.okJson(tokenResponse)))
 
         val token1 = azureClient.getToken("scope")

@@ -44,7 +44,7 @@ data class OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
 
 data class OmdøpAvvistBestillingRequest(
     val tittel: String,
-    val dokumenter: List<OmdøpDokument>,
+    val dokumenter: List<OmdøpDokument>
 )
 
 data class Sak(
@@ -93,7 +93,7 @@ data class Dokumenter(
 
 data class OmdøpDokument(
     val dokumentInfoId: String,
-    val tittel: String,
+    val tittel: String
 )
 
 // Response

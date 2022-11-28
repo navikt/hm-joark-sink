@@ -88,7 +88,7 @@ internal class OpprettOgFerdigstillJournalpost(
                             soknadPdf = pdf,
                             sakId = journalpostData.sakId,
                             dokumentTittel = journalpostData.dokumentTittel,
-                            behovsmeldingType = behovsmeldingType,
+                            behovsmeldingType = behovsmeldingType
                         )
                         forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -119,7 +119,7 @@ internal class OpprettOgFerdigstillJournalpost(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType,
+        behovsmeldingType: BehovsmeldingType
     ) =
         kotlin.runCatching {
             joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId, dokumentTittel, behovsmeldingType)
@@ -162,7 +162,7 @@ internal data class JournalpostData(
     val soknadId: UUID,
     val soknadJson: String,
     val sakId: String,
-    val dokumentTittel: String,
+    val dokumentTittel: String
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

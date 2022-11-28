@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -59,7 +58,7 @@ class JoarkClient(
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
         eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD",
-        mottattDato: LocalDateTime? = null,
+        mottattDato: LocalDateTime? = null
     ): String {
         logger.info { "Arkiverer søknad" }
 

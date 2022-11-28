@@ -75,7 +75,7 @@ internal class JoarkDataSink(
                         soknadId = UUID.fromString(packet.soknadId),
                         soknadGjelder = packet.runCatching {
                             packet.soknadGjelder
-                        }.getOrDefault("Søknad om hjelpemidler"),
+                        }.getOrDefault("Søknad om hjelpemidler")
                     )
 
                     if (soknadData.soknadId in listOf<UUID>(
@@ -84,7 +84,6 @@ internal class JoarkDataSink(
                             UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0"),
                             UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3")
                         )
-
 
                     ) {
                         return@launch
@@ -169,7 +168,7 @@ internal data class SoknadData(
     val navnBruker: String,
     val soknadId: UUID,
     val soknadJson: String,
-    val soknadGjelder: String,
+    val soknadGjelder: String
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.features.BadRequestException
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -25,14 +22,13 @@ import no.nav.hjelpemidler.joark.pdf.PdfClient
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
 internal class ResendBarnebrillerJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
-    private val joarkClientV2: JoarkClientV2,
+    private val joarkClientV2: JoarkClientV2
 ) : River.PacketListener {
 
     private val objectMapper = jacksonObjectMapper()
@@ -180,7 +176,6 @@ internal class ResendBarnebrillerJournalpost(
             logger.error(it) { "Feilet under rekjøring av journalføring av barnebrillervedtak  journalpost for barnebriller for sakId: $sakId" }
             throw it
         }.getOrThrow()
-
 }
 
 internal data class ResendJournalpostBarnebrillerData(
@@ -200,5 +195,3 @@ internal data class ResendJournalpostBarnebrillerData(
     val satsBeløp: BigDecimal,
     val beløp: BigDecimal
 )
-
-

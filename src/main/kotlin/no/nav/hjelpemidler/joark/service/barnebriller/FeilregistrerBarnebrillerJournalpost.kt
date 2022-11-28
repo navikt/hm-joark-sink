@@ -31,7 +31,7 @@ internal class FeilregistrerBarnebrillerJournalpost(
                     "eventId",
                     "sakId",
                     "joarkRef",
-                    "opprettet",
+                    "opprettet"
                 )
             }
         }.register(this)
@@ -65,7 +65,7 @@ internal class FeilregistrerBarnebrillerJournalpost(
 
     private suspend fun feilregistrerJournalpost(
         sakId: String,
-        joarkRef: String,
+        joarkRef: String
     ) =
         kotlin.runCatching {
             joarkClientV2.feilregistrerJournalpostData(joarkRef)

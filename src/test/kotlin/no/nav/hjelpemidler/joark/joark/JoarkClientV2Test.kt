@@ -54,7 +54,7 @@ internal class JoarkClientV2Test {
             soknadPdf = ByteArray(0),
             sakId = "1234",
             dokumentTittel = "Søknad om: rullator",
-            BehovsmeldingType.SØKNAD,
+            BehovsmeldingType.SØKNAD
         )
         val expected = OpprettetJournalpostResponse("467010363", true)
         assertEquals(expected, response)
@@ -78,7 +78,7 @@ internal class JoarkClientV2Test {
             soknadPdf = ByteArray(0),
             sakId = "1234",
             dokumentTittel = "Søknad om: rullator",
-            BehovsmeldingType.SØKNAD,
+            BehovsmeldingType.SØKNAD
         )
         val expected = OpprettetJournalpostResponse("467010363", true)
         assertEquals(expected, response)

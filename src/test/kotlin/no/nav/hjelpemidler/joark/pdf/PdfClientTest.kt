@@ -43,7 +43,6 @@ internal class PdfClientTest {
 
     @Test
     fun `genererer pdf`() {
-
         runBlocking {
             val mockByteArray = pdfResponse.toByteArray()
             val stringPdfMock = Base64.getEncoder().encodeToString(mockByteArray)

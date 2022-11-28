@@ -18,7 +18,7 @@ private val logger = KotlinLogging.logger {}
 
 internal class MerkAvvistBestilling(
     rapidsConnection: RapidsConnection,
-    private val joarkClientV2: JoarkClientV2,
+    private val joarkClientV2: JoarkClientV2
 ) : PacketListenerWithOnError {
 
     init {
@@ -31,7 +31,7 @@ internal class MerkAvvistBestilling(
                     "søknadId",
                     "opprettet",
                     "tittel",
-                    "dokumenter",
+                    "dokumenter"
                 )
 
                 // Joarkref kan være null, i såfall ignorer vi og må bruke interestedIn for å unngå exception over
