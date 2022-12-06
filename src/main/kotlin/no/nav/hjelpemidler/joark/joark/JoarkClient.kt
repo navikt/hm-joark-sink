@@ -9,6 +9,18 @@ import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.coroutines.awaitObject
 import com.github.kittinunf.fuel.httpPost
+import io.ktor.client.HttpClient
+import io.ktor.client.call.receive
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.json.JacksonSerializer
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.accept
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -35,6 +47,13 @@ class JoarkClient(
             .registerModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
+        private val ktorClient = HttpClient(CIO) {
+            install(JsonFeature) {
+                serializer = JacksonSerializer()
+            }
+            expectSuccess = false
+        }
 
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
         const val DOKUMENT_TITTEL_BEST = "Bestilling av hjelpemidler"
@@ -78,11 +97,9 @@ class JoarkClient(
             JOURNALPOST_TYPE
         )
 
-        val jsonBody = objectMapper.writeValueAsString(requestBody)
-
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                "$baseUrl".httpPost().header("Content-Type", "application/json").header("Accept", "application/json")
+                /* "$baseUrl".httpPost().header("Content-Type", "application/json").header("Accept", "application/json")
                     .header("Authorization", "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
                     .jsonBody(jsonBody).awaitObject(object : ResponseDeserializable<JsonNode> {
                         override fun deserialize(content: String): JsonNode {
@@ -93,7 +110,31 @@ class JoarkClient(
                             true -> it["journalpostId"].textValue()
                             false -> throw JoarkException("Klarte ikke å arkivere søknad")
                         }
+                    } */
+
+                val response: io.ktor.client.statement.HttpResponse = ktorClient.post(baseUrl) {
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    body = requestBody
+                }
+
+                when (response.status) {
+                    HttpStatusCode.Created, HttpStatusCode.Conflict -> {
+                        if (response.status == HttpStatusCode.Conflict) {
+                            logger.warn { "Duplikatvarsel ved opprettelse av jp med soknadId $soknadId" }
+                        }
+                        val responseBody = response.receive<JsonNode>()
+                        if (responseBody.has("journalpostId")) {
+                            responseBody["journalpostId"].textValue()
+                        } else {
+                            throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                        }
                     }
+                    else -> {
+                        throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                    }
+                }
             }.onFailure {
                 logger.error { it.message }
             }
