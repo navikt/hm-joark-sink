@@ -1,6 +1,9 @@
 package no.nav.hjelpemidler.joark.joark
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -18,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.Configuration.pdf
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -39,10 +41,13 @@ class JoarkClientV2(
     private val accesstokenScope: String = Configuration.joark.joarkScope,
     private val azureClient: AzureClient
 ) {
-
     private val client = HttpClient(CIO) {
         install(JsonFeature) {
-            serializer = JacksonSerializer()
+            serializer = JacksonSerializer {
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            }
         }
         expectSuccess = false
     }

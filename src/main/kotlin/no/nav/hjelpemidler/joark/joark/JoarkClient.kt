@@ -4,11 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.kittinunf.fuel.core.ResponseDeserializable
-import com.github.kittinunf.fuel.core.extensions.jsonBody
-import com.github.kittinunf.fuel.coroutines.awaitObject
-import com.github.kittinunf.fuel.httpPost
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
@@ -41,16 +36,14 @@ class JoarkClient(
     private val accesstokenScope: String,
     private val azureClient: AzureClient
 ) {
-
     companion object {
-        private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
         private val ktorClient = HttpClient(CIO) {
             install(JsonFeature) {
-                serializer = JacksonSerializer()
+                serializer = JacksonSerializer {
+                    registerModule(JavaTimeModule())
+                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                }
             }
             expectSuccess = false
         }
