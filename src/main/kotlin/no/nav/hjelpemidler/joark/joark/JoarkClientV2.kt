@@ -9,13 +9,12 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
-import io.ktor.client.request.header
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
@@ -112,7 +111,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -189,7 +188,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -230,10 +229,7 @@ class JoarkClientV2(
                 val response: HttpResponse =
                     client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
                         contentType(ContentType.Application.Json)
-                        header(
-                            HttpHeaders.Authorization,
-                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
-                        )
+                        bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
                     }
 
                 when (response.status) {
@@ -319,7 +315,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
+                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -376,10 +372,7 @@ class JoarkClientV2(
                     client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
                         contentType(ContentType.Application.Json)
                         accept(ContentType.Application.Json)
-                        header(
-                            HttpHeaders.Authorization,
-                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
-                        )
+                        bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
                         setBody(requestBody)
                     }
                 when (response.status) {
