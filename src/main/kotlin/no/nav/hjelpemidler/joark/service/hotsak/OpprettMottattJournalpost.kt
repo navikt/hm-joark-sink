@@ -32,7 +32,7 @@ internal class OpprettMottattJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
-    private val eventName: String = "hm-opprettetMottattJournalpost"
+    private val eventName: String = "hm-opprettetMottattJournalpost",
 ) : River.PacketListener {
 
     companion object {
@@ -123,7 +123,7 @@ internal class OpprettMottattJournalpost(
         soknadId: UUID,
         soknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
-        mottattDato: LocalDateTime? = null
+        mottattDato: LocalDateTime? = null,
     ) =
         kotlin.runCatching {
             joarkClient.arkiverSoknad(
@@ -148,7 +148,7 @@ internal class OpprettMottattJournalpost(
     private fun CoroutineScope.forward(
         mottattJournalpostData: MottattJournalpostData,
         joarkRef: String,
-        context: MessageContext
+        context: MessageContext,
     ) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(mottattJournalpostData.fnrBruker, mottattJournalpostData.toJson(joarkRef, eventName))
@@ -158,6 +158,7 @@ internal class OpprettMottattJournalpost(
                     logger.info("Opprettet journalpost med status mottatt i joark for: ${mottattJournalpostData.soknadId}")
                     sikkerlogg.info("Opprettet journalpost med status mottatt i joark for: ${mottattJournalpostData.soknadId}, fnr: ${mottattJournalpostData.fnrBruker})")
                 }
+
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error("Failed: ${it.message}. Soknad: ${mottattJournalpostData.soknadId}")
@@ -173,7 +174,7 @@ internal data class MottattJournalpostData(
     val soknadId: UUID,
     val soknadJson: JsonNode,
     val sakId: String,
-    val dokumentBeskrivelse: String
+    val dokumentBeskrivelse: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

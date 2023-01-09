@@ -33,7 +33,7 @@ internal class JoarkDataSink(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
-    private val eventName: String = Configuration.application.eventName
+    private val eventName: String = Configuration.application.eventName,
 ) : PacketListenerWithOnError {
 
     companion object {
@@ -126,7 +126,7 @@ internal class JoarkDataSink(
         navnAvsender: String,
         dokumentTittel: String,
         soknadId: UUID,
-        soknadPdf: ByteArray
+        soknadPdf: ByteArray,
     ) =
         kotlin.runCatching {
             joarkClient.arkiverSoknad(
@@ -154,6 +154,7 @@ internal class JoarkDataSink(
                     logger.info("Søknad arkivert i JOARK: ${søknadData.soknadId}")
                     sikkerlogg.info("Søknad arkivert med søknadsId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker})")
                 }
+
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error("Failed: ${it.message}. Soknad: ${søknadData.soknadId}")
@@ -168,7 +169,7 @@ internal data class SoknadData(
     val navnBruker: String,
     val soknadId: UUID,
     val soknadJson: String,
-    val soknadGjelder: String
+    val soknadGjelder: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

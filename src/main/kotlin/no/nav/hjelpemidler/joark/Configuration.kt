@@ -92,25 +92,25 @@ internal object Configuration {
     data class Application(
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val httpPort: Int = config()[Key("application.httpPort", intType)],
-        val eventName: String = config()[Key("EVENT_NAME", stringType)]
+        val eventName: String = config()[Key("EVENT_NAME", stringType)],
     )
 
     data class Pdf(
-        val baseUrl: String = config()[Key("PDF_BASEURL", stringType)]
+        val baseUrl: String = config()[Key("PDF_BASEURL", stringType)],
     )
 
     data class Azure(
         val tenantBaseUrl: String = config()[Key("AZURE_TENANT_BASEURL", stringType)],
         val tenantId: String = config()[Key("AZURE_APP_TENANT_ID", stringType)],
         val clientId: String = config()[Key("AZURE_APP_CLIENT_ID", stringType)],
-        val clientSecret: String = config()[Key("AZURE_APP_CLIENT_SECRET", stringType)]
+        val clientSecret: String = config()[Key("AZURE_APP_CLIENT_SECRET", stringType)],
     )
 
     data class Joark(
         val baseUrl: String = config()[Key("JOARK_BASEURL", stringType)],
-        val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)]
+        val joarkScope: String = config()[Key("JOARK_SCOPE", stringType)],
 
-    )
+        )
 }
 
 enum class Profile {

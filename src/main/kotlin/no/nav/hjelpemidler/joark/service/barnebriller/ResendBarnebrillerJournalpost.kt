@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.features.BadRequestException
+import io.ktor.server.plugins.BadRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -28,7 +28,7 @@ private val logger = KotlinLogging.logger {}
 internal class ResendBarnebrillerJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
-    private val joarkClientV2: JoarkClientV2
+    private val joarkClientV2: JoarkClientV2,
 ) : River.PacketListener {
 
     private val objectMapper = jacksonObjectMapper()
@@ -152,7 +152,7 @@ internal class ResendBarnebrillerJournalpost(
         sakId: String,
         dokumentTittel: String,
         navnAvsender: String,
-        datoMottatt: String
+        datoMottatt: String,
     ) =
         kotlin.runCatching {
             joarkClientV2.rekjørJournalføringBarnebriller(
@@ -193,5 +193,5 @@ internal data class ResendJournalpostBarnebrillerData(
     val bestillingsreferanse: String,
     val satsBeskrivelse: String,
     val satsBeløp: BigDecimal,
-    val beløp: BigDecimal
+    val beløp: BigDecimal,
 )

@@ -12,7 +12,7 @@ data class HjelpemidlerDigitalSoknad(
     val tittel: String,
     val kanal: String,
     val eksternReferanseId: String,
-    val journalpostType: String
+    val journalpostType: String,
 )
 
 data class OpprettOgFerdigstillJournalpostRequest(
@@ -25,7 +25,7 @@ data class OpprettOgFerdigstillJournalpostRequest(
     val eksternReferanseId: String,
     val journalpostType: String,
     val journalfoerendeEnhet: String,
-    val sak: Sak
+    val sak: Sak,
 )
 
 data class OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
@@ -39,18 +39,18 @@ data class OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
     val journalpostType: String,
     val journalfoerendeEnhet: String,
     val sak: Sak,
-    val datoMottatt: String
+    val datoMottatt: String,
 )
 
 data class OmdøpAvvistBestillingRequest(
     val tittel: String,
-    val dokumenter: List<OmdøpDokument>
+    val dokumenter: List<OmdøpDokument>,
 )
 
 data class Sak(
     val fagsakId: String,
     val fagsaksystem: String,
-    val sakstype: String
+    val sakstype: String,
 )
 
 data class MidlertidigJournalForing(
@@ -61,26 +61,26 @@ data class MidlertidigJournalForing(
     val tittel: String,
     val kanal: String,
     val eksternReferanseId: String,
-    val journalpostType: String
+    val journalpostType: String,
 )
 
 data class AvsenderMottaker(
     val id: String,
     val idType: String,
     val land: String, // TODO: Denne skal nok ikkje setjast
-    val navn: String
+    val navn: String,
 )
 
 data class Bruker(
     val id: String,
-    val idType: String
+    val idType: String,
 )
 
 data class Dokumentvarianter(
     val filnavn: String,
     val filtype: String,
     val variantformat: String,
-    val fysiskDokument: String
+    val fysiskDokument: String,
 )
 
 data class Dokumenter(
@@ -88,12 +88,12 @@ data class Dokumenter(
     val brevkode: String? = null,
     val dokumentKategori: String?,
     val dokumentvarianter: List<Dokumentvarianter>,
-    val tittel: String
+    val tittel: String,
 )
 
 data class OmdøpDokument(
     val dokumentInfoId: String,
-    val tittel: String
+    val tittel: String,
 )
 
 // Response
@@ -103,12 +103,12 @@ data class OpprettJournalpostResponse(
     val journalpostferdigstilt: Boolean?,
     val journalstatus: String?,
     val melding: String?,
-    val dokumenter: List<DokumentInfo>?
+    val dokumenter: List<DokumentInfo>?,
 
-)
+    )
 
 data class DokumentInfo(
     val brevkode: String?,
     val dokumentInfoId: String?,
-    val tittel: String?
+    val tittel: String?,
 )

@@ -5,18 +5,20 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -39,11 +41,11 @@ private val logger = KotlinLogging.logger {}
 class JoarkClientV2(
     private val baseUrl: String = Configuration.joark.baseUrl,
     private val accesstokenScope: String = Configuration.joark.joarkScope,
-    private val azureClient: AzureClient
+    private val azureClient: AzureClient,
 ) {
     private val client = HttpClient(CIO) {
-        install(JsonFeature) {
-            serializer = JacksonSerializer {
+        install(ContentNegotiation) {
+            jackson {
                 registerModule(JavaTimeModule())
                 disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -80,7 +82,7 @@ class JoarkClientV2(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType
+        behovsmeldingType: BehovsmeldingType,
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
@@ -107,11 +109,11 @@ class JoarkClientV2(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
                     header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    body = requestBody
+                    setBody(requestBody)
                 }
 
                 when (response.status) {
@@ -119,7 +121,7 @@ class JoarkClientV2(
                         if (response.status == HttpStatusCode.Conflict) {
                             logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId $sakId og søknadId $soknadId" }
                         }
-                        val responseBody = response.receive<JsonNode>()
+                        val responseBody = response.body<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             OpprettetJournalpostResponse(
                                 responseBody["journalpostId"].textValue(),
@@ -129,6 +131,7 @@ class JoarkClientV2(
                             throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                         }
                     }
+
                     else -> {
                         throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                     }
@@ -147,7 +150,7 @@ class JoarkClientV2(
         pdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        navnAvsender: String
+        navnAvsender: String,
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
@@ -183,11 +186,11 @@ class JoarkClientV2(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
                     header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    body = requestBody
+                    setBody(requestBody)
                 }
 
                 when (response.status) {
@@ -195,7 +198,7 @@ class JoarkClientV2(
                         if (response.status == HttpStatusCode.Conflict) {
                             logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId ${requestBody.sak.fagsakId}" }
                         }
-                        val responseBody = response.receive<JsonNode>()
+                        val responseBody = response.body<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             OpprettetJournalpostResponse(
                                 responseBody["journalpostId"].textValue(),
@@ -205,6 +208,7 @@ class JoarkClientV2(
                             throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                         }
                     }
+
                     else -> {
                         throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                     }
@@ -217,13 +221,13 @@ class JoarkClientV2(
     }
 
     suspend fun feilregistrerJournalpostData(
-        journalpostNr: String
+        journalpostNr: String,
     ): String {
         logger.info { "feilregistrer sakstilknytning på journalpost" }
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: io.ktor.client.statement.HttpResponse =
+                val response: HttpResponse =
                     client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
                         contentType(ContentType.Application.Json)
                         header(
@@ -234,10 +238,10 @@ class JoarkClientV2(
 
                 when (response.status) {
                     HttpStatusCode.BadRequest -> {
-                        val resp = response.receive<JsonNode>()
+                        val resp = response.body<JsonNode>()
 
                         if (resp.has("message") && resp.get("message")
-                            .textValue() == "Saksrelasjonen er allerede feilregistrert"
+                                .textValue() == "Saksrelasjonen er allerede feilregistrert"
                         ) {
                             logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: " + journalpostNr }
                             return@withContext journalpostNr
@@ -245,13 +249,16 @@ class JoarkClientV2(
                             throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
                         }
                     }
+
                     HttpStatusCode.Conflict -> {
                         logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet:  " + journalpostNr }
                         journalpostNr
                     }
+
                     HttpStatusCode.OK -> {
                         journalpostNr
                     }
+
                     else -> {
                         throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
                     }
@@ -272,7 +279,7 @@ class JoarkClientV2(
         sakId: String,
         dokumentTittel: String,
         navnAvsender: String,
-        datoMottatt: String
+        datoMottatt: String,
     ): OpprettetJournalpostResponse {
         logger.info { "rekjør journalføring barnebriller $dokumentTittel" }
 
@@ -309,11 +316,11 @@ class JoarkClientV2(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: io.ktor.client.statement.HttpResponse = client.post(opprettOfFerdigstillUrl) {
+                val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
                     header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    body = requestBody
+                    setBody(requestBody)
                 }
 
                 when (response.status) {
@@ -321,7 +328,7 @@ class JoarkClientV2(
                         if (response.status == HttpStatusCode.Conflict) {
                             logger.warn { "Duplikatvarsel ved opprettelse av jp med sakId ${requestBody.sak.fagsakId}" }
                         }
-                        val responseBody = response.receive<JsonNode>()
+                        val responseBody = response.body<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             OpprettetJournalpostResponse(
                                 responseBody["journalpostId"].textValue(),
@@ -331,6 +338,7 @@ class JoarkClientV2(
                             throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                         }
                     }
+
                     else -> {
                         throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                     }
@@ -347,7 +355,7 @@ class JoarkClientV2(
     suspend fun omdøpAvvistBestilling(
         joarkRef: String,
         tittel: String,
-        dokumenter: List<Pair<String, String>>
+        dokumenter: List<Pair<String, String>>,
     ) {
         logger.info("Omdøper avvist bestilling: joarkRef=$joarkRef gammelTittel=\"$tittel\" gamleDokumenter=<$dokumenter>")
 
@@ -364,12 +372,16 @@ class JoarkClientV2(
 
         withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: io.ktor.client.statement.HttpResponse = client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    header(HttpHeaders.Authorization, "Bearer ${azureClient.getToken(accesstokenScope).accessToken}")
-                    body = requestBody
-                }
+                val response: HttpResponse =
+                    client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
+                        contentType(ContentType.Application.Json)
+                        accept(ContentType.Application.Json)
+                        header(
+                            HttpHeaders.Authorization,
+                            "Bearer ${azureClient.getToken(accesstokenScope).accessToken}"
+                        )
+                        setBody(requestBody)
+                    }
                 when (response.status) {
                     HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict -> {}
                     else -> {
@@ -385,7 +397,7 @@ class JoarkClientV2(
     private fun hentlistDokumentTilJournalForening(
         behovsmeldingType: BehovsmeldingType,
         dokumentTittel: String,
-        soknadPdf: String
+        soknadPdf: String,
     ): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
         dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
@@ -395,7 +407,7 @@ class JoarkClientV2(
     private fun forbredeHjelpemidlerDokument(
         behovsmeldingType: BehovsmeldingType,
         dokumentTittel: String,
-        soknadPdf: String
+        soknadPdf: String,
     ): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
@@ -409,7 +421,7 @@ class JoarkClientV2(
 
     private fun forbredeHjelpemidlerDokumentVariant(
         behovsmeldingType: BehovsmeldingType,
-        soknadPdf: String
+        soknadPdf: String,
     ): Dokumentvarianter =
         Dokumentvarianter(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
@@ -423,5 +435,5 @@ internal class JoarkExceptionV2(msg: String) : RuntimeException(msg)
 
 data class OpprettetJournalpostResponse(
     val journalpostNr: String,
-    val ferdigstilt: Boolean
+    val ferdigstilt: Boolean,
 )

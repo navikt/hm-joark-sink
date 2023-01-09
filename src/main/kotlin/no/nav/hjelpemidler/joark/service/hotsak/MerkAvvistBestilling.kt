@@ -18,7 +18,7 @@ private val logger = KotlinLogging.logger {}
 
 internal class MerkAvvistBestilling(
     rapidsConnection: RapidsConnection,
-    private val joarkClientV2: JoarkClientV2
+    private val joarkClientV2: JoarkClientV2,
 ) : PacketListenerWithOnError {
 
     init {

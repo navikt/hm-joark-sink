@@ -20,7 +20,7 @@ private val logger = KotlinLogging.logger {}
 internal class FeilregistrerBarnebrillerJournalpost(
     rapidsConnection: RapidsConnection,
     private val joarkClientV2: JoarkClientV2,
-    private val eventName: String = "hm-barnebriller-feilregistrer-journalpost"
+    private val eventName: String = "hm-barnebriller-feilregistrer-journalpost",
 ) : PacketListenerWithOnError {
 
     init {
@@ -65,7 +65,7 @@ internal class FeilregistrerBarnebrillerJournalpost(
 
     private suspend fun feilregistrerJournalpost(
         sakId: String,
-        joarkRef: String
+        joarkRef: String,
     ) =
         kotlin.runCatching {
             joarkClientV2.feilregistrerJournalpostData(joarkRef)

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.features.BadRequestException
+import io.ktor.server.plugins.BadRequestException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ internal class OpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClientV2: JoarkClientV2,
-    private val eventName: String = "hm-opprettetOgFerdigstiltJournalpost"
+    private val eventName: String = "hm-opprettetOgFerdigstiltJournalpost",
 ) : River.PacketListener {
 
     companion object {
@@ -76,7 +76,8 @@ internal class OpprettOgFerdigstillJournalpost(
                         dokumentTittel = packet.soknadGjelder
                     )
                     val behovsmeldingType = BehovsmeldingType.valueOf(
-                        packet.søknad.at("/behovsmeldingType").textValue().let { if (it.isNullOrEmpty()) "SØKNAD" else it }
+                        packet.søknad.at("/behovsmeldingType").textValue()
+                            .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                     )
                     logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${journalpostData.dokumentTittel}" }
                     val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
@@ -119,10 +120,18 @@ internal class OpprettOgFerdigstillJournalpost(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType
+        behovsmeldingType: BehovsmeldingType,
     ) =
         kotlin.runCatching {
-            joarkClientV2.opprettOgFerdigstillJournalføring(fnrBruker, navnAvsender, soknadId, soknadPdf, sakId, dokumentTittel, behovsmeldingType)
+            joarkClientV2.opprettOgFerdigstillJournalføring(
+                fnrBruker,
+                navnAvsender,
+                soknadId,
+                soknadPdf,
+                sakId,
+                dokumentTittel,
+                behovsmeldingType
+            )
         }.onSuccess {
             val journalpostnr = it.journalpostNr
             if (it.ferdigstilt) {
@@ -147,6 +156,7 @@ internal class OpprettOgFerdigstillJournalpost(
                     logger.info("Opprettet og ferdigstilte journalpost i joark for: ${journalpostData.soknadId}")
                     sikkerlogg.info("Opprettet og ferdigstilte journalpost for søknadsId: ${journalpostData.soknadId}, fnr: ${journalpostData.fnrBruker})")
                 }
+
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error("Failed: ${it.message}. Soknad: ${journalpostData.soknadId}")
@@ -162,7 +172,7 @@ internal data class JournalpostData(
     val soknadId: UUID,
     val soknadJson: String,
     val sakId: String,
-    val dokumentTittel: String
+    val dokumentTittel: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

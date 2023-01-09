@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.features.BadRequestException
+import io.ktor.server.plugins.BadRequestException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClientV2: JoarkClientV2,
-    private val eventName: String = "hm-opprettetOgFerdigstiltBarnebrillerJournalpost"
+    private val eventName: String = "hm-opprettetOgFerdigstiltBarnebrillerJournalpost",
 ) : River.PacketListener {
 
     private val objectMapper = jacksonObjectMapper()
@@ -156,7 +156,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
         // soknadId: String
         sakId: String,
         dokumentTittel: String,
-        navnAvsender: String
+        navnAvsender: String,
     ) =
         kotlin.runCatching {
             joarkClientV2.opprettOgFerdigstillJournalføringBarnebriller(
@@ -184,7 +184,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
     private fun CoroutineScope.forward(
         journalpostBarnebrillerData: JournalpostBarnebrillerData,
         joarkRef: String,
-        context: MessageContext
+        context: MessageContext,
     ) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(journalpostBarnebrillerData.fnr, journalpostBarnebrillerData.toJson(joarkRef, eventName))
@@ -195,6 +195,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
                     logger.info("Opprettet og ferdigstilte journalpost for barnebriller i joark for sakId: ${journalpostBarnebrillerData.sakId}")
                     sikkerlogg.info("Opprettet og ferdigstilte journalpost for barnebriller for sakId: ${journalpostBarnebrillerData.sakId}, fnr: ${journalpostBarnebrillerData.fnr})")
                 }
+
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error("Failed: ${it.message}. SakId: ${journalpostBarnebrillerData.sakId}")
@@ -219,7 +220,7 @@ internal data class JournalpostBarnebrillerData(
     val bestillingsreferanse: String,
     val satsBeskrivelse: String,
     val satsBeløp: BigDecimal,
-    val beløp: BigDecimal
+    val beløp: BigDecimal,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {

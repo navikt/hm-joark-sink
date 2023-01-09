@@ -26,7 +26,7 @@ private val logger = KotlinLogging.logger {}
 internal class FeilregistrerFerdigstiltJournalpost(
     rapidsConnection: RapidsConnection,
     private val joarkClientV2: JoarkClientV2,
-    private val eventName: String = "hm-sakTilbakeførtGosys"
+    private val eventName: String = "hm-sakTilbakeførtGosys",
 ) : River.PacketListener {
 
     init {
@@ -84,7 +84,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt ($behovsmeldingType): ${journalpostData.sakId}, " +
-                            "journalpostId: ${journalpostData.journalpostId}"
+                                "journalpostId: ${journalpostData.journalpostId}"
                     }
                     try {
                         val nyJournalpostId = feilregistrerJournalpost(
@@ -104,14 +104,14 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
     private suspend fun feilregistrerJournalpost(
         sakId: String,
-        journalpostId: String
+        journalpostId: String,
     ) =
         kotlin.runCatching {
             joarkClientV2.feilregistrerJournalpostData(journalpostId)
         }.onSuccess {
             logger.info(
                 "Feilregistrerte sakstilknytning for journalpostNr: " +
-                    "$journalpostId, sak: $sakId"
+                        "$journalpostId, sak: $sakId"
             )
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }.onFailure {
@@ -122,7 +122,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private fun CoroutineScope.forward(
         journalpostData: FeilregistrerJournalpostData,
         nyJournalpostId: String,
-        context: MessageContext
+        context: MessageContext,
     ) {
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(
@@ -135,15 +135,16 @@ internal class FeilregistrerFerdigstiltJournalpost(
                 null -> {
                     logger.info(
                         "Feilregistrerte sakstilknytning for sakId: " +
-                            "${journalpostData.sakId}, journalpostNr: ${journalpostData.journalpostId}"
+                                "${journalpostData.sakId}, journalpostNr: ${journalpostData.journalpostId}"
                     )
                 }
+
                 is CancellationException -> logger.warn("Cancelled: ${it.message}")
                 else -> {
                     logger.error(
                         "Klarte ikke å feilregistrere sakstilknytning for journalpost: ${journalpostData.journalpostId}" +
-                            " sak: ${journalpostData.sakId}" +
-                            " Feil: ${it.message}"
+                                " sak: ${journalpostData.sakId}" +
+                                " Feil: ${it.message}"
                     )
                 }
             }
@@ -159,7 +160,7 @@ internal data class FeilregistrerJournalpostData(
     val dokumentBeskrivelse: String,
     val soknadJson: JsonNode,
     val soknadId: String,
-    val mottattDato: LocalDate
+    val mottattDato: LocalDate,
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
