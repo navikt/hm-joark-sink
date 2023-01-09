@@ -15,11 +15,13 @@ internal class WiremockServer(private val configuration: Configuration) {
                         WireMock.aResponse().withStatus(200)
                             .withHeader("Content-Type", "application/json")
                             .withBody(
-                                """{
-                        "token_type": "Bearer",
-                        "expires_in": 3599,
-                        "access_token": "1234abc"
-                    }"""
+                                """
+                                    {
+                                        "token_type": "Bearer",
+                                        "expires_in": 3599,
+                                        "access_token": "1234abc"
+                                    }
+                                """.trimIndent()
                             )
                     )
             )
@@ -31,10 +33,10 @@ internal class WiremockServer(private val configuration: Configuration) {
                             .withHeader("Content-Type", "application/json")
                             .withBody(
                                 """
-                                {
-                                    "journalpostId": "12345"
-                                }
-                                      """
+                                    {
+                                        "journalpostId": "12345"
+                                    }
+                                """.trimIndent()
                             )
                     )
             )
@@ -47,11 +49,11 @@ internal class WiremockServer(private val configuration: Configuration) {
                             .withHeader("Content-Type", "application/json")
                             .withBody(
                                 """
-                                {
-                                    "journalpostId": "12345",
-                                    "journalpostferdigstilt": "true"
-                                }
-                                      """
+                                    {
+                                        "journalpostId": "12345",
+                                        "journalpostferdigstilt": "true"
+                                    }
+                                """.trimIndent()
                             )
                     )
             )

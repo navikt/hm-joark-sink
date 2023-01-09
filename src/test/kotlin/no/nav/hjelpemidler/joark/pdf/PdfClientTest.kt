@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import kotlinx.coroutines.runBlocking
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -55,10 +56,11 @@ internal class PdfClientTest {
         }
     }
 
+    @Language("JSON")
     private val pdfResponse =
         """
-{
-    "soknad": "soknad"
-}
-                """
+            {
+                "soknad": "soknad"
+            }
+        """.trimIndent()
 }

@@ -30,10 +30,6 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:3.0.4")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
 
-    // fixme -> fjern og bruk ktor-client
-    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-
     // fixme -> fjern og bruk MockEngine
     implementation("com.github.tomakehurst:wiremock:2.27.2")
 
@@ -43,6 +39,7 @@ dependencies {
     implementation(ktor("client-cio"))
     implementation(ktor("client-jackson"))
     implementation(ktor("client-content-negotiation"))
+    implementation(ktor("client-mock"))
 
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.3")
