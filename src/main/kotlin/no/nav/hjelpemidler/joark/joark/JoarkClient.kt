@@ -1,13 +1,7 @@
 package no.nav.hjelpemidler.joark.joark
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -16,10 +10,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -34,19 +28,12 @@ private val logger = KotlinLogging.logger {}
 
 class JoarkClient(
     private val baseUrl: String,
-    private val accesstokenScope: String,
+    private val scope: String,
     private val azureClient: AzureClient,
 ) {
     companion object {
-        private val ktorClient = HttpClient(CIO) {
+        private val client = createHttpClient {
             expectSuccess = false
-            install(ContentNegotiation) {
-                jackson {
-                    registerModule(JavaTimeModule())
-                    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                }
-            }
         }
 
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
@@ -93,10 +80,10 @@ class JoarkClient(
 
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val response: HttpResponse = ktorClient.post(baseUrl) {
+                val response: HttpResponse = client.post(baseUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 

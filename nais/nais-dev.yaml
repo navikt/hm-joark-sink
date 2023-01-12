@@ -27,16 +27,20 @@ spec:
       cpu: 20m
       memory: 512Mi
   env:
-     - name: JOARK_BASEURL
-       value: "{{ JOARK_BASEURL }}"
-     - name: JOARK_SCOPE
-       value: "{{ JOARK_SCOPE }}"
-     - name: KAFKA_CONSUMER_GROUP_ID
-       value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
-     - name: EVENT_NAME
-       value: "{{ EVENT_NAME }}"
-     - name: APPNAVN
-       value: "{{ APPNAVN }}"
+    - name: JOARK_BASEURL
+      value: "{{ JOARK_BASEURL }}"
+    - name: JOARK_SCOPE
+      value: "{{ JOARK_SCOPE }}"
+    - name: JOARK_PROXY_BASEURL
+      value: "{{ JOARK_PROXY_BASEURL }}"
+    - name: JOARK_PROXY_SCOPE
+      value: "{{ JOARK_PROXY_SCOPE }}"
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: "{{ KAFKA_CONSUMER_GROUP_ID }}"
+    - name: EVENT_NAME
+      value: "{{ EVENT_NAME }}"
+    - name: APPNAVN
+      value: "{{ APPNAVN }}"
   secureLogs:
     enabled: true
   kafka:

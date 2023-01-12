@@ -1,27 +1,22 @@
 package no.nav.hjelpemidler.joark.pdf
 
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
+import no.nav.hjelpemidler.http.createHttpClient
 
 private val logger = KotlinLogging.logger {}
 
 internal class PdfClient(private val baseUrl: String) {
     private val API_BASE_PATH = "api/v1/genpdf"
 
-    private val client = HttpClient {
+    private val client = createHttpClient {
         expectSuccess = false
-        install(ContentNegotiation) {
-            jackson()
-        }
     }
 
     suspend fun genererSoknadPdf(soknadJson: String): ByteArray = genererPdf(soknadJson, "$API_BASE_PATH/hmb/hmb")

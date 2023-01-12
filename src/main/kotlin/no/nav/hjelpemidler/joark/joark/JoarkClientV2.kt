@@ -1,13 +1,7 @@
 package no.nav.hjelpemidler.joark.joark
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -17,10 +11,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
@@ -38,18 +32,11 @@ import java.util.UUID
 private val logger = KotlinLogging.logger {}
 
 class JoarkClientV2(
-    private val baseUrl: String = Configuration.joark.baseUrl,
-    private val accesstokenScope: String = Configuration.joark.joarkScope,
+    private val baseUrl: String = Configuration.joark.proxyBaseUrl,
+    private val scope: String = Configuration.joark.proxyScope,
     private val azureClient: AzureClient,
 ) {
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            }
-        }
+    private val client = createHttpClient {
         expectSuccess = false
     }
 
@@ -111,7 +98,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -188,7 +175,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -229,7 +216,7 @@ class JoarkClientV2(
                 val response: HttpResponse =
                     client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
                         contentType(ContentType.Application.Json)
-                        bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                        bearerAuth(azureClient.getToken(scope).accessToken)
                     }
 
                 when (response.status) {
@@ -315,7 +302,7 @@ class JoarkClientV2(
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -372,7 +359,7 @@ class JoarkClientV2(
                     client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
                         contentType(ContentType.Application.Json)
                         accept(ContentType.Application.Json)
-                        bearerAuth(azureClient.getToken(accesstokenScope).accessToken)
+                        bearerAuth(azureClient.getToken(scope).accessToken)
                         setBody(requestBody)
                     }
                 when (response.status) {

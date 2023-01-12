@@ -33,13 +33,8 @@ dependencies {
     // fixme -> fjern og bruk MockEngine
     implementation("com.github.tomakehurst:wiremock:2.27.2")
 
-    // Ktor
-    implementation(ktor("serialization-jackson"))
-    implementation(ktor("client-core"))
-    implementation(ktor("client-cio"))
-    implementation(ktor("client-jackson"))
-    implementation(ktor("client-content-negotiation"))
-    implementation(ktor("client-mock"))
+    // Http
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.3")
 
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.3")
