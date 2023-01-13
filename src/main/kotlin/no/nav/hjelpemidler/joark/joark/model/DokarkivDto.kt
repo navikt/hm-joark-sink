@@ -51,7 +51,15 @@ data class Sak(
     val fagsakId: String,
     val fagsaksystem: String,
     val sakstype: String,
-)
+) {
+    companion object {
+        fun hotsak(sakId: String): Sak = Sak(
+            fagsakId = sakId,
+            fagsaksystem = "HJELPEMIDLER",
+            sakstype = "FAGSAK",
+        )
+    }
+}
 
 data class MidlertidigJournalForing(
     val avsenderMottaker: AvsenderMottaker,

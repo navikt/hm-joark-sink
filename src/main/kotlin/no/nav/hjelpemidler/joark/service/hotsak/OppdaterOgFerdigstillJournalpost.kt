@@ -60,11 +60,7 @@ class OppdaterOgFerdigstillJournalpost(
             journalpostId = journalpostId,
             bruker = Bruker(packet.fnrBruker, "FNR"),
             tittel = packet.tittel,
-            sak = Sak(
-                fagsakId = sakId,
-                fagsaksystem = "HJELPEMIDLER",
-                sakstype = "FAGSAK",
-            )
+            sak = Sak.hotsak(sakId)
         )
         val ferdigstiltJournalpost = FerdigstiltJournalpost(
             journalpostId = journalpostId,

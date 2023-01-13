@@ -70,7 +70,9 @@ class JoarkClientV3(
         val bruker: Bruker,
         val tittel: String,
         val sak: Sak,
-    )
+    ) {
+        val tema = "HJE"
+    }
 
     data class FerdigstiltJournalpost(
         @JsonIgnore
