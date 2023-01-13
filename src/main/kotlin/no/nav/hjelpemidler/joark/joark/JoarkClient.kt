@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
@@ -34,6 +35,10 @@ class JoarkClient(
     companion object {
         private val client = createHttpClient {
             expectSuccess = false
+            defaultRequest {
+                accept(ContentType.Application.Json)
+                contentType(ContentType.Application.Json)
+            }
         }
 
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
