@@ -64,6 +64,7 @@ class JoarkClientV3(
     }
 
     data class OppdatertJournalpost(
+        @JsonIgnore
         val journalpostId: String,
         val bruker: Bruker,
         val tittel: String,
