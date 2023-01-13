@@ -22,7 +22,7 @@ class OppdaterOgFerdigstillJournalpost(
     private val joarkClient: JoarkClientV3,
 ) : River.PacketListener {
     companion object {
-        private val skip = setOf("573814262")
+        private val skip = setOf("573814262", "453824415")
     }
 
     init {
