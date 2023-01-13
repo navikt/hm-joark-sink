@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.joark.joark.model.Bruker
+import no.nav.hjelpemidler.joark.joark.model.Sak
 
 class JoarkClientV3(
     private val baseUrl: String,
@@ -68,6 +69,7 @@ class JoarkClientV3(
         val journalpostId: String,
         val bruker: Bruker,
         val tittel: String,
+        val sak: Sak,
     )
 
     data class FerdigstiltJournalpost(

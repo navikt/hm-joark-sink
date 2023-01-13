@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.FerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.OppdatertJournalpost
 import no.nav.hjelpemidler.joark.joark.model.Bruker
+import no.nav.hjelpemidler.joark.joark.model.Sak
 import no.nav.hjelpemidler.joark.publish
 import java.time.LocalDateTime
 import java.util.UUID
@@ -59,6 +60,11 @@ class OppdaterOgFerdigstillJournalpost(
             journalpostId = journalpostId,
             bruker = Bruker(packet.fnrBruker, "FNR"),
             tittel = packet.tittel,
+            sak = Sak(
+                fagsakId = sakId,
+                fagsaksystem = "HJELPEMIDLER",
+                sakstype = "FAGSAK",
+            )
         )
         val ferdigstiltJournalpost = FerdigstiltJournalpost(
             journalpostId = journalpostId,
