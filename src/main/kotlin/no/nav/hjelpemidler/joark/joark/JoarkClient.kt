@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.bearerAuth
@@ -10,6 +11,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.RequestTimeout
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +40,13 @@ class JoarkClient(
             defaultRequest {
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
+            }
+            install(HttpRequestRetry) {
+                maxRetries = 5
+                retryIf { _, response ->
+                    response.status == RequestTimeout
+                }
+                exponentialDelay()
             }
         }
 

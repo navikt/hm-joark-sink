@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - mottatt-dato-tilbakeforing
+      - retry-ved-timeout-arkiversoknad
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"
