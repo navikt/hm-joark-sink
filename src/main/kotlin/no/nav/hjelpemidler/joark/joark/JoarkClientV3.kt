@@ -40,7 +40,6 @@ class JoarkClientV3(
     suspend fun oppdaterJournalpost(oppdatertJournalpost: OppdatertJournalpost) =
         withContext(Dispatchers.IO) {
             val journalpostId = oppdatertJournalpost.journalpostId
-            if (journalpostId == "573814610") return@withContext // skip 573814610 i dev
             client
                 .put("$baseUrl/journalpost/$journalpostId") {
                     bearerAuth(azureADClient.grant(scope).accessToken)
