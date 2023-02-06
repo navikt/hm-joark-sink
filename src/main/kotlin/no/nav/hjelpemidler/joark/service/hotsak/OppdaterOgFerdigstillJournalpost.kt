@@ -49,6 +49,9 @@ class OppdaterOgFerdigstillJournalpost(
         get() = get("sakId").textValue()
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet.journalpostId == "453827281") {
+            return
+        }
         val journalpostId = packet.journalpostId
         if (skip.contains(journalpostId)) {
             logger.warn { "Hopper over journalpostId: $journalpostId" }
