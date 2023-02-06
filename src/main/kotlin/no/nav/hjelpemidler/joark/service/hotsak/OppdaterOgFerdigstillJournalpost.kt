@@ -23,7 +23,7 @@ class OppdaterOgFerdigstillJournalpost(
     private val joarkClient: JoarkClientV3,
 ) : River.PacketListener {
     companion object {
-        private val skip = setOf("573814262", "453824415")
+        private val skip = setOf("453827301")
     }
 
     init {
@@ -49,9 +49,6 @@ class OppdaterOgFerdigstillJournalpost(
         get() = get("sakId").textValue()
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (packet.journalpostId == "453827290") {
-            return
-        }
         val journalpostId = packet.journalpostId
         if (skip.contains(journalpostId)) {
             logger.warn { "Hopper over journalpostId: $journalpostId" }
