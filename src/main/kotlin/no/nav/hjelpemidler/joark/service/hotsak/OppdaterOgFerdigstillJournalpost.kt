@@ -49,7 +49,7 @@ class OppdaterOgFerdigstillJournalpost(
         get() = get("sakId").textValue()
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (packet.journalpostId == "453827281") {
+        if (packet.journalpostId == "453827282" || packet.journalpostId == "453827285") {
             return
         }
         val journalpostId = packet.journalpostId
