@@ -29,7 +29,7 @@ class OppdaterOgFerdigstillJournalpost(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-journalpost-journalført_") }
+            validate { it.demandValue("eventName", "hm-journalpost-journalført") }
             validate { it.requireKey("journalpostId", "journalførendeEnhet", "tittel", "fnrBruker", "sakId") }
         }.register(this)
     }
