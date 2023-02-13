@@ -75,8 +75,8 @@ data class MidlertidigJournalForing(
 data class AvsenderMottaker(
     val id: String,
     val idType: String,
-    val land: String, // TODO: Denne skal nok ikkje setjast
-    val navn: String,
+    val land: String? = null, // TODO: Denne skal nok ikkje setjast
+    val navn: String? = null,
 )
 
 data class Bruker(

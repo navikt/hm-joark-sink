@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
 
@@ -70,6 +71,7 @@ class JoarkClientV3(
         val bruker: Bruker,
         val tittel: String,
         val sak: Sak,
+        val avsenderMottaker: AvsenderMottaker
     ) {
         val tema = "HJE"
     }

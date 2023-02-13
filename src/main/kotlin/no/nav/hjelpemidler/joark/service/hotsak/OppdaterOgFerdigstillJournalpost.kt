@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.FerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.OppdatertJournalpost
+import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
 import no.nav.hjelpemidler.joark.publish
@@ -28,7 +29,7 @@ class OppdaterOgFerdigstillJournalpost(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-journalpost-journalført") }
+            validate { it.demandValue("eventName", "hm-journalpost-journalført_") }
             validate { it.requireKey("journalpostId", "journalførendeEnhet", "tittel", "fnrBruker", "sakId") }
         }.register(this)
     }
@@ -60,7 +61,8 @@ class OppdaterOgFerdigstillJournalpost(
             journalpostId = journalpostId,
             bruker = Bruker(packet.fnrBruker, "FNR"),
             tittel = packet.tittel,
-            sak = Sak.hotsak(sakId)
+            sak = Sak.hotsak(sakId),
+            avsenderMottaker = AvsenderMottaker(packet.fnrBruker, "FNR")
         )
         val ferdigstiltJournalpost = FerdigstiltJournalpost(
             journalpostId = journalpostId,
