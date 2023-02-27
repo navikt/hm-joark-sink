@@ -8,10 +8,12 @@ import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
+import no.nav.hjelpemidler.joark.joark.JoarkClientV4
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillevedtakJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.MerkAvvistBestilling
@@ -48,6 +50,11 @@ fun main() {
         scope = Configuration.joark.scope,
         azureADClient = azureADClient()
     )
+    val joarkClientV4 = JoarkClientV4(
+        baseUrl = Configuration.joark.baseUrl,
+        scope = Configuration.joark.scope,
+        azureClient = azureClient
+    )
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))
         .build().apply {
@@ -65,6 +72,7 @@ fun main() {
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
             FeilregistrerBarnebrillerJournalpost(this, joarkClientV2)
             ResendBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
+            OpprettOgFerdigstillBarnebrillevedtakJournalpost(this, joarkClientV4)
         }.start()
 }
 
