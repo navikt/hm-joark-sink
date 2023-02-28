@@ -34,25 +34,22 @@ internal class OpprettOgFerdigstillBarnebrillevedtakJournalpost(
             validate { it.demandValue("eventName", "hm-manuelt-barnebrillevedtak-opprettet") }
             validate {
                 it.requireKey(
-                    "fnr",
-                    "brukersNavn",
-                    "orgAdresse",
+                    "saksnummer",
+                    "fnrBruker",
+                    "navnBruker",
                     "navnAvsender",
-                    "eventId",
-                    "opprettetDato",
-                    "sakId",
+                    "opprettet",
                     "pdf"
                 )
             }
         }.register(this)
     }
 
-    private val JsonMessage.fnr get() = this["fnr"].textValue()
-    private val JsonMessage.brukersNavn get() = this["brukersNavn"].textValue()
+    private val JsonMessage.fnr get() = this["fnrBruker"].textValue()
+    private val JsonMessage.brukersNavn get() = this["navnBruker"].textValue()
     private val JsonMessage.navnAvsender get() = this["navnAvsender"].textValue()
-    private val JsonMessage.eventId get() = this["eventId"].textValue()
-    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettetDato"].textValue()).toLocalDate()
-    private val JsonMessage.sakId get() = this["sakId"].textValue()
+    private val JsonMessage.opprettetDato get() = LocalDateTime.parse(this["opprettet"].textValue()).toLocalDate()
+    private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.pdf get() = this["pdf"].binaryValue()
 
     private val DOKUMENTTITTEL = "Journalføring barnebrillevedtak"
