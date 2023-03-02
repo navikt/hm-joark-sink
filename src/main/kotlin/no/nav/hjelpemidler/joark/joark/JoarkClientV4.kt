@@ -69,7 +69,6 @@ class JoarkClientV4(
             listOf(
                 Dokumenter(
                     brevkode = "vedtaksbrev_barnebriller",
-                    dokumentKategori = DOKUMENT_KATEGORI_VED,
                     dokumentvarianter = listOf(
                         Dokumentvarianter(
                             "barnebrille_vedtak.pdf",

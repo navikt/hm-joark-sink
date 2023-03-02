@@ -94,7 +94,7 @@ data class Dokumentvarianter(
 data class Dokumenter(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val brevkode: String? = null,
-    val dokumentKategori: String?,
+    val dokumentKategori: String? = null,
     val dokumentvarianter: List<Dokumentvarianter>,
     val tittel: String,
 )
