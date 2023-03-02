@@ -27,8 +27,8 @@ import java.util.Base64
 private val logger = KotlinLogging.logger {}
 
 class JoarkClientV4(
-    private val baseUrl: String = Configuration.joark.proxyBaseUrl,
-    private val scope: String = Configuration.joark.proxyScope,
+    private val baseUrl: String,
+    private val scope: String,
     private val azureClient: AzureClient,
 ) {
     private val client = createHttpClient {
@@ -49,7 +49,7 @@ class JoarkClientV4(
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "UTGAAENDE"
         const val JOURNALPOSTBESKRIVELSE_BARNEBRILLE = "Vedtak for barnebrille"
-        const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
+        const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/journalpost?forsoekFerdigstill=true"
     }
 
     private val opprettOfFerdigstillUrl = "$baseUrl$OPPRETT_OG_FERDIGSTILL_URL_PATH"
