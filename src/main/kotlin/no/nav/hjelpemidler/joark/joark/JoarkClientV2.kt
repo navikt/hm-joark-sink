@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -16,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
@@ -35,7 +36,7 @@ private val logger = KotlinLogging.logger {}
 class JoarkClientV2(
     private val baseUrl: String = Configuration.joark.proxyBaseUrl,
     private val scope: String = Configuration.joark.proxyScope,
-    private val azureClient: AzureClient,
+    private val azureAdClient: OpenIDClient,
 ) {
     private val client = createHttpClient {
         expectSuccess = false
@@ -43,6 +44,7 @@ class JoarkClientV2(
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
         }
+        openID(scope, azureAdClient)
     }
 
     companion object {
@@ -101,9 +103,6 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -178,9 +177,6 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -219,10 +215,7 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse =
-                    client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning") {
-                        contentType(ContentType.Application.Json)
-                        bearerAuth(azureClient.getToken(scope).accessToken)
-                    }
+                    client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning")
 
                 when (response.status) {
                     HttpStatusCode.BadRequest -> {
@@ -305,9 +298,6 @@ class JoarkClientV2(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -362,9 +352,6 @@ class JoarkClientV2(
             kotlin.runCatching {
                 val response: HttpResponse =
                     client.put("$omdøpAvvistBestillingUrl/$joarkRef") {
-                        contentType(ContentType.Application.Json)
-                        accept(ContentType.Application.Json)
-                        bearerAuth(azureClient.getToken(scope).accessToken)
                         setBody(requestBody)
                     }
                 when (response.status) {

@@ -3,8 +3,9 @@ package no.nav.hjelpemidler.joark
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.configuration.LocalEnvironment
 import no.nav.hjelpemidler.http.openid.azureADClient
-import no.nav.hjelpemidler.joark.joark.AzureClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
@@ -21,29 +22,29 @@ import no.nav.hjelpemidler.joark.service.hotsak.OppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.wiremock.WiremockServer
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 
 fun main() {
-    if (Configuration.application.profile == Configuration.Profile.LOCAL) {
+    if (Environment.current is LocalEnvironment) {
+        logger.info { "Starter WiremockServer..." }
         WiremockServer(Configuration).startServer()
     }
 
     val pdfClient = PdfClient(Configuration.pdf.baseUrl)
-    val azureClient = AzureClient(
-        tenantUrl = "${Configuration.azure.tenantBaseUrl}/${Configuration.azure.tenantId}",
-        clientId = Configuration.azure.clientId,
-        clientSecret = Configuration.azure.clientSecret
-    )
+    val azureAdClient = azureADClient {
+        cache(leeway = 10.seconds)
+    }
     val joarkClient = JoarkClient(
         baseUrl = Configuration.joark.proxyBaseUrl,
         scope = Configuration.joark.proxyScope,
-        azureClient = azureClient
+        azureAdClient = azureAdClient
     )
     val joarkClientV2 = JoarkClientV2(
         baseUrl = Configuration.joark.proxyBaseUrl,
         scope = Configuration.joark.proxyScope,
-        azureClient = azureClient
+        azureAdClient = azureAdClient
     )
     val joarkClientV3 = JoarkClientV3(
         baseUrl = Configuration.joark.baseUrl,
@@ -53,7 +54,7 @@ fun main() {
     val joarkClientV4 = JoarkClientV4(
         baseUrl = Configuration.joark.baseUrl,
         scope = Configuration.joark.scope,
-        azureClient = azureClient
+        azureAdClient = azureAdClient
     )
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(Configuration.rapidApplication))

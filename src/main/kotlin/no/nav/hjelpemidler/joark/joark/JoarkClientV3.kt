@@ -6,7 +6,6 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -20,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
@@ -36,6 +36,7 @@ class JoarkClientV3(
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
         }
+        openID(scope, azureADClient)
     }
 
     suspend fun oppdaterJournalpost(oppdatertJournalpost: OppdatertJournalpost) =
@@ -43,7 +44,6 @@ class JoarkClientV3(
             val journalpostId = oppdatertJournalpost.journalpostId
             client
                 .put("$baseUrl/journalpost/$journalpostId") {
-                    bearerAuth(azureADClient.grant(scope).accessToken)
                     setBody(oppdatertJournalpost)
                 }
                 .expect(HttpStatusCode.OK)
@@ -54,7 +54,6 @@ class JoarkClientV3(
             val journalpostId = ferdigstiltJournalpost.journalpostId
             client
                 .patch("$baseUrl/journalpost/$journalpostId/ferdigstill") {
-                    bearerAuth(azureADClient.grant(scope).accessToken)
                     setBody(ferdigstiltJournalpost)
                 }
                 .expect(HttpStatusCode.OK)

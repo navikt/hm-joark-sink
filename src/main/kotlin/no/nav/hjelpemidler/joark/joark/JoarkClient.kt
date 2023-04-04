@@ -5,7 +5,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -17,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -32,24 +33,9 @@ private val logger = KotlinLogging.logger {}
 class JoarkClient(
     private val baseUrl: String,
     private val scope: String,
-    private val azureClient: AzureClient,
+    private val azureAdClient: OpenIDClient,
 ) {
     companion object {
-        private val client = createHttpClient {
-            expectSuccess = false
-            defaultRequest {
-                accept(ContentType.Application.Json)
-                contentType(ContentType.Application.Json)
-            }
-            install(HttpRequestRetry) {
-                maxRetries = 5
-                retryIf { _, response ->
-                    response.status == RequestTimeout
-                }
-                exponentialDelay()
-            }
-        }
-
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
         const val DOKUMENT_TITTEL_BEST = "Bestilling av hjelpemidler"
         const val ID_TYPE = "FNR"
@@ -62,6 +48,22 @@ class JoarkClient(
         const val TEMA = "HJE"
         const val KANAL = "NAV_NO"
         const val JOURNALPOST_TYPE = "INNGAAENDE"
+    }
+
+    private val client = createHttpClient {
+        expectSuccess = false
+        defaultRequest {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+        }
+        install(HttpRequestRetry) {
+            maxRetries = 5
+            retryIf { _, response ->
+                response.status == RequestTimeout
+            }
+            exponentialDelay()
+        }
+        openID(scope, azureAdClient)
     }
 
     suspend fun arkiverSoknad(
@@ -95,9 +97,6 @@ class JoarkClient(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse = client.post(baseUrl) {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 

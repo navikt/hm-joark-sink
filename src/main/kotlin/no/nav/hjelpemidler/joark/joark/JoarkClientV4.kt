@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -15,7 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -27,9 +27,9 @@ import java.util.Base64
 private val logger = KotlinLogging.logger {}
 
 class JoarkClientV4(
-    private val baseUrl: String,
+    baseUrl: String,
     private val scope: String,
-    private val azureClient: AzureClient,
+    private val azureAdClient: OpenIDClient,
 ) {
     private val client = createHttpClient {
         expectSuccess = false
@@ -37,6 +37,7 @@ class JoarkClientV4(
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
         }
+        openID(scope, azureAdClient)
     }
 
     companion object {
@@ -96,9 +97,6 @@ class JoarkClientV4(
         return withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val response: HttpResponse = client.post(opprettOfFerdigstillUrl) {
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    bearerAuth(azureClient.getToken(scope).accessToken)
                     setBody(requestBody)
                 }
 
@@ -129,4 +127,3 @@ class JoarkClientV4(
         }.getOrThrow()
     }
 }
-

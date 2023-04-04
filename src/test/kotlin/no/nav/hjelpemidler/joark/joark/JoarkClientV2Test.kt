@@ -7,9 +7,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.created
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import no.nav.hjelpemidler.joark.test.TestOpenIDClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -21,14 +21,14 @@ import kotlin.test.assertEquals
 internal class JoarkClientV2Test {
 
     private val server = WireMockServer(WireMockConfiguration.options().dynamicPort())
-    private val azureClient = mockk<AzureClient>(relaxed = true)
+    private val azureAdClient = TestOpenIDClient()
     private lateinit var joarkClientV2: JoarkClientV2
 
     @BeforeAll
     fun setup() {
         server.start()
         configureFor("localhost", server.port())
-        joarkClientV2 = JoarkClientV2(baseUrl = server.baseUrl(), azureClient = azureClient)
+        joarkClientV2 = JoarkClientV2(baseUrl = server.baseUrl(), azureAdClient = azureAdClient)
     }
 
     @AfterAll

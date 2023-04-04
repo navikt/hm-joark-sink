@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.8.20"
     id("com.diffplug.spotless") version "6.12.1"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
@@ -19,7 +19,7 @@ application {
     mainClass.set("no.nav.hjelpemidler.joark.ApplicationKt")
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.2.2"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.2.4"
 
 dependencies {
     implementation(kotlin("stdlib"))
@@ -27,17 +27,17 @@ dependencies {
     implementation("com.github.navikt:rapids-and-rivers:2022122313141671797650.f806f770805a")
 
     // Logging
-    implementation("io.github.microutils:kotlin-logging:3.0.4")
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
 
     // fixme -> fjern og bruk MockEngine
     implementation("com.github.tomakehurst:wiremock:2.27.2")
 
     // Http
-    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.3")
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.26")
 
     testImplementation(kotlin("test"))
-    testImplementation("io.mockk:mockk:1.13.3")
+    testImplementation("io.mockk:mockk:1.13.4")
 }
 
 tasks.withType<Test> {
