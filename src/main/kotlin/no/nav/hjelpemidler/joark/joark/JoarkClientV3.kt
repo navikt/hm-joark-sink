@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.*
 import io.ktor.client.request.accept
 import io.ktor.client.request.patch
 import io.ktor.client.request.put
@@ -36,15 +36,21 @@ class JoarkClientV3(
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
         }
+        install(HttpRequestRetry) {
+            retryOnExceptionOrServerErrors(maxRetries = 5)
+            exponentialDelay()
+        }
         openID(scope, azureADClient)
     }
 
     suspend fun oppdaterJournalpost(oppdatertJournalpost: OppdatertJournalpost) =
         withContext(Dispatchers.IO) {
             val journalpostId = oppdatertJournalpost.journalpostId
+            val tokenSet = azureADClient.grant(scope)
             client
                 .put("$baseUrl/journalpost/$journalpostId") {
                     setBody(oppdatertJournalpost)
+                    // bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
@@ -52,16 +58,21 @@ class JoarkClientV3(
     suspend fun ferdigstillJournalpost(ferdigstiltJournalpost: FerdigstiltJournalpost) =
         withContext(Dispatchers.IO) {
             val journalpostId = ferdigstiltJournalpost.journalpostId
+            val tokenSet = azureADClient.grant(scope)
             client
                 .patch("$baseUrl/journalpost/$journalpostId/ferdigstill") {
                     setBody(ferdigstiltJournalpost)
+                    // bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
 
     private suspend fun HttpResponse.expect(expected: HttpStatusCode) = when (status) {
         expected -> Unit
-        else -> error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '${bodyAsText()}'")
+        else -> {
+            val body = runCatching { bodyAsText() }.getOrElse { it.message }
+            error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
+        }
     }
 
     data class OppdatertJournalpost(
@@ -70,7 +81,7 @@ class JoarkClientV3(
         val bruker: Bruker,
         val tittel: String,
         val sak: Sak,
-        val avsenderMottaker: AvsenderMottaker
+        val avsenderMottaker: AvsenderMottaker,
     ) {
         val tema = "HJE"
     }

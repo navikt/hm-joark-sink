@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
@@ -72,8 +73,16 @@ class OppdaterOgFerdigstillJournalpost(
             "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
         }
         runBlocking(Dispatchers.IO) {
-            joarkClient.oppdaterJournalpost(oppdatertJournalpost)
-            joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
+            try {
+                joarkClient.oppdaterJournalpost(oppdatertJournalpost)
+                joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
+            } catch (e: ClosedReceiveChannelException) {
+                logger.error(e) {
+                    "Noe gikk galt"
+                }
+                throw e
+            }
+
         }
         context.publish(
             key = fnrBruker,

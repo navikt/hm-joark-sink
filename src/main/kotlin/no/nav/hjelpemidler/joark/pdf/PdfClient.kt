@@ -39,7 +39,10 @@ class PdfClient(
         }
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
-            else -> throw PdfException("Uventet status: ${response.status}, body: '${response.bodyAsText()}'")
+            else -> {
+                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
+                throw PdfException("Uventet status: ${response.status}, body: '$body'")
+            }
         }
     }
 }
