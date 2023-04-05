@@ -75,14 +75,21 @@ class OppdaterOgFerdigstillJournalpost(
         runBlocking(Dispatchers.IO) {
             try {
                 joarkClient.oppdaterJournalpost(oppdatertJournalpost)
+            } catch (e: ClosedReceiveChannelException) {
+                logger.error(e) {
+                    "oppdaterJournalpost: Noe gikk galt"
+                }
+                throw RuntimeException("oppdaterJournalpost", e)
+            }
+
+            try {
                 joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
             } catch (e: ClosedReceiveChannelException) {
                 logger.error(e) {
-                    "Noe gikk galt"
+                    "ferdigstillJournalpost: Noe gikk galt"
                 }
-                throw e
+                throw RuntimeException("ferdigstillJournalpost", e)
             }
-
         }
         context.publish(
             key = fnrBruker,

@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
@@ -40,7 +40,7 @@ class JoarkClientV3(
             retryOnExceptionOrServerErrors(maxRetries = 5)
             exponentialDelay()
         }
-        openID(scope, azureADClient)
+        // openID(scope, azureADClient)
     }
 
     suspend fun oppdaterJournalpost(oppdatertJournalpost: OppdatertJournalpost) =
@@ -50,7 +50,7 @@ class JoarkClientV3(
             client
                 .put("$baseUrl/journalpost/$journalpostId") {
                     setBody(oppdatertJournalpost)
-                    // bearerAuth(tokenSet)
+                    bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
@@ -62,7 +62,7 @@ class JoarkClientV3(
             client
                 .patch("$baseUrl/journalpost/$journalpostId/ferdigstill") {
                     setBody(ferdigstiltJournalpost)
-                    // bearerAuth(tokenSet)
+                    bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
