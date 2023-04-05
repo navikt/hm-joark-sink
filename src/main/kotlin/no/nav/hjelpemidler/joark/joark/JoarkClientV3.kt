@@ -17,12 +17,17 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.configuration.GcpEnvironment
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
+
+private val logger = KotlinLogging.logger {}
 
 class JoarkClientV3(
     private val baseUrl: String,
@@ -47,8 +52,15 @@ class JoarkClientV3(
         withContext(Dispatchers.IO) {
             val journalpostId = oppdatertJournalpost.journalpostId
             val tokenSet = azureADClient.grant(scope)
+            if (Environment.current == GcpEnvironment.DEV) {
+                logger.info { "tokenSet: $tokenSet" }
+            }
+            val url = "$baseUrl/journalpost/$journalpostId"
+            logger.info {
+                "Oppdaterer journalpost med url: '$url'"
+            }
             client
-                .put("$baseUrl/journalpost/$journalpostId") {
+                .put(url) {
                     setBody(oppdatertJournalpost)
                     bearerAuth(tokenSet)
                 }
@@ -59,8 +71,12 @@ class JoarkClientV3(
         withContext(Dispatchers.IO) {
             val journalpostId = ferdigstiltJournalpost.journalpostId
             val tokenSet = azureADClient.grant(scope)
+            val url = "$baseUrl/journalpost/$journalpostId/ferdigstill"
+            logger.info {
+                "Ferdigstiller journalpost med url: '$url'"
+            }
             client
-                .patch("$baseUrl/journalpost/$journalpostId/ferdigstill") {
+                .patch(url) {
                     setBody(ferdigstiltJournalpost)
                     bearerAuth(tokenSet)
                 }
@@ -70,6 +86,7 @@ class JoarkClientV3(
     private suspend fun HttpResponse.expect(expected: HttpStatusCode) = when (status) {
         expected -> Unit
         else -> {
+            logger.info { "Feil!, $status" }
             val body = runCatching { bodyAsText() }.getOrElse { it.message }
             error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
         }
