@@ -1,12 +1,9 @@
 package no.nav.hjelpemidler.joark
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.GcpEnvironment
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
@@ -34,13 +31,6 @@ fun main() {
 
     val azureADClient = azureADClient {
         cache(leeway = 10.seconds)
-    }
-
-    if (Environment.current == GcpEnvironment.DEV) {
-        runBlocking(Dispatchers.IO) {
-            val tokenSet = azureADClient.grant(Configuration.JOARK_SCOPE)
-            logger.info { "tokenSet: $tokenSet" }
-        }
     }
 
     val pdfClient = PdfClient(
