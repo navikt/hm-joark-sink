@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
@@ -73,15 +72,8 @@ class OppdaterOgFerdigstillJournalpost(
             "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
         }
         runBlocking(Dispatchers.IO) {
-            try {
-                joarkClient.oppdaterJournalpost(oppdatertJournalpost)
-                joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
-            } catch (e: Throwable) {
-                logger.error(e) {
-                    "Noe gikk galt under ferdigstilling og oppdatering av journalpost, journalpostId: $journalpostId, sakId: $sakId"
-                }
-                throw e
-            }
+            joarkClient.oppdaterJournalpost(oppdatertJournalpost)
+            joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
         }
         context.publish(
             key = fnrBruker,
@@ -93,12 +85,6 @@ class OppdaterOgFerdigstillJournalpost(
                 sakId = sakId,
             )
         )
-    }
-
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        logger.error(error) {
-            "Noe gikk galt"
-        }
     }
 
     data class JournalpostOppdatertOgFerdigstilt(
