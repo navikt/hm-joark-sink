@@ -3,7 +3,7 @@
   "RAPID_APP_NAME": "hm-joark-sink",
   "KAFKA_RAPID_TOPIC": "teamdigihot.hm-soknadsbehandling-v1",
   "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-v1",
-  "KAFKA_RESET_POLICY": "latest",
+  "KAFKA_RESET_POLICY": "earliest",
   "PDF_BASEURL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
   "JOARK_BASEURL": "https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1",
   "JOARK_SCOPE": "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
