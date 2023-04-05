@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.joark
 
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.cio.CIO
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -30,7 +30,7 @@ fun main() {
         "Gjeldende miljø: ${Environment.current}"
     }
 
-    val engine = Apache.create()
+    val engine = CIO.create()
 
     val azureADClient = azureADClient(engine) {
         cache(leeway = 10.seconds)
