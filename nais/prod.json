@@ -1,0 +1,13 @@
+{
+  "HTTP_PORT": "8080",
+  "RAPID_APP_NAME": "hm-joark-sink",
+  "KAFKA_RAPID_TOPIC": "teamdigihot.hm-soknadsbehandling-v1",
+  "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-v1",
+  "KAFKA_RESET_POLICY": "latest",
+  "PDF_BASEURL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
+  "JOARK_BASEURL": "https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1",
+  "JOARK_SCOPE": "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
+  "JOARK_PROXY_BASEURL": "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
+  "JOARK_PROXY_SCOPE": "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default",
+  "EVENT_NAME": "hm-SøknadArkivert"
+}

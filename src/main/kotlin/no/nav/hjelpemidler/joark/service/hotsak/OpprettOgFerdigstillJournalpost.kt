@@ -105,7 +105,7 @@ internal class OpprettOgFerdigstillJournalpost(
 
     private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
-            pdfClient.genererSoknadPdf(soknadJson)
+            pdfClient.genererSøknadPdf(soknadJson)
         }.onSuccess {
             logger.info("PDF generert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()

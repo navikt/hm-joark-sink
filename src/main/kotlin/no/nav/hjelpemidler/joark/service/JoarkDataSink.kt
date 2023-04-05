@@ -33,7 +33,7 @@ internal class JoarkDataSink(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
-    private val eventName: String = Configuration.application.eventName,
+    private val eventName: String = Configuration.EVENT_NAME,
 ) : PacketListenerWithOnError {
 
     companion object {
@@ -113,7 +113,7 @@ internal class JoarkDataSink(
 
     private suspend fun genererPdf(soknadJson: String, soknadId: UUID) =
         kotlin.runCatching {
-            pdfClient.genererSoknadPdf(soknadJson)
+            pdfClient.genererSøknadPdf(soknadJson)
         }.onSuccess {
             logger.info("PDF generert: $soknadId")
             Prometheus.pdfGenerertCounter.inc()

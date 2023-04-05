@@ -26,6 +26,11 @@ spec:
     requests:
       cpu: 40m
       memory: 512Mi
+  env:
+  {{#each this}}
+     - name: {{@key}}
+       value: "{{this}}"
+  {{/each}}
   secureLogs:
     enabled: true
   kafka:

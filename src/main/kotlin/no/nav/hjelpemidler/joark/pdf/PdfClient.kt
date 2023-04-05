@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.joark.pdf
 
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -9,26 +11,31 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
+import org.intellij.lang.annotations.Language
 
 private val logger = KotlinLogging.logger {}
 
-internal class PdfClient(private val baseUrl: String) {
-    private val API_BASE_PATH = "api/v1/genpdf"
+class PdfClient(
+    private val baseUrl: String,
+    engine: HttpClientEngine = CIO.create(),
+) {
+    private val basePath = "api/v1/genpdf"
 
-    private val client = createHttpClient {
+    private val client = createHttpClient(engine) {
         expectSuccess = false
     }
 
-    suspend fun genererSoknadPdf(soknadJson: String): ByteArray = genererPdf(soknadJson, "$API_BASE_PATH/hmb/hmb")
+    suspend fun genererSøknadPdf(@Language("JSON") søknadJson: String): ByteArray =
+        genererPdf(søknadJson, "$basePath/hmb/hmb")
 
-    suspend fun genererBarnebrillePdf(soknadJson: String): ByteArray =
-        genererPdf(soknadJson, "$API_BASE_PATH/barnebrille/barnebrille")
+    suspend fun genererBarnebrillePdf(@Language("JSON") søknadJson: String): ByteArray =
+        genererPdf(søknadJson, "$basePath/barnebrille/barnebrille")
 
-    suspend fun genererPdf(soknadJson: String, path: String): ByteArray {
+    private suspend fun genererPdf(@Language("JSON") søknadJson: String, path: String): ByteArray {
         logger.info { "Generer PDF for path: $path" }
         val response = client.post("$baseUrl/$path") {
             contentType(ContentType.Application.Json)
-            setBody(soknadJson)
+            setBody(søknadJson)
         }
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
@@ -37,4 +44,4 @@ internal class PdfClient(private val baseUrl: String) {
     }
 }
 
-internal class PdfException(msg: String) : RuntimeException(msg)
+class PdfException(message: String) : RuntimeException(message)

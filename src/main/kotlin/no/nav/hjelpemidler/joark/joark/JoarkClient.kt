@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
@@ -33,7 +35,8 @@ private val logger = KotlinLogging.logger {}
 class JoarkClient(
     private val baseUrl: String,
     private val scope: String,
-    private val azureAdClient: OpenIDClient,
+    private val azureADClient: OpenIDClient,
+    engine: HttpClientEngine = CIO.create(),
 ) {
     companion object {
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
@@ -50,7 +53,7 @@ class JoarkClient(
         const val JOURNALPOST_TYPE = "INNGAAENDE"
     }
 
-    private val client = createHttpClient {
+    private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
             accept(ContentType.Application.Json)
@@ -63,7 +66,7 @@ class JoarkClient(
             }
             exponentialDelay()
         }
-        openID(scope, azureAdClient)
+        openID(scope, azureADClient)
     }
 
     suspend fun arkiverSoknad(

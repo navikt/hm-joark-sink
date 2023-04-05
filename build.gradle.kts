@@ -19,25 +19,21 @@ application {
     mainClass.set("no.nav.hjelpemidler.joark.ApplicationKt")
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.2.4"
-
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.natpryce:konfig:1.6.10.0")
-    implementation("com.github.navikt:rapids-and-rivers:2022122313141671797650.f806f770805a")
+    implementation("com.github.navikt:rapids-and-rivers:2023031511211678875716.e6e2c9250860")
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.5")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
-
-    // fixme -> fjern og bruk MockEngine
-    implementation("com.github.tomakehurst:wiremock:2.27.2")
 
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.26")
 
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation("io.kotest:kotest-runner-junit5:5.5.5")
+    testImplementation("io.kotest:kotest-assertions-core:5.5.5")
 }
 
 tasks.withType<Test> {

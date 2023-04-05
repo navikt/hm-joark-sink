@@ -1,66 +1,35 @@
 package no.nav.hjelpemidler.joark.pdf
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import io.kotest.matchers.shouldBe
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
+import no.nav.hjelpemidler.joark.Configuration
 import org.junit.jupiter.api.Test
 import java.util.Base64
 
-internal class PdfClientTest {
-
-    companion object {
-        val server: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            server.start()
+class PdfClientTest {
+    private val pdf = Base64.getEncoder().encode("foobar".toByteArray())
+    private val pdfClient = PdfClient(
+        baseUrl = Configuration.PDF_BASEURL,
+        engine = MockEngine {
+            respond(pdf, HttpStatusCode.OK)
         }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            server.stop()
-        }
-    }
-
-    private val pdfClient: PdfClient
-
-    init {
-        pdfClient = PdfClient(server.baseUrl())
-    }
-
-    @BeforeEach
-    fun configure() {
-        WireMock.configureFor(server.port())
-    }
+    )
 
     @Test
     fun `genererer pdf`() {
         runBlocking {
-            val mockByteArray = pdfResponse.toByteArray()
-            val stringPdfMock = Base64.getEncoder().encodeToString(mockByteArray)
+            val response = pdfClient.genererSøknadPdf(
+                """
+                    {
+                        "soknad": "soknad"
+                    }
+                """.trimIndent()
+            )
 
-            WireMock.stubFor(WireMock.post("/api/v1/genpdf/hmb/hmb").willReturn(WireMock.ok(stringPdfMock)))
-
-            pdfClient.genererSoknadPdf(pdfResponse)
-
-            WireMock.verify(1, postRequestedFor(urlEqualTo("/api/v1/genpdf/hmb/hmb")))
+            response shouldBe pdf
         }
     }
-
-    @Language("JSON")
-    private val pdfResponse =
-        """
-            {
-                "soknad": "soknad"
-            }
-        """.trimIndent()
 }

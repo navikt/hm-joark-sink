@@ -9,46 +9,42 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - retry-ved-timeout-arkiversoknad
 
 env:
-  IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-joark-sink:${{ github.sha }}"
+  IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
+
 jobs:
   build:
-    name: Build app, docker image and  push docker image
+    name: Build app, docker image and push docker image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Java 17
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
-          java-version: '17.x'
-      - name: Cache gradle dependencies
-        uses: actions/cache@v1
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - run: ./gradlew build --no-daemon
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('build.gradle.kts') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: Build with Gradle
-        run: ./gradlew clean build --info
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: true
-      - name: Build and Publish Docker image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          docker build -t $IMAGE .
-          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
-          docker push $IMAGE
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: ${{ env.IMAGE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: .
 
   deploy-dev:
     name: Deploy to dev
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
@@ -56,15 +52,15 @@ jobs:
           RESOURCE: nais/nais-dev.yaml
           VARS: nais/dev.json
 
-  deploy-prod:
-    name: Deploy to Production
-    needs: [build, deploy-dev]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          RESOURCE: nais/nais-prod.yaml
+#  deploy-prod:
+#    name: Deploy to Production
+#    needs: [build, deploy-dev]
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-gcp
+#          RESOURCE: nais/nais-prod.yaml

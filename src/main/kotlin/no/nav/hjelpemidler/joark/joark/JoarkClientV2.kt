@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.joark.joark
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
@@ -17,7 +19,6 @@ import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
-import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
@@ -34,25 +35,18 @@ import java.util.UUID
 private val logger = KotlinLogging.logger {}
 
 class JoarkClientV2(
-    private val baseUrl: String = Configuration.joark.proxyBaseUrl,
-    private val scope: String = Configuration.joark.proxyScope,
-    private val azureAdClient: OpenIDClient,
+    private val baseUrl: String,
+    private val scope: String,
+    private val azureADClient: OpenIDClient,
+    engine: HttpClientEngine = CIO.create(),
 ) {
-    private val client = createHttpClient {
-        expectSuccess = false
-        defaultRequest {
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-        }
-        openID(scope, azureAdClient)
-    }
-
     companion object {
         const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
         const val BREV_KODE_SOK = "NAV 10-07.03"
         const val BREV_KODE_BEST = "NAV 10-07.05"
-        const val BREV_KODE_BARNEBRILLE = "NAV 10-07.03" // TODO: bytt til riktig
+        const val BREV_KODE_TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN = "NAV 10-07.34"
+        const val BREV_KODE_TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN_ETTERSENDING = "NAVe 10-07.34"
         const val DOKUMENT_KATEGORI_SOK = "SOK"
         const val FIL_TYPE = "PDFA"
         const val VARIANT_FORMAT = "ARKIV"
@@ -64,6 +58,15 @@ class JoarkClientV2(
         const val JOURNALPOSTBESKRIVELSE_BARNEBRILLE = "Vedtak for barnebrille" // TODO: bytt til riktig
         const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/opprett-og-ferdigstill"
         const val OMDØP_AVVIST_BESTILLING_URL_PATH = "/omdop-avvist-bestilling"
+    }
+
+    private val client = createHttpClient(engine) {
+        expectSuccess = false
+        defaultRequest {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+        }
+        openID(scope, azureADClient)
     }
 
     private val opprettOfFerdigstillUrl = "$baseUrl$OPPRETT_OG_FERDIGSTILL_URL_PATH"
@@ -403,7 +406,7 @@ class JoarkClientV2(
         )
 }
 
-internal class JoarkExceptionV2(msg: String) : RuntimeException(msg)
+class JoarkExceptionV2(message: String) : RuntimeException(message)
 
 data class OpprettetJournalpostResponse(
     val journalpostNr: String,

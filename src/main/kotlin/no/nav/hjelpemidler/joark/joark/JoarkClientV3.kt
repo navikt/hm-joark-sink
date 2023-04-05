@@ -30,7 +30,7 @@ class JoarkClientV3(
     private val azureADClient: OpenIDClient,
     engine: HttpClientEngine = CIO.create(),
 ) {
-    private val client = createHttpClient(engine = engine) {
+    private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
             accept(ContentType.Application.Json)
