@@ -22,11 +22,13 @@ application {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(platform("io.ktor:ktor-bom:2.2.4"))
-    implementation("com.github.navikt:rapids-and-rivers:2023031511211678875716.e6e2c9250860")
+    implementation("com.github.navikt:rapids-and-rivers:2022111011111668075098.65e508dcde8b") {
+        exclude(group = "ch.qos.logback")
+    }
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.5")
-    runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
+    runtimeOnly("ch.qos.logback:logback-classic:1.4.6")
 
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.26")
