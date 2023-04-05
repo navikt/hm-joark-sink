@@ -54,7 +54,7 @@ internal class FeilregistrerBarnebrillerJournalpost(
                     try {
                         feilregistrerJournalpost(packet.sakId, packet.joarkRef)
                     } catch (e: Exception) {
-                        logger.error { e.message }
+                        logger.error(e) { e.message }
                         if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
                         throw e
                     }
