@@ -73,10 +73,10 @@ class JoarkClient(
         fnrBruker: String,
         navnAvsender: String,
         dokumentTittel: String,
-        soknadId: UUID,
-        soknadPdf: ByteArray,
+        søknadId: UUID,
+        søknadPdf: ByteArray,
         behovsmeldingType: BehovsmeldingType,
-        eksternRefId: String = soknadId.toString() + "HJE-DIGITAL-SOKNAD",
+        eksternRefId: String = søknadId.toString() + "HJE-DIGITAL-SOKNAD",
         mottattDato: LocalDateTime? = null,
     ): String {
         logger.info { "Arkiverer søknad" }
@@ -85,10 +85,10 @@ class JoarkClient(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
             datoMottatt = mottattDato,
-            hentlistDokumentTilJournalForening(
+            lagDokumentliste(
                 behovsmeldingType,
                 dokumentTittel,
-                Base64.getEncoder().encodeToString(soknadPdf)
+                Base64.getEncoder().encodeToString(søknadPdf)
             ),
             TEMA,
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
@@ -106,18 +106,18 @@ class JoarkClient(
                 when (response.status) {
                     HttpStatusCode.Created, HttpStatusCode.Conflict -> {
                         if (response.status == HttpStatusCode.Conflict) {
-                            logger.warn { "Duplikatvarsel ved opprettelse av jp med soknadId $soknadId" }
+                            logger.warn { "Duplikatvarsel ved opprettelse av jp med soknadId $søknadId" }
                         }
                         val responseBody = response.body<JsonNode>()
                         if (responseBody.has("journalpostId")) {
                             responseBody["journalpostId"].textValue()
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                            throw JoarkException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                        throw JoarkException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -126,41 +126,35 @@ class JoarkClient(
         }.getOrThrow()
     }
 
-    private fun hentlistDokumentTilJournalForening(
+    private fun lagDokumentliste(
         behovsmeldingType: BehovsmeldingType,
         dokumentTittel: String,
-        soknadPdf: String,
-    ): List<Dokumenter> {
-        val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
-        return dokuments
-    }
+        søknadPdf: String,
+    ): List<Dokumenter> =
+        listOf(lagDokumenter(behovsmeldingType, dokumentTittel, søknadPdf))
 
-    private fun forbredeHjelpemidlerDokument(
+    private fun lagDokumenter(
         behovsmeldingType: BehovsmeldingType,
         dokumentTittel: String,
-        soknadPdf: String,
-    ): Dokumenter {
-        val dokumentVariants = ArrayList<Dokumentvarianter>()
-        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
-        return Dokumenter(
+        søknadPdf: String,
+    ): Dokumenter =
+        Dokumenter(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
-            dokumentVariants,
+            listOf(lagDokumentvarianter(behovsmeldingType, søknadPdf)),
             dokumentTittel
         )
-    }
 
-    private fun forbredeHjelpemidlerDokumentVariant(
+    private fun lagDokumentvarianter(
         behovsmeldingType: BehovsmeldingType,
-        soknadPdf: String,
+        søknadPdf: String,
     ): Dokumentvarianter =
         Dokumentvarianter(
             if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
             VARIANT_FORMAT,
-            soknadPdf
+            søknadPdf
         )
 }
 
-internal class JoarkException(msg: String) : RuntimeException(msg)
+class JoarkException(message: String) : RuntimeException(message)

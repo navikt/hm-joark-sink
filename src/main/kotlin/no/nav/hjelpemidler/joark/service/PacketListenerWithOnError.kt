@@ -7,7 +7,7 @@ import no.nav.helse.rapids_rivers.River
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-class RiverRequiredKeyMissingException(msg: String) : Exception(msg)
+class RiverRequiredKeyMissingException(message: String) : Exception(message)
 
 interface PacketListenerWithOnError : River.PacketListener {
     override fun onError(problems: MessageProblems, context: MessageContext) {
