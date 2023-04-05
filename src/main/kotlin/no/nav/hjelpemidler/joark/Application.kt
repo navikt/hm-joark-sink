@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark
 
+import io.ktor.client.engine.apache.Apache
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -29,32 +30,39 @@ fun main() {
         "Gjeldende miljø: ${Environment.current}"
     }
 
-    val azureADClient = azureADClient {
+    val engine = Apache.create()
+
+    val azureADClient = azureADClient(engine) {
         cache(leeway = 10.seconds)
     }
 
     val pdfClient = PdfClient(
         baseUrl = Configuration.PDF_BASEURL,
+        engine
     )
     val joarkClient = JoarkClient(
         baseUrl = Configuration.JOARK_PROXY_BASEURL,
         scope = Configuration.JOARK_PROXY_SCOPE,
         azureADClient = azureADClient,
+        engine
     )
     val joarkClientV2 = JoarkClientV2(
         baseUrl = Configuration.JOARK_PROXY_BASEURL,
         scope = Configuration.JOARK_PROXY_SCOPE,
         azureADClient = azureADClient,
+        engine
     )
     val joarkClientV3 = JoarkClientV3(
         baseUrl = Configuration.JOARK_BASEURL,
         scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
+        engine
     )
     val joarkClientV4 = JoarkClientV4(
         baseUrl = Configuration.JOARK_BASEURL,
         scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
+        engine
     )
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)

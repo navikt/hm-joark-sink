@@ -29,6 +29,7 @@ dependencies {
 
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.26")
+    implementation("io.ktor:ktor-client-apache:2.2.4")
 
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
