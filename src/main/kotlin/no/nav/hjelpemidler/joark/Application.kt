@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.joark
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
@@ -24,6 +25,10 @@ import kotlin.time.Duration.Companion.seconds
 private val logger = KotlinLogging.logger {}
 
 fun main() {
+    logger.info {
+        "Gjeldende miljø: ${Environment.current}"
+    }
+
     val azureADClient = azureADClient {
         cache(leeway = 10.seconds)
     }

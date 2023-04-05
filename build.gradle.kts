@@ -21,6 +21,7 @@ application {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(platform("io.ktor:ktor-bom:2.2.4"))
     implementation("com.github.navikt:rapids-and-rivers:2023031511211678875716.e6e2c9250860")
 
     // Logging
