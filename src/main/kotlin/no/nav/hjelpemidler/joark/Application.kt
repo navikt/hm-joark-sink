@@ -33,7 +33,9 @@ fun main() {
     val engine = CIO.create()
 
     val azureADClient = azureADClient(engine) {
-        cache(leeway = 10.seconds)
+        cache(leeway = 10.seconds) {
+            maximumSize = 10
+        }
     }
 
     val pdfClient = PdfClient(

@@ -18,11 +18,9 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.GcpEnvironment
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
-import no.nav.hjelpemidler.http.openid.bearerAuth
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
@@ -45,16 +43,12 @@ class JoarkClientV3(
             retryOnExceptionOrServerErrors(maxRetries = 5)
             exponentialDelay()
         }
-        // openID(scope, azureADClient)
+        openID(scope, azureADClient)
     }
 
     suspend fun oppdaterJournalpost(oppdatertJournalpost: OppdatertJournalpost) =
         withContext(Dispatchers.IO) {
             val journalpostId = oppdatertJournalpost.journalpostId
-            val tokenSet = azureADClient.grant(scope)
-            if (Environment.current == GcpEnvironment.DEV) {
-                logger.info { "tokenSet: $tokenSet" }
-            }
             val url = "$baseUrl/journalpost/$journalpostId"
             logger.info {
                 "Oppdaterer journalpost med url: '$url'"
@@ -62,7 +56,6 @@ class JoarkClientV3(
             client
                 .put(url) {
                     setBody(oppdatertJournalpost)
-                    bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
@@ -70,7 +63,6 @@ class JoarkClientV3(
     suspend fun ferdigstillJournalpost(ferdigstiltJournalpost: FerdigstiltJournalpost) =
         withContext(Dispatchers.IO) {
             val journalpostId = ferdigstiltJournalpost.journalpostId
-            val tokenSet = azureADClient.grant(scope)
             val url = "$baseUrl/journalpost/$journalpostId/ferdigstill"
             logger.info {
                 "Ferdigstiller journalpost med url: '$url'"
@@ -78,7 +70,6 @@ class JoarkClientV3(
             client
                 .patch(url) {
                     setBody(ferdigstiltJournalpost)
-                    bearerAuth(tokenSet)
                 }
                 .expect(HttpStatusCode.OK)
         }
@@ -86,7 +77,6 @@ class JoarkClientV3(
     private suspend fun HttpResponse.expect(expected: HttpStatusCode) = when (status) {
         expected -> Unit
         else -> {
-            logger.info { "Feil!, $status" }
             val body = runCatching { bodyAsText() }.getOrElse { it.message }
             error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
         }
