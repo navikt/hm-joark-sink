@@ -11,6 +11,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.FerdigstiltJournalpost
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3.OppdatertJournalpost
+import no.nav.hjelpemidler.joark.joark.joarkIntegrationException
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Sak
@@ -75,20 +76,12 @@ class OppdaterOgFerdigstillJournalpost(
         runBlocking(Dispatchers.IO) {
             try {
                 joarkClient.oppdaterJournalpost(oppdatertJournalpost)
-            } catch (e: ClosedReceiveChannelException) {
-                logger.error(e) {
-                    "oppdaterJournalpost: Noe gikk galt"
-                }
-                throw RuntimeException("oppdaterJournalpost", e)
-            }
-
-            try {
                 joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
             } catch (e: ClosedReceiveChannelException) {
-                logger.error(e) {
-                    "ferdigstillJournalpost: Noe gikk galt"
-                }
-                throw RuntimeException("ferdigstillJournalpost", e)
+                val message =
+                    "Feilet under oppdatering eller ferdigstilling av journalpost med journalpostId: $journalpostId"
+                logger.error(e) { message }
+                joarkIntegrationException(message, e)
             }
         }
         context.publish(

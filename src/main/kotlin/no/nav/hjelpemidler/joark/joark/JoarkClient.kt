@@ -112,12 +112,12 @@ class JoarkClient(
                         if (responseBody.has("journalpostId")) {
                             responseBody["journalpostId"].textValue()
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
+                            joarkIntegrationException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å arkivere søknad $søknadId. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -157,5 +157,3 @@ class JoarkClient(
             søknadPdf
         )
 }
-
-class JoarkException(message: String) : RuntimeException(message)

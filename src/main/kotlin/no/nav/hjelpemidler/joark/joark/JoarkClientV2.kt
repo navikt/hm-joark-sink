@@ -121,12 +121,12 @@ class JoarkClientV2(
                                 responseBody["journalpostferdigstilt"].asBoolean()
                             )
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                            joarkIntegrationException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å arkivere søknad $soknadId. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -195,12 +195,12 @@ class JoarkClientV2(
                                 responseBody["journalpostferdigstilt"].asBoolean()
                             )
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                            joarkIntegrationException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -227,15 +227,15 @@ class JoarkClientV2(
                         if (resp.has("message") && resp.get("message")
                                 .textValue() == "Saksrelasjonen er allerede feilregistrert"
                         ) {
-                            logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: " + journalpostNr }
+                            logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: $journalpostNr" }
                             return@withContext journalpostNr
                         } else {
-                            throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
+                            joarkIntegrationException("Feil ved feilregistrering av journalpost: $journalpostNr")
                         }
                     }
 
                     HttpStatusCode.Conflict -> {
-                        logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet:  " + journalpostNr }
+                        logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet:  $journalpostNr" }
                         journalpostNr
                     }
 
@@ -244,7 +244,7 @@ class JoarkClientV2(
                     }
 
                     else -> {
-                        throw RuntimeException("Feil ved feilregsitrering av journalpost: " + journalpostNr)
+                        joarkIntegrationException("Feil ved feilregistrering av journalpost: $journalpostNr")
                     }
                 }
             }
@@ -316,12 +316,12 @@ class JoarkClientV2(
                                 responseBody["journalpostferdigstilt"].asBoolean()
                             )
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                            joarkIntegrationException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å arkivere søknad. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -360,7 +360,7 @@ class JoarkClientV2(
                 when (response.status) {
                     HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict -> {}
                     else -> {
-                        throw JoarkException("Klarte ikke å omdøpe avvist bestilling. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å omdøpe avvist bestilling. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
@@ -405,8 +405,6 @@ class JoarkClientV2(
             soknadPdf
         )
 }
-
-class JoarkExceptionV2(message: String) : RuntimeException(message)
 
 data class OpprettetJournalpostResponse(
     val journalpostNr: String,

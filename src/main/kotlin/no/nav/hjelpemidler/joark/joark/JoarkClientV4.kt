@@ -115,12 +115,12 @@ class JoarkClientV4(
                                 responseBody["journalpostferdigstilt"].asBoolean()
                             )
                         } else {
-                            throw JoarkException("Klarte ikke å arkivere barnebrillevedtak. Feilet med response <$response>")
+                            joarkIntegrationException("Klarte ikke å arkivere barnebrillevedtak. Feilet med response <$response>")
                         }
                     }
 
                     else -> {
-                        throw JoarkException("Klarte ikke å arkivere barnebrillevedtak. Feilet med response <$response>")
+                        joarkIntegrationException("Klarte ikke å arkivere barnebrillevedtak. Feilet med response <$response>")
                     }
                 }
             }.onFailure {
