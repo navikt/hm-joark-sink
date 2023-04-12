@@ -1,4 +1,4 @@
-name: Build and deploy
+name: Bygg og deploy til dev-gcp og prod-gcp
 
 on:
   push:
@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    name: Build app, docker image and push docker image
+    name: Bygg
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +40,7 @@ jobs:
           context: .
 
   deploy-dev:
-    name: Deploy to dev
+    name: Deploy til dev-gcp
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +53,7 @@ jobs:
           VARS: nais/dev-q2.json
 
   deploy-prod:
-    name: Deploy to Production
+    name: Deploy til prod-gcp
     needs: [ build, deploy-dev ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
