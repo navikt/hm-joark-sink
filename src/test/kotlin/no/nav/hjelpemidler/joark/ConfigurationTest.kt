@@ -10,15 +10,15 @@ class ConfigurationTest {
     private val environmentVariables = environmentVariablesIn(Configuration, includeExternal = false)
 
     @Test
-    fun `har alle miljøvariabler definert i Configuration for dev`() {
-        val jsonVariables = readJsonVariables("dev.json")
+    fun `har alle miljøvariabler definert i Configuration for dev-q1`() {
+        val jsonVariables = readJsonVariables("dev-q1.json")
 
         jsonVariables shouldHaveKeys environmentVariables
     }
 
     @Test
-    fun `har alle miljøvariabler definert i Configuration for dev-q1`() {
-        val jsonVariables = readJsonVariables("dev-q1.json")
+    fun `har alle miljøvariabler definert i Configuration for dev-q2`() {
+        val jsonVariables = readJsonVariables("dev-q2.json")
 
         jsonVariables shouldHaveKeys environmentVariables
     }
