@@ -43,6 +43,9 @@ internal class FeilregistrerFerdigstiltJournalpost(
                     "soknadId",
                     "mottattDato"
                 )
+                it.interestedIn(
+                    "sakstype"
+                )
             }
         }.register(this)
     }
@@ -55,6 +58,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private val JsonMessage.soknadJson get() = this["soknadJson"]
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
+    private val JsonMessage.sakstype get() = this["sakstype"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -70,6 +74,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
                 launch {
                     val journalpostData = FeilregistrerJournalpostData(
                         sakId = packet.sakId,
+                        sakstype = packet.sakstype,
                         journalpostId = packet.journalpostId,
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
@@ -78,12 +83,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         soknadId = packet.soknadId,
                         mottattDato = packet.mottattDato
                     )
-                    val behovsmeldingType = BehovsmeldingType.valueOf(
-                        packet.soknadJson.at("/behovsmeldingType").textValue()
-                            .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
-                    )
                     logger.info {
-                        "Journalpost til feilregistrering av sak mottatt ($behovsmeldingType): ${journalpostData.sakId}, " +
+                        "Journalpost til feilregistrering av sak mottatt (${journalpostData.sakstype}): ${journalpostData.sakId}, " +
                                 "journalpostId: ${journalpostData.journalpostId}"
                     }
                     try {
@@ -154,6 +155,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
 
 internal data class FeilregistrerJournalpostData(
     val sakId: String,
+    val sakstype: String,
     val journalpostId: String,
     val fnrBruker: String,
     val navnBruker: String,
@@ -167,6 +169,7 @@ internal data class FeilregistrerJournalpostData(
             it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()
             it["sakId"] = sakId
+            it["sakstype"] = this.sakstype
             it["feilregistrertJournalpostId"] = journalpostId
             it["nyJournalpostId"] = nyJournalpostId
             it["eventId"] = UUID.randomUUID()

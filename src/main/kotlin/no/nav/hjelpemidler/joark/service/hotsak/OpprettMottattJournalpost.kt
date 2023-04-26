@@ -48,18 +48,19 @@ internal class OpprettMottattJournalpost(
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
-            validate { it.interestedIn("dokumentBeskrivelse") }
+            validate { it.interestedIn("dokumentBeskrivelse", "sakstype") }  // todo trenger vi journalpostId også?
         }.register(this)
     }
 
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
 
-    private val JsonMessage.søknadId get() = this["soknadId"].textValue()
+    private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
     private val JsonMessage.soknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
+    private val JsonMessage.sakstype get() = this["sakstype"].textValue().let(Sakstype::valueOf)
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -73,34 +74,40 @@ internal class OpprettMottattJournalpost(
                         fnrBruker = packet.fnrBruker,
                         navnBruker = packet.navnBruker,
                         soknadJson = packet.soknadJson,
-                        soknadId = UUID.fromString(packet.søknadId),
+                        soknadId = packet.søknadId,
                         sakId = packet.sakId,
+                        sakstype = packet.sakstype,
                         dokumentBeskrivelse = packet.dokumentBeskrivelse
                     )
-                    val behovsmeldingType = BehovsmeldingType.valueOf(
-                        packet.soknadJson.at("/behovsmeldingType").textValue()
-                            .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
-                    )
-                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
-                    val pdf =
-                        genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
-                    try {
-                        val journalpostResponse = opprettMottattJournalpost(
-                            mottattJournalpostData.fnrBruker,
-                            mottattJournalpostData.navnBruker,
-                            mottattJournalpostData.dokumentBeskrivelse,
-                            mottattJournalpostData.soknadId,
-                            pdf,
-                            behovsmeldingType,
-                            packet.mottattDato.atStartOfDay()
-                        )
-                        forward(mottattJournalpostData, journalpostResponse, context)
-                    } catch (e: Exception) {
-                        // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
-                        // Dette skjer kun dersom vi har arkivert søknaden tidlegare (prosessering av samme melding fleire gongar)
-                        if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
-                        throw e
+                    logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} (${mottattJournalpostData.sakstype}) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
+                    val journalpostResponse = when (mottattJournalpostData.sakstype) {
+                         Sakstype.BESTILLING, Sakstype.SØKNAD -> {
+                            val pdf =
+                                genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
+                             try {
+                                opprettMottattJournalpost(
+                                    mottattJournalpostData.fnrBruker,
+                                    mottattJournalpostData.navnBruker,
+                                    mottattJournalpostData.dokumentBeskrivelse,
+                                    mottattJournalpostData.soknadId,
+                                    pdf,
+                                    mottattJournalpostData.sakstype,
+                                    packet.mottattDato.atStartOfDay()
+                                )
+                            } catch (e: Exception) {
+                                // Forsøk på arkivering av dokument med lik eksternReferanseId vil feile med 409 frå Joark/Dokarkiv si side
+                                // Dette skjer kun dersom vi har arkivert søknaden tidlegare (prosessering av samme melding fleire gongar)
+                                if (e.message != null && e.message!!.contains("409 Conflict")) return@launch
+                                throw e
+                            }
+                        }
+                        Sakstype.BARNEBRILLER -> {
+                            ""
+                            // bruke SAF-klient for å hente PDF
+                            // opprette ny journalpost via JoarkService
+                        }
                     }
+                    forward(mottattJournalpostData, journalpostResponse, context)
                 }
             }
         }
@@ -122,7 +129,7 @@ internal class OpprettMottattJournalpost(
         dokumentBeskrivelse: String,
         soknadId: UUID,
         soknadPdf: ByteArray,
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         mottattDato: LocalDateTime? = null,
     ) =
         kotlin.runCatching {
@@ -132,7 +139,7 @@ internal class OpprettMottattJournalpost(
                 dokumentBeskrivelse,
                 soknadId,
                 soknadPdf,
-                behovsmeldingType,
+                sakstype,
                 soknadId.toString() + "HOTSAK_TIL_GOSYS",
                 mottattDato
             )
@@ -174,6 +181,7 @@ internal data class MottattJournalpostData(
     val soknadId: UUID,
     val soknadJson: JsonNode,
     val sakId: String,
+    val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
@@ -185,6 +193,7 @@ internal data class MottattJournalpostData(
             it["fnrBruker"] = this.fnrBruker
             it["joarkRef"] = joarkRef
             it["sakId"] = sakId
+            it["sakstype"] = this.sakstype
             it["eventId"] = UUID.randomUUID()
             it["soknadJson"] = this.soknadJson
         }.toJson()

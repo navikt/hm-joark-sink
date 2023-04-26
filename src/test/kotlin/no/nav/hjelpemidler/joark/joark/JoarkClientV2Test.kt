@@ -11,7 +11,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import no.nav.hjelpemidler.joark.test.TestOpenIDClient
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -31,7 +31,7 @@ class JoarkClientV2Test {
             soknadPdf = "".toByteArray(),
             sakId = "1234",
             dokumentTittel = "Søknad om: rullator",
-            behovsmeldingType = BehovsmeldingType.SØKNAD
+            sakstype = Sakstype.SØKNAD
         )
 
         val expected = OpprettetJournalpostResponse("467010363", true)
@@ -51,7 +51,7 @@ class JoarkClientV2Test {
             soknadPdf = "".toByteArray(),
             sakId = "1234",
             dokumentTittel = "Søknad om: rullator",
-            behovsmeldingType = BehovsmeldingType.SØKNAD
+            sakstype = Sakstype.SØKNAD
         )
 
         val expected = OpprettetJournalpostResponse("467010363", true)

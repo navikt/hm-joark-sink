@@ -6,9 +6,12 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -24,6 +27,8 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
+import no.nav.hjelpemidler.saf.enums.Tema
+import java.time.LocalDateTime
 import java.util.Base64
 
 private val logger = KotlinLogging.logger {}
@@ -129,4 +134,35 @@ class JoarkClientV4(
             }
         }.getOrThrow()
     }
+
+    suspend fun feilregistrerJournalpost(journalpostId: String) {
+        client.patch("$baseUrl/journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning")
+            .expect(HttpStatusCode.OK)
+    }
+
+    suspend fun opprettJournalpost() {
+        val response: HttpResponse = client.post("$baseUrl/journalpost?forsoekFerdigstill=false") {
+            setBody("")
+        }
+    }
+
+    private suspend fun HttpResponse.expect(expected: HttpStatusCode) = when (status) {
+        expected -> Unit
+        else -> {
+            val body = runCatching { bodyAsText() }.getOrElse { it.message }
+            error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
+        }
+    }
 }
+
+data class OpprettJournalpostRequest(
+    val avsenderMottaker: AvsenderMottaker,
+    val bruker: Bruker,
+    val datoMottatt: LocalDateTime?,
+    val dokumenter: List<Dokumenter>?,
+    val tema: String,
+    val tittel: String,
+    val kanal: String,
+    val eksternReferanseId: String,
+    val journalpostType: String,
+)

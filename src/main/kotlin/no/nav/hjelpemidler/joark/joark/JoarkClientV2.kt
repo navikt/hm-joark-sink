@@ -28,7 +28,7 @@ import no.nav.hjelpemidler.joark.joark.model.OmdøpDokument
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostMedMottattDatoRequest
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
-import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import java.util.Base64
 import java.util.UUID
 
@@ -78,7 +78,7 @@ class JoarkClientV2(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
     ): OpprettetJournalpostResponse {
         logger.info { "opprett og ferdigstill journalføring $dokumentTittel" }
 
@@ -86,12 +86,12 @@ class JoarkClientV2(
             AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
             Bruker(fnrBruker, ID_TYPE),
             hentlistDokumentTilJournalForening(
-                behovsmeldingType,
+                sakstype,
                 dokumentTittel,
                 Base64.getEncoder().encodeToString(soknadPdf)
             ),
             TEMA,
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) JOURNALPOSTBESKRIVELSE_BEST else JOURNALPOSTBESKRIVELSE_SOK,
+            if (sakstype == Sakstype.BESTILLING) JOURNALPOSTBESKRIVELSE_BEST else JOURNALPOSTBESKRIVELSE_SOK,
             KANAL,
             soknadId.toString() + "HOTSAK",
             JOURNALPOST_TYPE,
@@ -370,36 +370,36 @@ class JoarkClientV2(
     }
 
     private fun hentlistDokumentTilJournalForening(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         dokumentTittel: String,
         soknadPdf: String,
     ): List<Dokumenter> {
         val dokuments = ArrayList<Dokumenter>()
-        dokuments.add(forbredeHjelpemidlerDokument(behovsmeldingType, dokumentTittel, soknadPdf))
+        dokuments.add(forbredeHjelpemidlerDokument(sakstype, dokumentTittel, soknadPdf))
         return dokuments
     }
 
     private fun forbredeHjelpemidlerDokument(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         dokumentTittel: String,
         soknadPdf: String,
     ): Dokumenter {
         val dokumentVariants = ArrayList<Dokumentvarianter>()
-        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(behovsmeldingType, soknadPdf))
+        dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(sakstype, soknadPdf))
         return Dokumenter(
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
+            if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
+            if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
             dokumentVariants,
             dokumentTittel
         )
     }
 
     private fun forbredeHjelpemidlerDokumentVariant(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         soknadPdf: String,
     ): Dokumentvarianter =
         Dokumentvarianter(
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
+            if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
             VARIANT_FORMAT,
             soknadPdf
