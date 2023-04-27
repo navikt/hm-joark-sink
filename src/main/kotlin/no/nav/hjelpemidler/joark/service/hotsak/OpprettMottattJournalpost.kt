@@ -1,10 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +16,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.JoarkService
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -32,42 +30,38 @@ internal class OpprettMottattJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
+    private val joarkService: JoarkService,
     private val eventName: String = "hm-opprettetMottattJournalpost",
 ) : River.PacketListener {
-
-    companion object {
-        private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    }
-
-    private fun soknadToJson(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
-
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
-            validate { it.interestedIn("dokumentBeskrivelse", "sakstype") }  // todo trenger vi journalpostId også?
+            validate {
+                it.interestedIn("dokumentBeskrivelse", "sakstype", "nyJournalpostId")
+            }
         }.register(this)
     }
 
+    private fun soknadToJson(soknad: JsonNode): String =
+        jsonMapper.writeValueAsString(soknad)
+
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
-
     private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
     private val JsonMessage.soknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue().let(Sakstype::valueOf)
+    private val JsonMessage.journalpostId get() = this["nyJournalpostId"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        runBlocking {
+        runBlocking(Dispatchers.IO) {
             withContext(Dispatchers.IO) {
                 launch {
                     val mottattJournalpostData = MottattJournalpostData(
@@ -80,7 +74,7 @@ internal class OpprettMottattJournalpost(
                         dokumentBeskrivelse = packet.dokumentBeskrivelse
                     )
                     logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} (${mottattJournalpostData.sakstype}) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
-                    val journalpostResponse = when (mottattJournalpostData.sakstype) {
+                    val nyJournalpostId = when (mottattJournalpostData.sakstype) {
                          Sakstype.BESTILLING, Sakstype.SØKNAD -> {
                             val pdf =
                                 genererPdf(soknadToJson(mottattJournalpostData.soknadJson), mottattJournalpostData.soknadId)
@@ -102,12 +96,10 @@ internal class OpprettMottattJournalpost(
                             }
                         }
                         Sakstype.BARNEBRILLER -> {
-                            ""
-                            // bruke SAF-klient for å hente PDF
-                            // opprette ny journalpost via JoarkService
+                            joarkService.kopierJournalpost(packet.journalpostId)
                         }
                     }
-                    forward(mottattJournalpostData, journalpostResponse, context)
+                    forward(mottattJournalpostData, nyJournalpostId, context)
                 }
             }
         }

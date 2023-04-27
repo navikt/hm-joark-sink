@@ -12,6 +12,7 @@ import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV4
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
+import no.nav.hjelpemidler.joark.service.JoarkService
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillevedtakJournalpost
@@ -21,6 +22,7 @@ import no.nav.hjelpemidler.joark.service.hotsak.MerkAvvistBestilling
 import no.nav.hjelpemidler.joark.service.hotsak.OppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
@@ -66,6 +68,7 @@ fun main() {
         azureADClient = azureADClient,
         engine
     )
+    val joarkService = JoarkService(joarkClientV4, SafClient(azureADClient = azureADClient))
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
         .apply {
@@ -74,14 +77,14 @@ fun main() {
 
             // Hotsak
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientV2)
-            FeilregistrerFerdigstiltJournalpost(this, joarkClientV2)
-            OpprettMottattJournalpost(this, pdfClient, joarkClient)
+            FeilregistrerFerdigstiltJournalpost(this, joarkService)
+            OpprettMottattJournalpost(this, pdfClient, joarkClient, joarkService)
             MerkAvvistBestilling(this, joarkClientV2)
             OppdaterOgFerdigstillJournalpost(this, joarkClientV3)
 
             // Barnebriller
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
-            FeilregistrerBarnebrillerJournalpost(this, joarkClientV2)
+            FeilregistrerBarnebrillerJournalpost(this, joarkService)
             ResendBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
             OpprettOgFerdigstillBarnebrillevedtakJournalpost(this, joarkClientV4)
         }

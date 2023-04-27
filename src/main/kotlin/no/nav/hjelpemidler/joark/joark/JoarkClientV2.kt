@@ -210,51 +210,6 @@ class JoarkClientV2(
         }.getOrThrow()
     }
 
-    suspend fun feilregistrerJournalpostData(
-        journalpostNr: String,
-    ): String {
-        logger.info { "feilregistrer sakstilknytning på journalpost" }
-
-        return withContext(Dispatchers.IO) {
-            kotlin.runCatching {
-                val response: HttpResponse =
-                    client.post("$baseUrl/journalpost/$journalpostNr/feilregistrer/feilregistrerSakstilknytning")
-
-                when (response.status) {
-                    HttpStatusCode.BadRequest -> {
-                        val resp = response.body<JsonNode>()
-
-                        if (resp.has("message") && resp.get("message")
-                                .textValue() == "Saksrelasjonen er allerede feilregistrert"
-                        ) {
-                            logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert: $journalpostNr" }
-                            return@withContext journalpostNr
-                        } else {
-                            joarkIntegrationException("Feil ved feilregistrering av journalpost: $journalpostNr")
-                        }
-                    }
-
-                    HttpStatusCode.Conflict -> {
-                        logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet:  $journalpostNr" }
-                        journalpostNr
-                    }
-
-                    HttpStatusCode.OK -> {
-                        journalpostNr
-                    }
-
-                    else -> {
-                        joarkIntegrationException("Feil ved feilregistrering av journalpost: $journalpostNr")
-                    }
-                }
-            }
-                .onFailure {
-                    logger.error(it) { it.message }
-                    throw it
-                }.getOrThrow()
-        }
-    }
-
     suspend fun rekjørJournalføringBarnebriller(
         fnr: String,
         orgnr: String,

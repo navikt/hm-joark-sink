@@ -27,7 +27,6 @@ import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
-import no.nav.hjelpemidler.saf.enums.Tema
 import java.time.LocalDateTime
 import java.util.Base64
 
@@ -136,21 +135,46 @@ class JoarkClientV4(
     }
 
     suspend fun feilregistrerJournalpost(journalpostId: String) {
-        client.patch("$baseUrl/journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning")
-            .expect(HttpStatusCode.OK)
-    }
+        val response = client.patch("$baseUrl/journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning")
+        when (response.status) {
+            HttpStatusCode.BadRequest -> {
+                val body = response.body<JsonNode>()
+                when {
+                    body.has("message") && body.get("message")
+                        .textValue() == "Saksrelasjonen er allerede feilregistrert" -> {
+                        logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert, journalpostId: $journalpostId" }
+                        return
+                    }
 
-    suspend fun opprettJournalpost() {
-        val response: HttpResponse = client.post("$baseUrl/journalpost?forsoekFerdigstill=false") {
-            setBody("")
+                    else -> joarkIntegrationException("Feil ved feilregistrering av journalpostId: $journalpostId")
+                }
+            }
+
+            HttpStatusCode.Conflict -> {
+                logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet, journalpostId: $journalpostId" }
+                return
+            }
+
+            HttpStatusCode.OK -> return
+            else -> {
+                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
+                val request = response.request
+                joarkIntegrationException("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${response.status}', body: '$body'")
+            }
         }
     }
 
-    private suspend fun HttpResponse.expect(expected: HttpStatusCode) = when (status) {
-        expected -> Unit
-        else -> {
-            val body = runCatching { bodyAsText() }.getOrElse { it.message }
-            error("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
+    suspend fun opprettJournalpost(opprettJournalpostRequest: OpprettJournalpostRequest): OpprettJournalpostResponse {
+        val response: HttpResponse = client.post("$baseUrl/journalpost?forsoekFerdigstill=false") {
+            setBody(opprettJournalpostRequest)
+        }
+        return when (response.status) {
+            HttpStatusCode.Created -> response.body()
+            else -> {
+                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
+                val request = response.request
+                joarkIntegrationException("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${response.status}', body: '$body'")
+            }
         }
     }
 }
@@ -163,6 +187,12 @@ data class OpprettJournalpostRequest(
     val tema: String,
     val tittel: String,
     val kanal: String,
-    val eksternReferanseId: String,
+    val eksternReferanseId: String?,
     val journalpostType: String,
+)
+
+data class OpprettJournalpostResponse(
+    val journalpostId: String,
+    val journalpostferdigstilt: Boolean,
+    val dokumenter: JsonNode,
 )

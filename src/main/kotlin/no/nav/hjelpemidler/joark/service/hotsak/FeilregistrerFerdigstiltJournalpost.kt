@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.hjelpemidler.joark.joark.JoarkClientV2
+import no.nav.hjelpemidler.joark.service.JoarkService
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -25,7 +25,7 @@ private val logger = KotlinLogging.logger {}
 
 internal class FeilregistrerFerdigstiltJournalpost(
     rapidsConnection: RapidsConnection,
-    private val joarkClientV2: JoarkClientV2,
+    private val joarkService: JoarkService,
     private val eventName: String = "hm-sakTilbakeførtGosys",
 ) : River.PacketListener {
 
@@ -107,8 +107,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
         sakId: String,
         journalpostId: String,
     ) =
-        kotlin.runCatching {
-            joarkClientV2.feilregistrerJournalpostData(journalpostId)
+        runCatching {
+            joarkService.feilregistrerJournalpost(journalpostId)
         }.onSuccess {
             logger.info(
                 "Feilregistrerte sakstilknytning for journalpostNr: " +
