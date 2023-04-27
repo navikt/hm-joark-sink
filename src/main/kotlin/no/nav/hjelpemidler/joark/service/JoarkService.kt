@@ -83,6 +83,10 @@ class JoarkService(
             )
 
             val opprettJournalpostResponse = joarkClient.opprettJournalpost(opprettJournalpostRequest)
-            opprettJournalpostResponse.journalpostId
+            val nyJournalpostId = opprettJournalpostResponse.journalpostId
+            log.info {
+                "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId"
+            }
+            nyJournalpostId
         }
 }
