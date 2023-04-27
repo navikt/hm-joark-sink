@@ -23,8 +23,8 @@ application {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(platform("io.ktor:ktor-bom:2.2.4"))
-    implementation("com.github.navikt:rapids-and-rivers:2023031511211678875716.e6e2c9250860")
+    implementation(platform("io.ktor:ktor-bom:2.3.0"))
+    implementation("com.github.navikt:rapids-and-rivers:2023042611061682500003.f24c0756e00a")
 
     // GraphQL
     val graphQLVersion = "6.4.0"
@@ -38,7 +38,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:3.0.5")
 
     // Http
-    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.27")
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.29")
 
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
