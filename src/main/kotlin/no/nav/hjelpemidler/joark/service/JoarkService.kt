@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
+import io.ktor.util.encodeBase64
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.hjelpemidler.joark.joark.JoarkClientV4
@@ -45,7 +46,7 @@ class JoarkService(
                             filnavn = checkNotNull(it.filnavn),
                             filtype = checkNotNull(it.filtype),
                             variantformat = it.variantformat.toString(),
-                            fysiskDokument = fysiskDokument
+                            fysiskDokument = fysiskDokument.encodeBase64()
                         )
                     }
                     Dokumenter(

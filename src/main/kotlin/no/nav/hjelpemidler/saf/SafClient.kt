@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.saf
 
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
@@ -43,6 +44,7 @@ class SafClient(
                 header("X-Correlation-ID", UUID.randomUUID().toString())
             }
         })
+
     private val clientRest = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
@@ -62,7 +64,7 @@ class SafClient(
         return result.journalpost
     }
 
-    suspend fun hentDokument(journalpostId: String, dokumentInfoId: String, variantformat: Variantformat): String {
+    suspend fun hentDokument(journalpostId: String, dokumentInfoId: String, variantformat: Variantformat): ByteArray {
         val url = "$baseUrlRest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
         log.info {
             "Henter dokument fra SAF, url: '$url'"
@@ -73,7 +75,7 @@ class SafClient(
             bearerAuth(tokenSet)
         }
         return when (response.status) {
-            HttpStatusCode.OK -> response.bodyAsText()
+            HttpStatusCode.OK -> response.body()
             else -> {
                 val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
                 error("Uventet svar fra SAF, status: '${response.status}', body: '$body'")
