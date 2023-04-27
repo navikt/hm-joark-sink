@@ -23,8 +23,8 @@ import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.Dokument
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
 import java.time.LocalDateTime
@@ -75,10 +75,10 @@ class JoarkClientV4(
             AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
             Bruker(fnr, ID_TYPE),
             listOf(
-                Dokumenter(
+                Dokument(
                     brevkode = "vedtaksbrev_barnebriller",
                     dokumentvarianter = listOf(
-                        Dokumentvarianter(
+                        Dokumentvariant(
                             "barnebrille_vedtak.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
@@ -183,7 +183,7 @@ data class OpprettJournalpostRequest(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
     val datoMottatt: LocalDateTime?,
-    val dokumenter: List<Dokumenter>?,
+    val dokumenter: List<Dokument>?,
     val tema: String,
     val tittel: String,
     val kanal: String,

@@ -22,8 +22,8 @@ import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.Dokument
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import java.time.LocalDateTime
@@ -131,15 +131,15 @@ class JoarkClientV1(
         sakstype: Sakstype,
         dokumentTittel: String,
         søknadPdf: String,
-    ): List<Dokumenter> =
+    ): List<Dokument> =
         listOf(lagDokumenter(sakstype, dokumentTittel, søknadPdf))
 
     private fun lagDokumenter(
         sakstype: Sakstype,
         dokumentTittel: String,
         søknadPdf: String,
-    ): Dokumenter =
-        Dokumenter(
+    ): Dokument =
+        Dokument(
             if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
             if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
             listOf(lagDokumentvarianter(sakstype, søknadPdf)),
@@ -149,8 +149,8 @@ class JoarkClientV1(
     private fun lagDokumentvarianter(
         sakstype: Sakstype,
         søknadPdf: String,
-    ): Dokumentvarianter =
-        Dokumentvarianter(
+    ): Dokumentvariant =
+        Dokumentvariant(
             if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
             VARIANT_FORMAT,

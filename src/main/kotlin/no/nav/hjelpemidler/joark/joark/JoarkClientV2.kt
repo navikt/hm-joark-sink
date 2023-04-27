@@ -21,8 +21,8 @@ import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.Dokument
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.joark.joark.model.OmdøpAvvistBestillingRequest
 import no.nav.hjelpemidler.joark.joark.model.OmdøpDokument
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostMedMottattDatoRequest
@@ -151,10 +151,10 @@ class JoarkClientV2(
             AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
             Bruker(fnr, ID_TYPE),
             listOf(
-                Dokumenter(
+                Dokument(
                     dokumentKategori = DOKUMENT_KATEGORI_SOK,
                     dokumentvarianter = listOf(
-                        Dokumentvarianter(
+                        Dokumentvariant(
                             "barnebrille.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
@@ -226,10 +226,10 @@ class JoarkClientV2(
             AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
             Bruker(fnr, ID_TYPE),
             listOf(
-                Dokumenter(
+                Dokument(
                     dokumentKategori = DOKUMENT_KATEGORI_SOK,
                     dokumentvarianter = listOf(
-                        Dokumentvarianter(
+                        Dokumentvariant(
                             "barnebrille-$sakId.pdf",
                             FIL_TYPE,
                             VARIANT_FORMAT,
@@ -328,8 +328,8 @@ class JoarkClientV2(
         sakstype: Sakstype,
         dokumentTittel: String,
         soknadPdf: String,
-    ): List<Dokumenter> {
-        val dokuments = ArrayList<Dokumenter>()
+    ): List<Dokument> {
+        val dokuments = ArrayList<Dokument>()
         dokuments.add(forbredeHjelpemidlerDokument(sakstype, dokumentTittel, soknadPdf))
         return dokuments
     }
@@ -338,10 +338,10 @@ class JoarkClientV2(
         sakstype: Sakstype,
         dokumentTittel: String,
         soknadPdf: String,
-    ): Dokumenter {
-        val dokumentVariants = ArrayList<Dokumentvarianter>()
+    ): Dokument {
+        val dokumentVariants = ArrayList<Dokumentvariant>()
         dokumentVariants.add(forbredeHjelpemidlerDokumentVariant(sakstype, soknadPdf))
-        return Dokumenter(
+        return Dokument(
             if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
             if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
             dokumentVariants,
@@ -352,8 +352,8 @@ class JoarkClientV2(
     private fun forbredeHjelpemidlerDokumentVariant(
         sakstype: Sakstype,
         soknadPdf: String,
-    ): Dokumentvarianter =
-        Dokumentvarianter(
+    ): Dokumentvariant =
+        Dokumentvariant(
             if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
             VARIANT_FORMAT,

@@ -7,7 +7,7 @@ data class HjelpemidlerDigitalSoknad(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
     val datoMottatt: LocalDateTime?,
-    val dokumenter: List<Dokumenter>?,
+    val dokumenter: List<Dokument>?,
     val tema: String,
     val tittel: String,
     val kanal: String,
@@ -18,7 +18,7 @@ data class HjelpemidlerDigitalSoknad(
 data class OpprettOgFerdigstillJournalpostRequest(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
-    val dokumenter: List<Dokumenter>?,
+    val dokumenter: List<Dokument>?,
     val tema: String,
     val tittel: String,
     val kanal: String,
@@ -31,7 +31,7 @@ data class OpprettOgFerdigstillJournalpostRequest(
 data class OpprettOgFerdigstillJournalpostMedMottattDatoRequest(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
-    val dokumenter: List<Dokumenter>?,
+    val dokumenter: List<Dokument>?,
     val tema: String,
     val tittel: String,
     val kanal: String,
@@ -64,7 +64,7 @@ data class Sak(
 data class MidlertidigJournalForing(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
-    val dokumenter: List<Dokumenter>?,
+    val dokumenter: List<Dokument>?,
     val tema: String,
     val tittel: String,
     val kanal: String,
@@ -84,18 +84,18 @@ data class Bruker(
     val idType: String,
 )
 
-data class Dokumentvarianter(
-    val filnavn: String,
+data class Dokumentvariant(
+    val filnavn: String?,
     val filtype: String,
     val variantformat: String,
     val fysiskDokument: String,
 )
 
-data class Dokumenter(
+data class Dokument(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val brevkode: String? = null,
     val dokumentKategori: String? = null,
-    val dokumentvarianter: List<Dokumentvarianter>,
+    val dokumentvarianter: List<Dokumentvariant>,
     val tittel: String,
 )
 

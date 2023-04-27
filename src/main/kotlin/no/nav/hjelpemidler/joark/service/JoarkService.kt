@@ -7,8 +7,8 @@ import no.nav.hjelpemidler.joark.joark.JoarkClientV4
 import no.nav.hjelpemidler.joark.joark.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
 import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokumenter
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
+import no.nav.hjelpemidler.joark.joark.model.Dokument
+import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.saf.SafClient
 import java.util.UUID
 
@@ -42,14 +42,14 @@ class JoarkService(
                     val dokumentInfoId = dokument.dokumentInfoId
                     val dokumentvarianter = dokument.dokumentvarianter.filterNotNull().map {
                         val fysiskDokument = safClient.hentDokument(journalpostId, dokumentInfoId, it.variantformat)
-                        Dokumentvarianter(
-                            filnavn = checkNotNull(it.filnavn),
-                            filtype = checkNotNull(it.filtype),
+                        Dokumentvariant(
+                            filnavn = it.filnavn,
+                            filtype = it.filtype ?: "PDF",
                             variantformat = it.variantformat.toString(),
                             fysiskDokument = fysiskDokument.encodeBase64()
                         )
                     }
-                    Dokumenter(
+                    Dokument(
                         brevkode = dokument.brevkode,
                         dokumentvarianter = dokumentvarianter,
                         tittel = dokument.tittel!!
