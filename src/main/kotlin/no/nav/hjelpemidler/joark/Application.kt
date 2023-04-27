@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.openid.azureADClient
-import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.joark.JoarkClientV1
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
 import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV4
@@ -44,7 +44,7 @@ fun main() {
         baseUrl = Configuration.PDF_BASEURL,
         engine
     )
-    val joarkClient = JoarkClient(
+    val joarkClient = JoarkClientV1(
         baseUrl = Configuration.JOARK_PROXY_BASEURL,
         scope = Configuration.JOARK_PROXY_SCOPE,
         azureADClient = azureADClient,

@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.joark.JoarkClientV1
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -29,7 +29,7 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 internal class OpprettMottattJournalpost(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
-    private val joarkClient: JoarkClient,
+    private val joarkClient: JoarkClientV1,
     private val joarkService: JoarkService,
     private val eventName: String = "hm-opprettetMottattJournalpost",
 ) : River.PacketListener {

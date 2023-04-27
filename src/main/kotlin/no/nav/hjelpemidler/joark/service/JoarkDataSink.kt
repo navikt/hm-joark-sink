@@ -19,7 +19,7 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.joark.JoarkClient
+import no.nav.hjelpemidler.joark.joark.JoarkClientV1
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
@@ -32,7 +32,7 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 internal class JoarkDataSink(
     rapidsConnection: RapidsConnection,
     private val pdfClient: PdfClient,
-    private val joarkClient: JoarkClient,
+    private val joarkClient: JoarkClientV1,
     private val eventName: String = Configuration.EVENT_NAME,
 ) : PacketListenerWithOnError {
 

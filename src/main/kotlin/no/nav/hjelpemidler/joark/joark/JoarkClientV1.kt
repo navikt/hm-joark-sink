@@ -32,7 +32,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-class JoarkClient(
+class JoarkClientV1(
     private val baseUrl: String,
     private val scope: String,
     private val azureADClient: OpenIDClient,
