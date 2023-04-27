@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +22,7 @@ import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.joark.JoarkClient
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -37,10 +37,11 @@ internal class JoarkDataSink(
 ) : PacketListenerWithOnError {
 
     companion object {
-        private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
+        private val objectMapper = jacksonMapperBuilder()
+            .addModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
     }
 
     private fun soknadToJson(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
@@ -135,7 +136,7 @@ internal class JoarkDataSink(
                 dokumentTittel,
                 soknadId,
                 soknadPdf,
-                BehovsmeldingType.SØKNAD
+                Sakstype.SØKNAD
             )
         }.onSuccess {
             logger.info("Søknad arkivert: $soknadId")

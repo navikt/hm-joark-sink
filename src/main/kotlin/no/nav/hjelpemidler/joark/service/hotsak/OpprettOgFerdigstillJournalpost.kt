@@ -75,11 +75,11 @@ internal class OpprettOgFerdigstillJournalpost(
                         sakId = packet.sakId,
                         dokumentTittel = packet.soknadGjelder
                     )
-                    val behovsmeldingType = BehovsmeldingType.valueOf(
+                    val sakstype = Sakstype.valueOf(
                         packet.søknad.at("/behovsmeldingType").textValue()
                             .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                     )
-                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} ($behovsmeldingType) med dokumenttittel ${journalpostData.dokumentTittel}" }
+                    logger.info { "Sak til journalføring mottatt: ${journalpostData.soknadId} ($sakstype) med dokumenttittel ${journalpostData.dokumentTittel}" }
                     val pdf = genererPdf(journalpostData.soknadJson, journalpostData.soknadId)
                     try {
                         val journalpostResponse = opprettOgFerdigstillJournalpost(
@@ -89,7 +89,7 @@ internal class OpprettOgFerdigstillJournalpost(
                             soknadPdf = pdf,
                             sakId = journalpostData.sakId,
                             dokumentTittel = journalpostData.dokumentTittel,
-                            behovsmeldingType = behovsmeldingType
+                            sakstype = sakstype
                         )
                         forward(journalpostData, journalpostResponse.journalpostNr, context)
                     } catch (e: Exception) {
@@ -120,7 +120,7 @@ internal class OpprettOgFerdigstillJournalpost(
         soknadPdf: ByteArray,
         sakId: String,
         dokumentTittel: String,
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
     ) =
         kotlin.runCatching {
             joarkClientV2.opprettOgFerdigstillJournalføring(
@@ -130,7 +130,7 @@ internal class OpprettOgFerdigstillJournalpost(
                 soknadPdf,
                 sakId,
                 dokumentTittel,
-                behovsmeldingType
+                sakstype
             )
         }.onSuccess {
             val journalpostnr = it.journalpostNr
@@ -189,6 +189,8 @@ internal data class JournalpostData(
     }
 }
 
-enum class BehovsmeldingType {
-    SØKNAD, BESTILLING
+enum class Sakstype {
+    SØKNAD,
+    BESTILLING,
+    BARNEBRILLER,
 }

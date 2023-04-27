@@ -25,7 +25,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
-import no.nav.hjelpemidler.joark.service.hotsak.BehovsmeldingType
+import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import java.time.LocalDateTime
 import java.util.Base64
 import java.util.UUID
@@ -75,7 +75,7 @@ class JoarkClient(
         dokumentTittel: String,
         søknadId: UUID,
         søknadPdf: ByteArray,
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         eksternRefId: String = søknadId.toString() + "HJE-DIGITAL-SOKNAD",
         mottattDato: LocalDateTime? = null,
     ): String {
@@ -86,12 +86,12 @@ class JoarkClient(
             Bruker(fnrBruker, ID_TYPE),
             datoMottatt = mottattDato,
             lagDokumentliste(
-                behovsmeldingType,
+                sakstype,
                 dokumentTittel,
                 Base64.getEncoder().encodeToString(søknadPdf)
             ),
             TEMA,
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
+            if (sakstype == Sakstype.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
             KANAL,
             eksternRefId,
             JOURNALPOST_TYPE
@@ -128,30 +128,30 @@ class JoarkClient(
     }
 
     private fun lagDokumentliste(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         dokumentTittel: String,
         søknadPdf: String,
     ): List<Dokumenter> =
-        listOf(lagDokumenter(behovsmeldingType, dokumentTittel, søknadPdf))
+        listOf(lagDokumenter(sakstype, dokumentTittel, søknadPdf))
 
     private fun lagDokumenter(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         dokumentTittel: String,
         søknadPdf: String,
     ): Dokumenter =
         Dokumenter(
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
-            listOf(lagDokumentvarianter(behovsmeldingType, søknadPdf)),
+            if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
+            if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
+            listOf(lagDokumentvarianter(sakstype, søknadPdf)),
             dokumentTittel
         )
 
     private fun lagDokumentvarianter(
-        behovsmeldingType: BehovsmeldingType,
+        sakstype: Sakstype,
         søknadPdf: String,
     ): Dokumentvarianter =
         Dokumentvarianter(
-            if (behovsmeldingType == BehovsmeldingType.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
+            if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
             FIL_TYPE,
             VARIANT_FORMAT,
             søknadPdf
