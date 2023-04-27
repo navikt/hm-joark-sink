@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokumenter
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvarianter
 import no.nav.hjelpemidler.saf.SafClient
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -25,7 +26,7 @@ class JoarkService(
             journalpostId
         }
 
-    suspend fun kopierJournalpost(journalpostId: String): String =
+    suspend fun kopierJournalpost(søknadId: UUID, journalpostId: String): String =
         withLoggingContext("journalpostId" to journalpostId) {
             log.info {
                 "Kopierer journalpost med journalpostId: $journalpostId"
@@ -77,7 +78,7 @@ class JoarkService(
                 tema = journalpost.tema.toString(),
                 tittel = journalpost.tittel.toString(),
                 kanal = journalpost.kanal.toString(),
-                eksternReferanseId = null,
+                eksternReferanseId = søknadId.toString() + "HOTSAK_TIL_GOSYS",
                 journalpostType = journalpost.journalposttype.toString()
             )
 

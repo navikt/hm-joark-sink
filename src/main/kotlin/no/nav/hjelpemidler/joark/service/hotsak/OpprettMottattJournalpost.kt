@@ -96,7 +96,7 @@ internal class OpprettMottattJournalpost(
                             }
                         }
                         Sakstype.BARNEBRILLER -> {
-                            joarkService.kopierJournalpost(packet.journalpostId)
+                            joarkService.kopierJournalpost(packet.søknadId, packet.journalpostId)
                         }
                     }
                     forward(mottattJournalpostData, nyJournalpostId, context)
