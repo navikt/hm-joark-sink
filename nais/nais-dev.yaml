@@ -47,3 +47,5 @@ spec:
         - host: dokarkiv-q2.dev-fss-pub.nais.io # q2
         - host: digihot-proxy-q1.dev-fss-pub.nais.io # q1
         - host: digihot-proxy.dev-fss-pub.nais.io # q2
+        - host: saf.dev-fss-pub.nais.io # q1
+        - host: saf-q2.dev-fss-pub.nais.io # q2
