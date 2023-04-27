@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.joark.joark.model.Bruker
 import no.nav.hjelpemidler.joark.joark.model.Dokument
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.saf.SafClient
+import no.nav.hjelpemidler.saf.enums.Journalposttype
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -80,7 +81,7 @@ class JoarkService(
                 tittel = journalpost.tittel.toString(),
                 kanal = journalpost.kanal.toString(),
                 eksternReferanseId = søknadId.toString() + "HOTSAK_TIL_GOSYS",
-                journalpostType = journalpost.journalposttype.toString()
+                journalpostType = journalpost.journalposttype.text()
             )
 
             val opprettJournalpostResponse = joarkClient.opprettJournalpost(opprettJournalpostRequest)
@@ -90,4 +91,13 @@ class JoarkService(
             }
             nyJournalpostId
         }
+
+    private fun Journalposttype?.text(): String {
+        return when (this) {
+            Journalposttype.I -> "INNGAAENDE"
+            Journalposttype.U -> "UTGAAENDE"
+            Journalposttype.N -> "NOTAT"
+            else -> error("Ukjent journalposttype: $this")
+        }
+    }
 }
