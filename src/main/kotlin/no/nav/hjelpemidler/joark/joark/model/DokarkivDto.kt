@@ -96,7 +96,7 @@ data class Dokument(
     val brevkode: String? = null,
     val dokumentKategori: String? = null,
     val dokumentvarianter: List<Dokumentvariant>,
-    val tittel: String,
+    val tittel: String?,
 )
 
 data class OmdøpDokument(

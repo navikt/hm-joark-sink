@@ -53,7 +53,7 @@ class JoarkService(
                     Dokument(
                         brevkode = dokument.brevkode,
                         dokumentvarianter = dokumentvarianter,
-                        tittel = dokument.tittel!!
+                        tittel = dokument.tittel
                     )
                 }
 

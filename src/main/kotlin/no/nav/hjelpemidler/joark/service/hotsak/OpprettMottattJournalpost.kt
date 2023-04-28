@@ -54,6 +54,7 @@ internal class OpprettMottattJournalpost(
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue().let(Sakstype::valueOf)
+    private val JsonMessage.navIdent get() = this["navIdent"].textValue()
     private val JsonMessage.journalpostId get() = this["nyJournalpostId"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
@@ -71,7 +72,8 @@ internal class OpprettMottattJournalpost(
                         soknadId = packet.søknadId,
                         sakId = packet.sakId,
                         sakstype = packet.sakstype,
-                        dokumentBeskrivelse = packet.dokumentBeskrivelse
+                        dokumentBeskrivelse = packet.dokumentBeskrivelse,
+                        navIdent = packet.navIdent,
                     )
                     logger.info { "Sak til journalføring mottatt: ${mottattJournalpostData.soknadId} (${mottattJournalpostData.sakstype}) med dokumenttittel ${mottattJournalpostData.dokumentBeskrivelse}" }
                     val nyJournalpostId = when (mottattJournalpostData.sakstype) {
@@ -175,6 +177,7 @@ internal data class MottattJournalpostData(
     val sakId: String,
     val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
+    val navIdent: String?,
 ) {
     internal fun toJson(joarkRef: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -183,11 +186,15 @@ internal data class MottattJournalpostData(
             it["opprettet"] = LocalDateTime.now()
             it["fodselNrBruker"] = this.fnrBruker // @deprecated
             it["fnrBruker"] = this.fnrBruker
-            it["joarkRef"] = joarkRef
+            it["joarkRef"] = joarkRef // @deprecated
+            it["journalpostId"] = joarkRef
             it["sakId"] = sakId
             it["sakstype"] = this.sakstype
             it["eventId"] = UUID.randomUUID()
             it["soknadJson"] = this.soknadJson
+            if (this.navIdent != null) {
+                it["navIdent"] = this.navIdent
+            }
         }.toJson()
     }
 }

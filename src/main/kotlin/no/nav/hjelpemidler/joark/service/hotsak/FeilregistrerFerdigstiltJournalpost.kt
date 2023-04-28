@@ -15,8 +15,8 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.hjelpemidler.joark.service.JoarkService
 import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.service.JoarkService
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -44,7 +44,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                     "mottattDato"
                 )
                 it.interestedIn(
-                    "sakstype"
+                    "sakstype",
+                    "navIdent"
                 )
             }
         }.register(this)
@@ -59,6 +60,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private val JsonMessage.soknadId get() = this["soknadId"].textValue()
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue()
+    private val JsonMessage.navIdent get() = this["navIdent"].textValue()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -81,7 +83,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         dokumentBeskrivelse = packet.dokumentBeskrivelse,
                         soknadJson = packet.soknadJson,
                         soknadId = packet.soknadId,
-                        mottattDato = packet.mottattDato
+                        mottattDato = packet.mottattDato,
+                        navIdent = packet.navIdent,
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt (${journalpostData.sakstype}): ${journalpostData.sakId}, " +
@@ -163,6 +166,7 @@ internal data class FeilregistrerJournalpostData(
     val soknadJson: JsonNode,
     val soknadId: String,
     val mottattDato: LocalDate,
+    val navIdent: String?,
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -179,6 +183,9 @@ internal data class FeilregistrerJournalpostData(
             it["soknadJson"] = this.soknadJson
             it["soknadId"] = this.soknadId
             it["mottattDato"] = this.mottattDato
+            if (this.navIdent != null) {
+                it["navIdent"] = this.navIdent
+            }
         }.toJson()
     }
 }
