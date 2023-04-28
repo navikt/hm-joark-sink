@@ -38,7 +38,7 @@ internal class OpprettMottattJournalpost(
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
             validate {
-                it.interestedIn("dokumentBeskrivelse", "sakstype", "nyJournalpostId", "navIdent")
+                it.interestedIn("dokumentBeskrivelse", "sakstype", "nyJournalpostId", "navIdent", "valgteÅrsaker")
             }
         }.register(this)
     }
