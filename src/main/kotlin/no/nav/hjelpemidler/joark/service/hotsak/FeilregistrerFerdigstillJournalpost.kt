@@ -23,7 +23,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-internal class FeilregistrerFerdigstiltJournalpost(
+internal class FeilregistrerFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val joarkService: JoarkService,
     private val eventName: String = "hm-sakTilbakeførtGosys",
@@ -45,7 +45,8 @@ internal class FeilregistrerFerdigstiltJournalpost(
                 )
                 it.interestedIn(
                     "sakstype",
-                    "navIdent"
+                    "navIdent",
+                    "valgteÅrsaker"
                 )
             }
         }.register(this)
@@ -61,6 +62,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue()
     private val JsonMessage.navIdent get() = this["navIdent"].textValue()
+    private val JsonMessage.valgteÅrsaker: Set<String> get() = this["valgteÅrsaker"].map { it.textValue() }.toSet()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
@@ -85,6 +87,7 @@ internal class FeilregistrerFerdigstiltJournalpost(
                         soknadId = packet.soknadId,
                         mottattDato = packet.mottattDato,
                         navIdent = packet.navIdent,
+                        valgteÅrsaker = packet.valgteÅrsaker,
                     )
                     logger.info {
                         "Journalpost til feilregistrering av sak mottatt (${journalpostData.sakstype}): ${journalpostData.sakId}, " +
@@ -167,6 +170,7 @@ internal data class FeilregistrerJournalpostData(
     val soknadId: String,
     val mottattDato: LocalDate,
     val navIdent: String?,
+    val valgteÅrsaker: Set<String>,
 ) {
     internal fun toJson(nyJournalpostId: String, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
@@ -186,6 +190,7 @@ internal data class FeilregistrerJournalpostData(
             if (this.navIdent != null) {
                 it["navIdent"] = this.navIdent
             }
+            it["valgteÅrsaker"] = this.valgteÅrsaker
         }.toJson()
     }
 }

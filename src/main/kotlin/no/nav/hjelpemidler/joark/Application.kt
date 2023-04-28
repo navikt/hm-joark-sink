@@ -17,7 +17,7 @@ import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJ
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillevedtakJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstiltJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.MerkAvvistBestilling
 import no.nav.hjelpemidler.joark.service.hotsak.OppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
@@ -77,7 +77,7 @@ fun main() {
 
             // Hotsak
             OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientV2)
-            FeilregistrerFerdigstiltJournalpost(this, joarkService)
+            FeilregistrerFerdigstillJournalpost(this, joarkService)
             OpprettMottattJournalpost(this, pdfClient, joarkClient, joarkService)
             MerkAvvistBestilling(this, joarkClientV2)
             OppdaterOgFerdigstillJournalpost(this, joarkClientV3)
