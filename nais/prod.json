@@ -10,7 +10,7 @@
   "JOARK_PROXY_BASEURL": "https://digihot-proxy.prod-fss-pub.nais.io/dokarkiv-aad",
   "JOARK_PROXY_SCOPE": "api://8bdfd270-4760-4428-8a6e-540707d61cf9/.default",
   "SAF_GRAPHQL_URL": "https://saf.prod-fss-pub.nais.io/graphql",
-  "SAF_REST_URL": "https://saf.prod-fss-pub.nais.io/graphql",
+  "SAF_REST_URL": "https://saf.prod-fss-pub.nais.io/rest",
   "SAF_SCOPE": "api://prod-fss.teamdokumenthandtering.saf/.default",
   "EVENT_NAME": "hm-SøknadArkivert"
 }
