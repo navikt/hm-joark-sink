@@ -17,14 +17,14 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
+import no.nav.hjelpemidler.dokarkiv.models.Bruker
+import no.nav.hjelpemidler.dokarkiv.models.Dokument
+import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
+import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
-import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
-import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Dokument
-import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
-import no.nav.hjelpemidler.joark.joark.model.HjelpemidlerDigitalSoknad
 import no.nav.hjelpemidler.joark.service.hotsak.Sakstype
 import java.time.LocalDateTime
 import java.util.Base64
@@ -41,16 +41,12 @@ class JoarkClientV1(
     companion object {
         const val DOKUMENT_TITTEL_SOK = "Søknad om hjelpemidler"
         const val DOKUMENT_TITTEL_BEST = "Bestilling av hjelpemidler"
-        const val ID_TYPE = "FNR"
         const val LAND = "NORGE"
         const val BREV_KODE_SOK = "NAV 10-07.03"
         const val BREV_KODE_BEST = "NAV 10-07.05"
         const val DOKUMENT_KATEGORI_SOK = "SOK"
         const val FIL_TYPE = "PDFA"
-        const val VARIANT_FORMAT = "ARKIV"
-        const val TEMA = "HJE"
-        const val KANAL = "NAV_NO"
-        const val JOURNALPOST_TYPE = "INNGAAENDE"
+
     }
 
     private val client = createHttpClient(engine) {
@@ -80,21 +76,20 @@ class JoarkClientV1(
         mottattDato: LocalDateTime? = null,
     ): String {
         logger.info { "Arkiverer søknad" }
-
-        val requestBody = HjelpemidlerDigitalSoknad(
-            AvsenderMottaker(fnrBruker, ID_TYPE, LAND, navnAvsender),
-            Bruker(fnrBruker, ID_TYPE),
-            datoMottatt = mottattDato,
-            lagDokumentliste(
+        val requestBody = OpprettJournalpostRequest(
+            avsenderMottaker = AvsenderMottaker(fnrBruker, AvsenderMottaker.IdType.FNR, navnAvsender),
+            bruker = Bruker(fnrBruker, Bruker.IdType.FNR),
+            datoMottatt = null, // mottattDato, fixme
+            dokumenter = lagDokumentliste(
                 sakstype,
                 dokumentTittel,
                 Base64.getEncoder().encodeToString(søknadPdf)
             ),
-            TEMA,
-            if (sakstype == Sakstype.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
-            KANAL,
-            eksternRefId,
-            JOURNALPOST_TYPE
+            tema = "HJE",
+            tittel = if (sakstype == Sakstype.BESTILLING) DOKUMENT_TITTEL_BEST else DOKUMENT_TITTEL_SOK,
+            kanal = "NAV_NO",
+            eksternReferanseId = eksternRefId,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE
         )
 
         return withContext(Dispatchers.IO) {
@@ -140,20 +135,20 @@ class JoarkClientV1(
         søknadPdf: String,
     ): Dokument =
         Dokument(
-            if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
-            if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK,
-            listOf(lagDokumentvarianter(sakstype, søknadPdf)),
-            dokumentTittel
+            brevkode = if (sakstype == Sakstype.BESTILLING) BREV_KODE_BEST else BREV_KODE_SOK,
+            // if (sakstype == Sakstype.BESTILLING) null else DOKUMENT_KATEGORI_SOK, fixme
+            dokumentvarianter = listOf(lagDokumentvarianter(sakstype, søknadPdf)),
+            tittel = dokumentTittel
         )
 
     private fun lagDokumentvarianter(
         sakstype: Sakstype,
         søknadPdf: String,
-    ): Dokumentvariant =
-        Dokumentvariant(
-            if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
-            FIL_TYPE,
-            VARIANT_FORMAT,
-            søknadPdf
+    ): DokumentVariant =
+        DokumentVariant(
+            filtype = FIL_TYPE,
+            // if (sakstype == Sakstype.BESTILLING) "hjelpemidlerdigitalbestilling.pdf" else "hjelpemidlerdigitalsoknad.pdf",
+            fysiskDokument = listOf(søknadPdf.toByteArray()),
+            variantformat = "ARKIV",
         )
 }

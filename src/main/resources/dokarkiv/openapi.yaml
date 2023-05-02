@@ -1,0 +1,1516 @@
+openapi: 3.0.1
+info:
+  description: |
+    Her dokumenteres REST-grensesnittene til dokarkiv (Joark). Til autentisering brukes to OIDC-token (JWT via OAuth2.0) i hver sin header
+    med `Nav-Consumer-Token` (applikasjonsbrukeren sitt token) og `Authorization` (saksbehandleren sitt token). Eksempel på kall med to tokens:
+
+    curl -X PUT "https://dokarkiv-q1.dev.intern.nav.no/rest/journalpostapi/v1/journalpost/111" -H "accept: */*" -H "Authorization: Bearer eyAidH...", -H "Nav-Consumer-Token: Bearer eyJraWQi..." -H "Content-Type: application/json" -d "{ \"avsenderMottaker\": { \"id\": \"string\", \"land\": \"string\",...}"
+
+    Hvis disse tjenestene blir kalt direkte fra en annen applikasjon hvor saksbehandlertoken ikke er tilgjengjelig er det mulig å autentisere seg med ett OIDC token. Da skal `Authorization` header inneholde applikasjonsbrukeren sitt token og `Nav-Consumer-Token` header ikke settes
+  title: Dokarkiv APIer
+  version: repo.adeo.no:5443/dok/dokarkiv:16.16.4
+servers:
+- description: Generated server url
+  url: https://dokarkiv-q2.dev-fss-pub.nais.io
+security:
+- Authorization: []
+  Nav-Consumer-Token: []
+tags:
+- description: Interne tjenester mot journalpost
+  name: journalpostapi - internt
+- description: Tjenester for å feilregistrere journalpost
+  name: journalpostapi - feilregistrer
+- description: Tjeneste for å endre sakstilknytning på en journalpost
+  name: journalpostapi - knyttTilAnnenSak
+- description: Tjenester for å oppdatere distribusjonsinfo
+  name: journalpostapi
+- description: Tjenester for å arkivere og journalføre i fagarkiv
+  name: journalpostapi
+- description: Tjeneste for å knytte vedlegg til en journalpost
+  name: journalpostapi - tilknyttVedlegg
+- description: "Tjenester for å oppdatere, slette, endre og legge til logiske vedlegg"
+  name: journalpostapi - logiske vedlegg
+paths:
+  /rest/internal/journalpostapi/v1/finnMottatteJournalposter/{temaer}/{eldreEnn}:
+    get:
+      operationId: finnMottatteJournalposterMedTemaEldreEnn
+      parameters:
+      - in: path
+        name: temaer
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+      - in: path
+        name: eldreEnn
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/FinnMottatteJournalposterResponse'
+          description: OK
+        "400":
+          description: Kall mangler enn eller flere påkrevde headere
+        "401":
+          description: Konsument har ikke tilgang til å kalle tjenesten.
+        "403":
+          description: Konsument har ikke tilgang til å kalle tjenesten
+        "500":
+          description: Internal server error
+      summary: |
+        Finner ubehandlede journalposter som er eldre enn "eldreEnn" dager med tema lik input
+      tags:
+      - journalpostapi - internt
+  /rest/journalpostapi/v1/bulkOppdaterDistribusjonsinfo:
+    post:
+      operationId: oppdaterDistribusjonsinfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkOppdaterDistribusjonsinfoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/BulkOppdaterDistribusjonsinfoResponse'
+          description: OK - Journalposten fikk status ekspedert
+        "400":
+          description: "\tKan bare sette status ekspedert, når:\n\t* Journalpost er\
+            \ UTGÅENDE\n\t* Journalpost har status FS eller FL\n\t* Journalpost har\
+            \ en saksrelasjon som ikke er feilregistrert\n"
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "403":
+          description: Konsument har ikke tilgang til å ekspedere journalpost
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Uventet teknisk feil
+      summary: Fullfører journalføringen og låser journalposten for senere endringer
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/dokumentInfo/{dokumentInfoId}/logiskVedlegg:
+    put:
+      operationId: bulkOppdaterLogiskVedlegg
+      parameters:
+      - in: path
+        name: dokumentInfoId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkOppdaterLogiskVedleggRequest'
+        required: true
+      responses:
+        "204":
+          description: No Content - Ressursen oppdateres. Ingen respons i body.
+        "400":
+          description: "Bad Request - Input feilet validering. Eksempler: dokumentInfoId\
+            \ er ikke et tall eller tittel er lengre enn 550 tegn."
+        "401":
+          description: Unauthorized - Ugyldig OIDC token. Denne feilen gis dersom
+            tokenet ikke har riktig format eller er utgått.
+        "404":
+          description: Not Found - DokumentInfo for dokumentInfoId ikke funnet.
+        "409":
+          description: Conflict - Ressursen er oppdatert av en annen prosess som ble
+            ferdig først. Klienten må forsøke på nytt.
+        "500":
+          description: Internal Server Error - Intern uhåndtert teknisk feil.
+      summary: Bulk oppdaterer logisk vedlegg for dokumentInfoId. Oppdaterer titler
+        til input. Tom liste fjerner alle logiske vedlegg.
+      tags:
+      - journalpostapi - logiske vedlegg
+  /rest/journalpostapi/v1/dokumentInfo/{dokumentInfoId}/logiskVedlegg/:
+    post:
+      operationId: leggTilLogiskVedlegg
+      parameters:
+      - in: path
+        name: dokumentInfoId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeggTilLogiskVedleggRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LeggTilLogiskVedleggResponse'
+          description: OK
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "500":
+          description: Internal server error
+      summary: Legger til et logisk vedlegg på dokumentet
+      tags:
+      - journalpostapi - logiske vedlegg
+  /rest/journalpostapi/v1/dokumentInfo/{dokumentInfoId}/logiskVedlegg/{logiskVedleggId}:
+    delete:
+      operationId: slettLogiskVedlegg
+      parameters:
+      - in: path
+        name: dokumentInfoId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: logiskVedleggId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Logisk vedlegg ikke funnet
+        "500":
+          description: Internal server error
+      summary: Sletter logisk vedlegg
+      tags:
+      - journalpostapi - logiske vedlegg
+    post:
+      operationId: endreLogiskVedlegg
+      parameters:
+      - in: path
+        name: dokumentInfoId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: logiskVedleggId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndreLogiskVedleggRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Logisk vedlegg ikke funnet
+        "500":
+          description: Internal server error
+      summary: Endrer tittel på logisk vedlegg
+      tags:
+      - journalpostapi - logiske vedlegg
+  /rest/journalpostapi/v1/journalpost:
+    post:
+      operationId: opprettJournalpost
+      parameters:
+      - description: |
+          Angir hvorvidt tjenesten skal forsøke å ferdigstille eller ikke. Når journalposten ferdigstilles, blir den låst for senere endringer.
+
+          Dersom ferdigstilling ikke lykkes, returnerer tjenesten journalpostFerdigstilt=false
+
+          Journalposten blir opprettet i alle tilfeller, men kan bare ferdigstilles dersom (minst) følgende er satt på input:
+          * bruker
+          * sak
+          * tema
+          * kanal (for inngående journalposter)
+          * journalfoerendeEnhet
+          * avsenderMottaker.navn
+          * tittel på journalpostnivå
+          * tittel på alle dokumentene
+
+          NB: Dersom dokumentene skal være mulig å distribuere via Dokdist, eller skal kunne vises til brukeren på nav.no, må i tillegg avsenderMottaker.id og avsenderMottaker.idType settes.
+        in: query
+        name: forsoekFerdigstill
+        required: false
+        schema:
+          type: boolean
+          enum:
+          - "true"
+          - "false"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpprettJournalpostRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OpprettJournalpostResponse'
+          description: Journalpost opprettet
+        "400":
+          description: Kan ikke opprette journalpost
+        "401":
+          description: Mangler tilgang til å opprette ny journalpost. Ugyldig OIDC
+            token. Denne feilen gis dersom tokenet ikke har riktig format eller er
+            utgått.
+        "403":
+          description: Bruker mangler tilgang til å opprette journalpost på tema
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OpprettJournalpostResponse'
+          description: Journalpost med angitt eksternReferanseId eksisterer allerede.
+            Ingen journalpost ble opprettet.
+        "500":
+          description: Internal server error
+      summary: "Oppretter en journalpost i fagarkivet, med eller uten dokumenter"
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}:
+    put:
+      operationId: oppdaterJournalpost
+      parameters:
+      - description: Angir JournalpostId som skal oppdatere f.eks. 467011764
+        example: 467011764
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OppdaterJournalpostRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/OppdaterJournalpostResponse'
+          description: OK
+        "400":
+          description: Kan ikke oppdatere. Feil i aksjonslogg. Data kan ikke endres
+            for statusen journalposten er på
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Oppdaterer metadata på en journalpost og/eller tilhørende dokumenter
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/feilregistrer/feilregistrerSakstilknytning:
+    patch:
+      operationId: feilregistrerSakstilkytning
+      parameters:
+      - description: IDen til journalposten som skal feilregistreres
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Feil i aksjonslogg
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Feilregistrerer journalpostens knytning til sak
+      tags:
+      - journalpostapi - feilregistrer
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/feilregistrer/opphevFeilregistrertSakstilknytning:
+    patch:
+      operationId: opphevFeilregistrertSakstilknytning
+      parameters:
+      - description: IDen til journalposten som skal feilregistreres
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Feil i aksjonslogg
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Opphever en feilregistrert sakstilknytning
+      tags:
+      - journalpostapi - feilregistrer
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/feilregistrer/settStatusAvbryt:
+    patch:
+      operationId: avbryt
+      parameters:
+      - description: IDen til journalposten som skal settes til avbryt
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Feil i aksjonslogg
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Tar en opprettet journalpost ut av ordinær saksbehandling
+      tags:
+      - journalpostapi - feilregistrer
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/feilregistrer/settStatusUtgår:
+    patch:
+      operationId: utgaar
+      parameters:
+      - description: IDen til journalposten som skal settes til utgått
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Feil i aksjonslogg
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Tar en opprettet journalpost ut av ordinær saksbehandling
+      tags:
+      - journalpostapi - feilregistrer
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/feilregistrer/settUkjentBruker:
+    patch:
+      operationId: settUkjentBruker
+      parameters:
+      - description: IDen til journalposten som skal feilregistreres
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Feil i aksjonslogg
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Tar en inngående journalpost ut av ordinær saksbehandling fordi det
+        ikke er mulig å identifisere hvilken bruker dokumentene er knyttet til
+      tags:
+      - journalpostapi - feilregistrer
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/ferdigstill:
+    patch:
+      operationId: ferdigstillJournalpost
+      parameters:
+      - description: IDen til journalposten som skal ferdigstilles
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FerdigstillJournalpostRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Kan ikke ferdigstille
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "403":
+          description: Bruker mangler tilgang til å ferdigstille journalpost
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Fullfører journalføringen og låser journalposten for senere endringer
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/fjernVedlegg:
+    patch:
+      operationId: fjernVedleggTilknyttetJournalpost
+      parameters:
+      - in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FjernVedleggTilknyttetJournalpostRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK
+        "400":
+          description: Kan ikke fjerne vedlegg som er knyttet til journalpost
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Internal server error
+      summary: Fjerner vedlegg knyttet til journalpost som har journalpost- og dokumentinforelasjon
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/oppdaterDistribusjonsinfo:
+    patch:
+      operationId: oppdaterDistribusjonsinfo_1
+      parameters:
+      - description: IDen til journalposten som skal oppdateres
+        example: 77778888
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OppdaterDistribusjonsinfoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                type: string
+          description: OK - Journalposten fikk status ekspedert
+        "400":
+          description: "\tKan bare sette status ekspedert, når:\n\t* Journalpost er\
+            \ UTGÅENDE\n\t* Journalpost har status FS eller FL\n\t* Journalpost har\
+            \ en saksrelasjon som ikke er feilregistrert\n"
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "403":
+          description: Konsument har ikke tilgang til å ekspedere journalpost
+        "404":
+          description: Journalpost ikke funnet
+        "500":
+          description: Uventet teknisk feil
+      summary: Fullfører journalføringen og låser journalposten for senere endringer
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/tilknyttVedlegg:
+    put:
+      operationId: tilknyttVedlegg
+      parameters:
+      - in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TilknyttVedleggRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/TilknyttVedleggResponse'
+          description: OK
+        "207":
+          description: "Delvis ok (Multi-Status). Dokumentene som ikke lot seg knytte\
+            \ til journalpost som vedlegg returneres som en feiledeDokumenter-liste,\
+            \ med årsakskode."
+        "401":
+          description: Konsument har ikke tilgang til å kalle tjenesten.
+        "403":
+          description: Konsument har ikke tilgang til å kalle tjenesten
+        "404":
+          description: Journalpost finnes ikke eller er utilgjengelig
+        "500":
+          description: Internal server error
+      summary: Knytt vedlegg til journalpost
+      tags:
+      - journalpostapi - tilknyttVedlegg
+  /rest/journalpostapi/v1/journalpost/{kildeJournalpostId}/knyttTilAnnenSak:
+    put:
+      operationId: knyttTilAnnenSak
+      parameters:
+      - description: "Nav-Consumer-Token - Systembrukerens OIDC-token. NB: Oppgis\
+          \ kun dersom den NAV-ansattes token er lagt ved under Authorization"
+        in: header
+        name: Nav-Consumer-Token
+        required: false
+        schema:
+          type: string
+      - description: Nav-Consumer-Id - brukes for sporingsinfo i joark
+        in: header
+        name: Nav-Consumer-Id
+        required: true
+        schema:
+          type: string
+      - description: Nav-CallId - teknisk sporingsid
+        in: header
+        name: Nav-CallId
+        required: false
+        schema:
+          type: string
+      - description: ID til journalposten som det er ønskelig å kopiere
+        in: path
+        name: kildeJournalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KnyttTilAnnenSakRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/KnyttTilAnnenSakResponse'
+          description: OK - alle dokumenter ble knyttet til ny journalpost.
+        "400":
+          description: Feil - kopierjournalpostintern eller oppdaterjournalpost feilet.
+        "403":
+          description: Feil - bruker har ikke tilgang til journalpost.
+        "404":
+          description: Feil - journalpost finnes ikke eller er utilgjengelig.
+        "500":
+          description: Teknisk feil.
+      summary: Knytt dokumenter til ny sak.
+      tags:
+      - journalpostapi - knyttTilAnnenSak
+components:
+  schemas:
+    AvsenderMottaker:
+      type: object
+      description: |
+        Avsender eller mottaker av forsendelsen.
+        Skal ikke settes for notater.
+      properties:
+        id:
+          type: string
+          description: |
+            Identifikatoren til avsender/mottaker. Normalt et fødselsnummer eller organisasjonsnummer.
+
+            Påkrevd dersom `avsenderMottaker.idType` er satt
+          example: "01117400200"
+        idType:
+          type: string
+          description: |
+            Angir hvilken type identifikator som er benyttet i avsenderMottaker.id.
+            Påkrevd dersom `avsenderMottaker.id` er satt.
+            * FNR
+            * ORGNR
+            * HPRNR
+            * UTL_ORG
+          enum:
+          - FNR
+          - ORGNR
+          - HPRNR
+          - UTL_ORG
+          example: FNR
+        navn:
+          type: string
+          description: |
+            Navnet til avsender/mottaker.
+
+            Det er ikke nødvendig å oppgi navn når idType=FNR. OpprettJournalpost vil da hente personens navn fra PDL.
+          example: Raus Trane
+    Bruker:
+      type: object
+      description: Bruker
+      properties:
+        id:
+          type: string
+          description: "Brukerens fødselsnummer (11 siffer), aktørID (13 siffer) eller\
+            \ organisasjonsnummer (9 siffer)"
+          example: "01117400200"
+        idType:
+          type: string
+          description: Angir hvilken type identifikator som er benyttet i `bruker.id`
+          enum:
+          - FNR
+          - ORGNR
+          - AKTOERID
+          example: FNR
+      required:
+      - id
+      - idType
+    BulkOppdaterDistribusjonsinfoRequest:
+      type: object
+      properties:
+        journalposter:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalpostWithDistribusjonsinfo'
+    BulkOppdaterDistribusjonsinfoResponse:
+      type: object
+      properties:
+        journalposter:
+          $ref: '#/components/schemas/JournalpostResultResponse'
+    BulkOppdaterLogiskVedleggRequest:
+      type: object
+      properties:
+        titler:
+          type: array
+          description: |
+            Titlene som skal settes som logiske vedlegg for DokumentInfo.
+          example:
+          - Kvittering fra legekontor på konsultasjon
+          - Uttalelse fra lege
+          items:
+            type: string
+            description: |
+              Titlene som skal settes som logiske vedlegg for DokumentInfo.
+            example: "[\"Kvittering fra legekontor på konsultasjon\",\"Uttalelse fra\
+              \ lege\"]"
+      required:
+      - titler
+    DigitalPost:
+      type: object
+      description: "Påkrevd hvis utsendingsKanal = \"SDP\" (digital postkasse), settes\
+        \ ellers ikke"
+      properties:
+        digitalpostkasseadresse:
+          type: string
+          description: Mottakerens digitale postkasseadresse som forsendelsen er distribuert
+            til
+          maxLength: 100
+          minLength: 0
+        digitalpostkasseleverandor:
+          type: string
+          description: Mottakerens digitale postkasseleverandør som forsendelsen er
+            distribuert til
+          maxLength: 20
+          minLength: 0
+      required:
+      - digitalpostkasseadresse
+      - digitalpostkasseleverandor
+    Dokument:
+      type: object
+      properties:
+        brevkode:
+          type: string
+          description: |
+            Kode som sier noe om dokumentets innhold og oppbygning.
+
+            For inngående dokumenter kan brevkoden være en NAV-skjemaID f.eks. 'NAV 14-05.09' eller en SED-id.
+
+            Utgående dokumenter og notater bør ha brevkode, og verdien bestemmes av konsument. Bruk gjerne brevets intern kode i fagsystemet.
+            Brevkode skal ikke settes for ustrukturert, uklassifisert dokumentasjon, f.eks. brukeropplastede vedlegg.
+          example: NAV 04-01.04
+        dokumentvarianter:
+          type: array
+          description: Alle variantene av et enkeltdokument som skal arkiveres.
+          items:
+            $ref: '#/components/schemas/DokumentVariant'
+        tittel:
+          type: string
+          description: |
+            Dokumentets tittel, f.eks. 'Søknad om foreldrepenger ved fødsel' eller 'Legeerklæring'.
+            Dokumentets tittel blir synlig i brukers journal på nav.no, samt i NAVs fagsystemer.
+          example: Søknad om dagpenger ved permittering
+    DokumentInfo:
+      type: object
+      properties:
+        brevkode:
+          type: string
+          description: |
+            Kode som sier noe om dokumentets innhold og oppbygning.
+            For inngående dokumenter kan brevkoden være en NAV-skjemaID f.eks. "NAV 04-01.04" eller en SED-id.
+            Brevkode skal ikke settes for ustrukturert, uklassifisert dokumentasjon, f.eks. brukeropplastede vedlegg.
+          example: NAV 04-01.04
+        dokumentInfoId:
+          type: string
+          description: ID til dokumentinfo-objektet i Joark
+          example: "485227498"
+        tittel:
+          type: string
+          description: |
+            Tittel som beskriver dokumentet, for eksempel "Søknad om dagpenger ved permittering".
+            Dokumentets tittel blir synlig i brukers journal på nav.no, samt i NAVs fagsystemer.
+          example: Søknad om dagpenger ved permittering
+      required:
+      - dokumentInfoId
+    DokumentInfoId:
+      type: object
+      description: Dokumentene på journalposten.
+      properties:
+        dokumentInfoId:
+          type: string
+          description: Id til et dokumentInfo-objekt som peker på det arkiverte dokumentet.
+          example: "123"
+    DokumentVariant:
+      type: object
+      description: Alle variantene av et enkeltdokument som skal arkiveres.
+      properties:
+        filtype:
+          type: string
+          description: "Filtypen til filen som følger, f.eks. PDF/A, JSON eller XML."
+          example: PDFA
+        fysiskDokument:
+          type: array
+          description: "Selve dokumentet. Hvis filtype er PDF/XML, ved fysisk dokument\
+            \ brukes bytearray."
+          example: U8O4a25hZCBvbSBkYWdwZW5nZXIgdmVkIHBlcm1pdHRlcmluZw==
+          items:
+            type: string
+            format: byte
+        variantformat:
+          type: string
+          description: |
+            Typen variant som arkiveres. ARKIV-varianten vil være den som vises frem til bruker i Gosys og på nav.no. Alle dokumenter som arkiveres må ha én variant med variantformat ARKIV. Variantformat ARKIV skal ha filtype PDF eller (helst) PDFA.
+
+            ORIGINAL skal brukes for dokumentvariant i maskinlesbart format (for eksempel XML og JSON) som brukes for automatisk saksbehandling.
+          example: ARKIV
+      required:
+      - filtype
+      - fysiskDokument
+      - variantformat
+    DokumentVedlegg:
+      type: object
+      properties:
+        dokumentInfoId:
+          type: string
+          description: ID til dokumentet som skal legges til som vedlegg
+          example: "12345678"
+        kildeJournalpostId:
+          type: integer
+          format: int64
+          description: ID til journalpost kilden i Joark
+          example: 22345678
+      required:
+      - dokumentInfoId
+      - kildeJournalpostId
+    EndreLogiskVedleggRequest:
+      type: object
+      properties:
+        tittel:
+          type: string
+          description: |
+            Den nye tittelen til det logiske vedlegget, for eksempel "Kontoutskrift".
+          example: Kontoutskrift
+      required:
+      - tittel
+    EpostVarsel:
+      type: object
+      properties:
+        epostadresse:
+          type: string
+        tekst:
+          type: string
+        tittel:
+          type: string
+        varslingstidspunkt:
+          type: string
+          format: date-time
+      required:
+      - epostadresse
+    FeiledeDokumenter:
+      type: object
+      description: Liste med dokumenter som ikke kunne knyttes til journalpostId
+      properties:
+        arsakKode:
+          type: string
+          description: Årsak til at dokumentet ikke lot seg knytte til journalpostId
+          enum:
+          - UGYLDIG_STATUS
+          - IKKE_FUNNET
+          - DOKUMENT_TILLATES_IKKE_GJENBRUKT
+          - SIKKERHETSBEGRENSNING
+          - TILKNYTNING_FEILET
+          example: UGYLDIG_STATUS
+        dokumentInfoId:
+          type: string
+          description: ID til dokumentet som skal legges til som vedlegg
+          example: "12345678"
+        kildeJournalpostId:
+          type: string
+          description: ID til journalpost kilden i Joark
+          example: "22345678"
+      required:
+      - arsakKode
+      - dokumentInfoId
+      - kildeJournalpostId
+    FerdigstillJournalpostRequest:
+      type: object
+      properties:
+        datoJournal:
+          type: string
+          format: date-time
+          deprecated: true
+          description: Dato for ferdigstilling av dokumentet i Infotrygd.
+        datoSendtPrint:
+          type: string
+          format: date-time
+          deprecated: true
+          description: Datoen journalposten ble plukket ut til Sentral Print.
+        journalfoerendeEnhet:
+          type: string
+          description: |
+            NAV-enheten som personen som utfører journalføring jobber for. Ved automatisk journalføring uten mennesker involvert, skal enhet settes til "9999".
+          example: "9999"
+        journalfortAvNavn:
+          type: string
+          deprecated: true
+          description: Navn på saksbehandler eller system som journalførte.
+          example: srvbruker
+        opprettetAvNavn:
+          type: string
+          deprecated: true
+          description: Navn på saksbehandler eller system som opprettet journalposten.
+          example: srvbruker
+      required:
+      - journalfoerendeEnhet
+    FinnMottatteJournalposterResponse:
+      type: object
+      properties:
+        journalposter:
+          type: array
+          description: journalposter
+          items:
+            $ref: '#/components/schemas/UbehandletJournalpost'
+      required:
+      - journalposter
+    FjernVedleggTilknyttetJournalpostRequest:
+      type: object
+      properties:
+        dokumentId:
+          type: string
+          description: DokumentinfoId som har vedlegg knyttet journalpost.
+          example: "12345678"
+      required:
+      - dokumentId
+    JournalpostResponse:
+      type: object
+      properties:
+        errormessage:
+          type: string
+        journalpostId:
+          type: integer
+          format: int64
+    JournalpostResultResponse:
+      type: object
+      properties:
+        feilet:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalpostResponse'
+        oppdatert:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalpostResponse'
+    JournalpostWithDistribusjonsinfo:
+      type: object
+      properties:
+        digitalpostkasse:
+          $ref: '#/components/schemas/DigitalPost'
+        ekspedertDato:
+          type: string
+          format: date-time
+          description: Dato/tid når forsendelse ble ekspedert. Påkrevd hvis settEkspedert
+            er true
+        forsendelseId:
+          type: integer
+          format: int64
+          description: Unik identifikasjon av forsendelsen som er distribuert
+        journalpostId:
+          type: integer
+          format: int64
+          description: Unik identifikasjon av journalposten som skal oppdateres
+        postadresse:
+          $ref: '#/components/schemas/Postadresse'
+        settStatusEkspedert:
+          type: boolean
+          description: Setter status 'ekspedert' på journalposten. Dvs. at journalposten
+            har blitt distribuert til bruker
+        utsendingsKanal:
+          type: string
+          description: Kanalen som dokumentene på journalpost ble sendt via. Se https://confluence.adeo.no/display/BOA/Utsendingskanal
+            for lovlige verdier
+        varsel:
+          $ref: '#/components/schemas/Varsel'
+      required:
+      - forsendelseId
+      - journalpostId
+      - settStatusEkspedert
+      - utsendingsKanal
+    KnyttTilAnnenSakRequest:
+      type: object
+      description: KnyttTilAnnenSakRequest
+      properties:
+        bruker:
+          $ref: '#/components/schemas/Bruker'
+        fagsakId:
+          type: string
+          description: Iden til fagsaken i fagsystemet
+          example: 0123A21
+        fagsaksystem:
+          type: string
+          description: Fagsystemet som saken behandles i
+          example: IT01
+        journalfoerendeEnhet:
+          type: string
+          description: NAV-enheten som personen som utfører journalføring jobber for
+          example: "9999"
+        sakstype:
+          type: string
+          description: "Konkret fagsak i et fagsystem, FAGSAK eller GENERELL_SAK"
+          enum:
+          - FAGSAK
+          - GENERELL_SAK
+          example: FAGSAK
+        tema:
+          type: string
+          description: Tema for saken som journalposten skal knyttes til
+          example: SYK
+    KnyttTilAnnenSakResponse:
+      type: object
+      properties:
+        nyJournalpostId:
+          type: integer
+          format: int64
+    LeggTilLogiskVedleggRequest:
+      type: object
+      properties:
+        tittel:
+          type: string
+          description: |
+            Tittelen som det nye logiske vedlegget skal ha, for eksempel "Kontoutskrift".
+          example: Kontoutskrift
+      required:
+      - tittel
+    LeggTilLogiskVedleggResponse:
+      type: object
+      properties:
+        logiskVedleggId:
+          type: string
+          description: IDen til det logiske vedlegget som har blitt lagt til
+          example: "1234578"
+      required:
+      - logiskVedleggId
+    OppdaterDistribusjonsinfoRequest:
+      type: object
+      properties:
+        datoLest:
+          type: string
+          format: date-time
+          description: "Sett tidspunkt journalposten ble lest, om det ikke allerede\
+            \ er satt"
+        settStatusEkspedert:
+          type: boolean
+          description: Setter status 'ekspedert' på journalposten. Dvs. at journalposten
+            har blitt distribuert til bruker
+        utsendingsKanal:
+          type: string
+          description: Kanalen som dokumentene på journalpost ble sendt via. Se https://confluence.adeo.no/display/BOA/Utsendingskanal
+            for lovlige verdier
+    OppdaterJournalpostRequest:
+      type: object
+      properties:
+        avsenderMottaker:
+          $ref: '#/components/schemas/AvsenderMottaker'
+        behandlingstema:
+          type: string
+          description: |
+            Behandlingstema for forsendelsen, for eksempel ab0001 (Ordinære dagpenger).
+            Lovlige verdier finnes i i Felles Kodeverksløsning.
+          example: ab0001
+        bruker:
+          $ref: '#/components/schemas/Bruker'
+        datoDokument:
+          type: string
+          format: date-time
+          description: |
+            Brukes for å datere innholdet i hoveddokumentet.
+
+            Skal kun brukes dersom innholdet i dokumentet har en annen datering enn tidspunktet for opprettelse av journalposten.
+        dokumenter:
+          type: array
+          description: Liste over dokumentene på journalposten der metadata skal endres
+          items:
+            $ref: '#/components/schemas/DokumentInfo'
+        sak:
+          $ref: '#/components/schemas/Sak'
+        tema:
+          type: string
+          description: |
+            Temaet som forsendelsen tilhører, for eksempel “DAG” (Dagpenger).
+            Tema er påkrevd dersom Sak oppgis.
+          example: DAG
+        tilleggsopplysninger:
+          type: array
+          description: |
+            Fagsystemene som arkiverer kan legge til egne fagspesifikke attributter per journalpost. Disse er representert
+            som et skjemaløst nøkkel-verdi-sett og valideres ikke ved arkivering. Et eksempel på et slikt sett kan være
+            nøkkel: bucid og verdi: 12345.
+          items:
+            $ref: '#/components/schemas/Tilleggsopplysning'
+        tittel:
+          type: string
+          description: |
+            Tittel som beskriver forsendelsen samlet, for eksempel "Søknad om dagpenger ved permittering"
+          example: Søknad om dagpenger ved permittering
+    OppdaterJournalpostResponse:
+      type: object
+      properties:
+        journalpostId:
+          type: string
+          description: JournalpostId som har blitt oppdatert (og forsøkt endelig journalført)
+          example: "467011764"
+      required:
+      - journalpostId
+    OpprettJournalpostRequest:
+      type: object
+      properties:
+        avsenderMottaker:
+          $ref: '#/components/schemas/AvsenderMottaker'
+        behandlingstema:
+          type: string
+          description: |
+            Behandlingstema for forsendelsen, for eksempel ab0001 (Ordinære dagpenger).
+            Lovlige verdier finnes i i Felles Kodeverksløsning, men valideres ikke.
+          example: ab0001
+        bruker:
+          $ref: '#/components/schemas/Bruker'
+        datoDokument:
+          type: string
+          format: date-time
+          description: |
+            Brukes for å datere innholdet i hoveddokumentet.
+
+            Skal kun brukes dersom innholdet i dokumentet har en annen datering enn tidspunktet for opprettelse av journalposten.
+        datoMottatt:
+          type: string
+          format: date-time
+          description: |
+            Dato forsendelsen ble mottatt fra avsender. Dersom datoMottatt er tom, settes verdien til dagens dato.
+            Feltet kan kun settes for inngående journalposter.
+        dokumenter:
+          type: array
+          description: |
+            Alle dokumentene som skal arkiveres.
+
+            Det første dokument i meldingen blir tilknyttet som hoveddokument på journalposten. Øvrige dokumenter tilknyttes som vedlegg. Rekkefølgen på vedlegg beholdes ikke nødvendigvis ved uthenting av journalpost.
+          items:
+            $ref: '#/components/schemas/Dokument'
+        eksternReferanseId:
+          type: string
+          description: |
+            Unik id for forsendelsen som kan brukes til sporing gjennom verdikjeden. Eksempler på eksternReferanseId kan være en GUID, sykmeldingsId for sykmeldinger, Altinn ArchiveReference for Altinn-skjema eller SEDid for SED.
+
+            NB: Det er duplikatkontroll på eksternReferanseId. Dersom man sender inn en eksternReferanseId som allerede finnes i arkivet, vil tjenesten kaste feil (409 Conflict).
+          example: a0f480a3-8ab2-4c56-8c93-e53bb35bec2b
+        journalfoerendeEnhet:
+          type: string
+          description: |
+            NAV-enheten som har journalført forsendelsen.
+
+            Dersom forsoekFerdigstill=true skal enhet alltid settes. Dersom  det ikke er noen Nav-enhet involvert (f.eks. ved automatisk brevutsending), skal enhet være '9999'.
+
+            Dersom foersoekFerdigstill=false bør journalførendeEnhet kun settes dersom oppgavene skal rutes på en annen måte enn Norg-reglene tilsier. Hvis enhet er bank, havner oppgavene på enheten som ligger i Norg-regelsettet.
+          example: "0701"
+        journalposttype:
+          type: string
+          description: |
+            INNGAAENDE brukes for dokumentasjon som NAV har mottatt fra en ekstern part. Dette kan være søknader, ettersendelser av dokumentasjon til sak eller meldinger fra arbeidsgivere.
+
+            UTGAAENDE brukes for dokumentasjon som NAV har produsert og sendt ut til en ekstern part. Dette kan for eksempel være informasjons- eller vedtaksbrev til privatpersoner eller organisasjoner.
+
+            NOTAT brukes for dokumentasjon som NAV har produsert selv og uten mål om å distribuere dette ut av NAV. Eksempler på dette er forvaltningsnotater og referater fra telefonsamtaler med brukere.
+          enum:
+          - INNGAAENDE
+          - UTGAAENDE
+          - NOTAT
+          example: INNGAAENDE
+        kanal:
+          type: string
+          description: |
+            Kanalen som ble brukt ved innsending eller distribusjon. F.eks. NAV_NO, ALTINN eller EESSI. Kanal skal ikke settes for notater.
+          example: NAV_NO
+        sak:
+          $ref: '#/components/schemas/Sak'
+        tema:
+          type: string
+          description: |
+            Temaet som forsendelsen tilhører, for eksempel 'DAG' (Dagpenger).
+            Tema er påkrevd dersom Sak oppgis.
+          example: DAG
+        tilleggsopplysninger:
+          type: array
+          description: |
+            Kan brukes av fagsystemene til å lagre egne fagspesifikke attributter per journalpost. Nøkkel-verdi-settet er skjemaløst og valideres ikke. Nøkkelen bør prefixes med fagsystemets navn for å unngå "kollisjon" mellom fagsystemer.
+
+            Et eksempel er nøkkel eessi_bucid og verdi 1234
+          items:
+            $ref: '#/components/schemas/Tilleggsopplysning'
+        tittel:
+          type: string
+          description: |
+            Tittel som beskriver forsendelsen samlet.
+          example: Søknad om dagpenger ved permittering
+      required:
+      - dokumenter
+      - journalposttype
+    OpprettJournalpostResponse:
+      type: object
+      properties:
+        dokumenter:
+          type: array
+          description: Dokumentene på journalposten.
+          items:
+            $ref: '#/components/schemas/DokumentInfoId'
+        journalpostId:
+          type: string
+          description: JournalpostId som har blitt opprettet
+          example: "467010363"
+        journalpostferdigstilt:
+          type: boolean
+          description: True eller False for om journalpost ble ferdigstilt
+          example: true
+      required:
+      - journalpostId
+    Postadresse:
+      type: object
+      description: "Påkrevd hvis utsendingsKanal = \"S\" (sentral print), settes ellers\
+        \ ikke"
+      properties:
+        adresselinje1:
+          type: string
+          maxLength: 200
+          minLength: 0
+        adresselinje2:
+          type: string
+          maxLength: 200
+          minLength: 0
+        adresselinje3:
+          type: string
+          maxLength: 200
+          minLength: 0
+        landkode:
+          type: string
+          maxLength: 2
+          minLength: 0
+        postnummer:
+          type: string
+          maxLength: 10
+          minLength: 0
+        poststed:
+          type: string
+          maxLength: 200
+          minLength: 0
+    Sak:
+      type: object
+      description: |
+        Saken i PSAK eller GSAK som dokumentene skal journalføres mot.
+        NB: Dersom journalposten tilhører en fagsak i et fagsystem,
+        må konsument selv sørge for å opprette en GSAK-sak med mapping til fagsaken. Alternativt kan fagsystemet benytte tjenesten knyttTilSak,
+        som knytter journalposten til en fagsak eller generell sak.
+      properties:
+        fagsakId:
+          type: string
+          description: |
+            Iden til fagsaken i fagsystemet (altså ikke applikasjonen SAK).
+            Skal kun settes dersom sakstype = FAGSAK.
+          example: "10695768"
+        fagsaksystem:
+          type: string
+          description: |
+            Fagsystemet som saken behandles i. Lovlige verdier er
+            * FS38 (Melosys)
+            * FS36 (Foreldrepengeløsningen)
+            * UFM (Unntak fra medlemskap)
+            * AO01 (Arena)
+            * AO11 (Grisen)
+            * IT01 (Infotrygd)
+            * OEBS
+            * PP01
+            * PP01
+            * K9
+            * BISYS
+            * BA (Barnetrygd)
+            * EF (Enslig forsørger)
+            * KONT (Kontantstøtte)
+            * SUPSTONAD (Supplerende Stønad)
+            * OMSORGSPENGER
+            * HJELPEMIDLER
+            * BARNEBRILLER
+            * EY (Etterlatteytelser)
+
+            Skal kun settes dersom sakstype = FAGSAK.
+          enum:
+          - FS38
+          - FS36
+          - UFM
+          - OEBS
+          - OB36
+          - AO01
+          - AO11
+          - IT01
+          - PP01
+          - K9
+          - BISYS
+          - BA
+          - EF
+          - KONT
+          - SUPSTONAD
+          - OMSORGSPENGER
+          - HJELPEMIDLER
+          - BARNEBRILLER
+          - EY
+          example: AO01
+        sakstype:
+          type: string
+          description: |
+            * FAGSAK vil si at dokumentene tilhører en sak i et fagsystem. Dersom FAGSAK velges, må fagsakid og fagsaksystem oppgis.
+            * GENERELL_SAK kan brukes for dokumenter som skal journalføres, men som ikke tilhører en konkret fagsak. Generell sak kan ses på som brukerens "mappe" på et gitt tema.
+            * ARKIVSAK er deprekert og skal kun brukes etter avtale.
+          enum:
+          - FAGSAK
+          - GENERELL_SAK
+          - ARKIVSAK
+          example: FAGSAK
+    SmsVarsel:
+      type: object
+      properties:
+        mobilnummer:
+          type: string
+        tekst:
+          type: string
+        varslingstidspunkt:
+          type: string
+          format: date-time
+      required:
+      - mobilnummer
+    TilknyttVedleggRequest:
+      type: object
+      properties:
+        dokument:
+          type: array
+          description: Liste med et eller flere dokumenter som skal knyttes til journalpostId
+            som vedlegg
+          items:
+            $ref: '#/components/schemas/DokumentVedlegg'
+        tilknyttetAvNavn:
+          type: string
+          description: Navn på saksbehandler som tilknytter vedleggene
+          example: Mikkel Pettersen
+      required:
+      - dokument
+    TilknyttVedleggResponse:
+      type: object
+      properties:
+        feiledeDokumenter:
+          type: array
+          description: Liste med dokumenter som ikke kunne knyttes til journalpostId
+          items:
+            $ref: '#/components/schemas/FeiledeDokumenter'
+    Tilleggsopplysning:
+      type: object
+      properties:
+        nokkel:
+          type: string
+          description: Nøkkelen til det fagspesifikke attributtet.
+          example: bucid
+        verdi:
+          type: string
+          description: Verdien til det fagspesifikke attributtet.
+          example: "12345"
+      required:
+      - nokkel
+      - verdi
+    UbehandletBruker:
+      type: object
+      description: Bruker til journalpost i Joark
+      properties:
+        id:
+          type: string
+          description: ID til bruker i Joark
+          example: "22345678"
+        type:
+          type: string
+          description: Brukertype i Joark
+          example: PERSON
+    UbehandletJournalpost:
+      type: object
+      properties:
+        behandlingstema:
+          type: string
+          description: Behandlingstema journalpost i Joark
+          example: ab0001
+        bruker:
+          $ref: '#/components/schemas/UbehandletBruker'
+        datoOpprettet:
+          type: string
+          format: date-time
+          description: Dato journalposten ble opprettet i Joark
+        journalStatus:
+          type: string
+          description: JournalStatus i Joark
+          example: M
+        journalforendeEnhet:
+          type: string
+          description: Journalførende enhet for journalpost i Joark
+          example: "0001"
+        journalpostId:
+          type: integer
+          format: int64
+          description: ID til journalpost i Joark
+          example: 22345678
+        mottaksKanal:
+          type: string
+          description: Mottakskanal til journalpost i Joark
+          example: NAV_NO
+        tema:
+          type: string
+          description: Temakode til journalpost i Joark
+          example: PEN
+      required:
+      - behandlingstema
+      - datoOpprettet
+      - journalStatus
+      - journalforendeEnhet
+      - journalpostId
+      - mottaksKanal
+      - tema
+    Varsel:
+      type: object
+      description: Påkrevd hvis utsendingsKanal = "NAV_NO" eller "SDP"
+      properties:
+        digitalkontaktinformasjon:
+          type: string
+          deprecated: true
+          description: "Deprecated, bruk Epost- og SMSvarsel. Mottakerens digitale\
+            \ kontaktinformasjon som varsel er sendt til"
+          maxLength: 200
+          minLength: 0
+        epostvarsel:
+          type: array
+          items:
+            $ref: '#/components/schemas/EpostVarsel'
+        smsvarsel:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmsVarsel'
+        varseltekst:
+          type: string
+          deprecated: true
+          description: "Deprecated, bruk Epost- og SMSvarsel. Varslingstekst som er\
+            \ sendt til mottaker"
+          maxLength: 4000
+          minLength: 0
+  securitySchemes:
+    Authorization:
+      bearerFormat: JWT
+      description: "Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså\
+        \ ikke å oppgis): 'eyAidH...'"
+      scheme: bearer
+      type: http
+    Nav-Consumer-Token:
+      description: "Eksempel på verdi som skal inn i Value-feltet: 'Bearer eyJraWQi...'"
+      in: header
+      name: Nav-Consumer-Token
+      type: apiKey

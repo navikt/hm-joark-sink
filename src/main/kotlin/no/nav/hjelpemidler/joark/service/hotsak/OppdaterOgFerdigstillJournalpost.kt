@@ -8,13 +8,13 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.joark.joark.JoarkClientV3
-import no.nav.hjelpemidler.joark.joark.JoarkClientV3.FerdigstiltJournalpost
-import no.nav.hjelpemidler.joark.joark.JoarkClientV3.OppdatertJournalpost
+import no.nav.hjelpemidler.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
+import no.nav.hjelpemidler.dokarkiv.models.Bruker
+import no.nav.hjelpemidler.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
+import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.joark.joarkIntegrationException
-import no.nav.hjelpemidler.joark.joark.model.AvsenderMottaker
-import no.nav.hjelpemidler.joark.joark.model.Bruker
-import no.nav.hjelpemidler.joark.joark.model.Sak
 import no.nav.hjelpemidler.joark.publish
 import java.time.LocalDateTime
 import java.util.UUID
@@ -23,7 +23,7 @@ private val logger = KotlinLogging.logger {}
 
 class OppdaterOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
-    private val joarkClient: JoarkClientV3,
+    private val dokarkivClient: DokarkivClient,
 ) : River.PacketListener {
     companion object {
         private val skip = setOf(
@@ -65,24 +65,26 @@ class OppdaterOgFerdigstillJournalpost(
         }
         val fnrBruker = packet.fnrBruker
         val sakId = packet.sakId
-        val oppdatertJournalpost = OppdatertJournalpost(
-            journalpostId = journalpostId,
-            bruker = Bruker(packet.fnrBruker, "FNR"),
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+            bruker = Bruker(packet.fnrBruker, Bruker.IdType.FNR),
             tittel = packet.tittel,
-            sak = Sak.hotsak(sakId),
-            avsenderMottaker = AvsenderMottaker(packet.fnrBruker, "FNR")
+            sak = Sak(
+                fagsakId = sakId,
+                fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER,
+                sakstype = Sak.Sakstype.FAGSAK,
+            ),
+            avsenderMottaker = AvsenderMottaker(packet.fnrBruker, AvsenderMottaker.IdType.FNR)
         )
-        val ferdigstiltJournalpost = FerdigstiltJournalpost(
-            journalpostId = journalpostId,
-            journalførendeEnhet = packet.journalførendeEnhet
+        val ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
+            journalfoerendeEnhet = packet.journalførendeEnhet
         )
         logger.info {
             "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
         }
         runBlocking(Dispatchers.IO) {
             try {
-                joarkClient.oppdaterJournalpost(oppdatertJournalpost)
-                joarkClient.ferdigstillJournalpost(ferdigstiltJournalpost)
+                dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+                dokarkivClient.ferdigstillJournalpost(journalpostId, ferdigstillJournalpostRequest)
             } catch (e: ClosedReceiveChannelException) {
                 val message =
                     "Feilet under oppdatering eller ferdigstilling av journalpost med journalpostId: $journalpostId"
@@ -94,8 +96,8 @@ class OppdaterOgFerdigstillJournalpost(
             key = fnrBruker,
             message = JournalpostOppdatertOgFerdigstilt(
                 journalpostId = journalpostId,
-                journalførendeEnhet = ferdigstiltJournalpost.journalførendeEnhet,
-                tittel = oppdatertJournalpost.tittel,
+                journalførendeEnhet = ferdigstillJournalpostRequest.journalfoerendeEnhet,
+                tittel = oppdaterJournalpostRequest.tittel,
                 fnrBruker = fnrBruker,
                 sakId = sakId,
             )
@@ -107,7 +109,7 @@ class OppdaterOgFerdigstillJournalpost(
         val eventName: String = "hm-journalpost-oppdatert-og-ferdigstilt",
         val journalpostId: String,
         val journalførendeEnhet: String,
-        val tittel: String,
+        val tittel: String?,
         val fnrBruker: String,
         val sakId: String,
         val opprettet: LocalDateTime = LocalDateTime.now(),

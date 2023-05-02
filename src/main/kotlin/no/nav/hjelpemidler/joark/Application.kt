@@ -5,10 +5,10 @@ import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.joark.JoarkClientV1
 import no.nav.hjelpemidler.joark.joark.JoarkClientV2
-import no.nav.hjelpemidler.joark.joark.JoarkClientV3
 import no.nav.hjelpemidler.joark.joark.JoarkClientV4
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JoarkDataSink
@@ -25,25 +25,30 @@ import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
 
-private val logger = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 fun main() {
-    logger.info {
+    log.info {
         "Gjeldende miljø: ${Environment.current}"
     }
-
     val engine = CIO.create()
-
     val azureADClient = azureADClient(engine) {
         cache(leeway = 10.seconds) {
             maximumSize = 10
         }
     }
-
+    val dokarkivClient = DokarkivClient(
+        baseUrl = Configuration.JOARK_BASEURL,
+        scope = Configuration.JOARK_SCOPE,
+        azureADClient = azureADClient,
+        engine
+    )
+    val safClient = SafClient(azureADClient = azureADClient)
     val pdfClient = PdfClient(
         baseUrl = Configuration.PDF_BASEURL,
         engine
     )
+
     val joarkClient = JoarkClientV1(
         baseUrl = Configuration.JOARK_PROXY_BASEURL,
         scope = Configuration.JOARK_PROXY_SCOPE,
@@ -56,19 +61,14 @@ fun main() {
         azureADClient = azureADClient,
         engine
     )
-    val joarkClientV3 = JoarkClientV3(
-        baseUrl = Configuration.JOARK_BASEURL,
-        scope = Configuration.JOARK_SCOPE,
-        azureADClient = azureADClient,
-        engine
-    )
     val joarkClientV4 = JoarkClientV4(
         baseUrl = Configuration.JOARK_BASEURL,
         scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
         engine
     )
-    val joarkService = JoarkService(joarkClientV4, SafClient(azureADClient = azureADClient))
+
+    val joarkService = JoarkService(dokarkivClient, safClient)
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
         .apply {
@@ -80,7 +80,7 @@ fun main() {
             FeilregistrerFerdigstillJournalpost(this, joarkService)
             OpprettMottattJournalpost(this, pdfClient, joarkClient, joarkService)
             MerkAvvistBestilling(this, joarkClientV2)
-            OppdaterOgFerdigstillJournalpost(this, joarkClientV3)
+            OppdaterOgFerdigstillJournalpost(this, dokarkivClient)
 
             // Barnebriller
             OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientV2)

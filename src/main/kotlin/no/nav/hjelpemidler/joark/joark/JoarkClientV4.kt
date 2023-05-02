@@ -6,12 +6,9 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -27,7 +24,6 @@ import no.nav.hjelpemidler.joark.joark.model.Dokument
 import no.nav.hjelpemidler.joark.joark.model.Dokumentvariant
 import no.nav.hjelpemidler.joark.joark.model.OpprettOgFerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.joark.model.Sak
-import java.time.LocalDateTime
 import java.util.Base64
 
 private val logger = KotlinLogging.logger {}
@@ -48,15 +44,7 @@ class JoarkClientV4(
     }
 
     companion object {
-        const val ID_TYPE = "FNR"
-        const val LAND = "NORGE"
         const val DOKUMENT_KATEGORI_VED = "VED"
-        const val FIL_TYPE = "PDFA"
-        const val VARIANT_FORMAT = "ARKIV"
-        const val TEMA = "HJE"
-        const val KANAL = "NAV_NO"
-        const val JOURNALPOST_TYPE = "UTGAAENDE"
-        const val JOURNALPOSTBESKRIVELSE_BARNEBRILLE = "Vedtak for barnebrille"
         const val OPPRETT_OG_FERDIGSTILL_URL_PATH = "/journalpost?forsoekFerdigstill=true"
     }
 
@@ -72,29 +60,29 @@ class JoarkClientV4(
         logger.info { "opprett og ferdigstill journalføring for manuelt barnebrillevedtak $dokumentTittel" }
 
         val requestBody = OpprettOgFerdigstillJournalpostRequest(
-            AvsenderMottaker(fnr, ID_TYPE, LAND, navnAvsender),
-            Bruker(fnr, ID_TYPE),
-            listOf(
+            avsenderMottaker = AvsenderMottaker(fnr, "FNR", "NORGE", navnAvsender),
+            bruker = Bruker(fnr, "FNR"),
+            dokumenter = listOf(
                 Dokument(
                     brevkode = "vedtaksbrev_barnebriller",
                     dokumentvarianter = listOf(
                         Dokumentvariant(
-                            "barnebrille_vedtak.pdf",
-                            FIL_TYPE,
-                            VARIANT_FORMAT,
-                            Base64.getEncoder().encodeToString(pdf)
+                            filnavn = "barnebrille_vedtak.pdf",
+                            filtype = "PDFA",
+                            variantformat = "ARKIV",
+                            fysiskDokument = Base64.getEncoder().encodeToString(pdf)
                         )
                     ),
                     tittel = dokumentTittel
                 )
             ),
-            TEMA,
-            JOURNALPOSTBESKRIVELSE_BARNEBRILLE,
-            KANAL,
-            sakId + "BARNEBRILLEVEDTAK",
-            JOURNALPOST_TYPE,
-            "9999",
-            Sak(
+            tema = "HJE",
+            tittel = "Vedtak for barnebrille",
+            kanal = "NAV_NO",
+            eksternReferanseId = sakId + "BARNEBRILLEVEDTAK",
+            journalpostType = "UTGAAENDE",
+            journalfoerendeEnhet = "9999",
+            sak = Sak(
                 fagsakId = sakId,
                 fagsaksystem = "BARNEBRILLER",
                 sakstype = "FAGSAK"
@@ -134,65 +122,4 @@ class JoarkClientV4(
         }.getOrThrow()
     }
 
-    suspend fun feilregistrerJournalpost(journalpostId: String) {
-        val response = client.patch("$baseUrl/journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning")
-        when (response.status) {
-            HttpStatusCode.BadRequest -> {
-                val body = response.body<JsonNode>()
-                when {
-                    body.has("message") && body.get("message")
-                        .textValue() == "Saksrelasjonen er allerede feilregistrert" -> {
-                        logger.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert, journalpostId: $journalpostId" }
-                        return
-                    }
-
-                    else -> joarkIntegrationException("Feil ved feilregistrering av journalpostId: $journalpostId")
-                }
-            }
-
-            HttpStatusCode.Conflict -> {
-                logger.info { "Conflict - skjer sannsynligvis ikke for dette kallet, journalpostId: $journalpostId" }
-                return
-            }
-
-            HttpStatusCode.OK -> return
-            else -> {
-                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
-                val request = response.request
-                joarkIntegrationException("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${response.status}', body: '$body'")
-            }
-        }
-    }
-
-    suspend fun opprettJournalpost(opprettJournalpostRequest: OpprettJournalpostRequest): OpprettJournalpostResponse {
-        val response: HttpResponse = client.post("$baseUrl/journalpost?forsoekFerdigstill=false") {
-            setBody(opprettJournalpostRequest)
-        }
-        return when (response.status) {
-            HttpStatusCode.Created -> response.body()
-            else -> {
-                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
-                val request = response.request
-                joarkIntegrationException("Uventet svar fra tjeneste, kall: '${request.method.value} ${request.url}', status: '${response.status}', body: '$body'")
-            }
-        }
-    }
 }
-
-data class OpprettJournalpostRequest(
-    val avsenderMottaker: AvsenderMottaker,
-    val bruker: Bruker,
-    val datoMottatt: LocalDateTime?,
-    val dokumenter: List<Dokument>?,
-    val tema: String,
-    val tittel: String,
-    val kanal: String,
-    val eksternReferanseId: String?,
-    val journalpostType: String,
-)
-
-data class OpprettJournalpostResponse(
-    val journalpostId: String,
-    val journalpostferdigstilt: Boolean,
-    val dokumenter: JsonNode,
-)
