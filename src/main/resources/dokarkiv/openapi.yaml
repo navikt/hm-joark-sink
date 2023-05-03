@@ -852,13 +852,11 @@ components:
           description: "Filtypen til filen som følger, f.eks. PDF/A, JSON eller XML."
           example: PDFA
         fysiskDokument:
-          type: array
+          type: string
+          format: byte
           description: "Selve dokumentet. Hvis filtype er PDF/XML, ved fysisk dokument\
             \ brukes bytearray."
           example: U8O4a25hZCBvbSBkYWdwZW5nZXIgdmVkIHBlcm1pdHRlcmluZw==
-          items:
-            type: string
-            format: byte
         variantformat:
           type: string
           description: |

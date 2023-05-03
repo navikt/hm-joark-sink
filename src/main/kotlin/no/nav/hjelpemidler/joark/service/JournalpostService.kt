@@ -1,32 +1,126 @@
 package no.nav.hjelpemidler.joark.service
 
+import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
+import no.nav.hjelpemidler.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
+import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.jsonMapper
+import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
 import no.nav.hjelpemidler.saf.enums.Journalposttype
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
-class JoarkService(
+class JournalpostService(
+    private val pdfClient: PdfClient,
     private val dokarkivClient: DokarkivClient,
     private val safClient: SafClient,
 ) {
-    suspend fun feilregistrerJournalpost(journalpostId: String): String =
+    suspend fun genererPdf(søknadJson: Any): ByteArray {
+        val data = jsonMapper.writeValueAsString(søknadJson)
+        val fysiskDokument = pdfClient.genererSøknadPdf(data)
+        Prometheus.pdfGenerertCounter.inc()
+        return fysiskDokument
+    }
+
+    suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
+        val fysiskDokument = pdfClient.genererBarnebrillePdf(jsonMapper.writeValueAsString(data))
+        Prometheus.pdfGenerertCounter.inc()
+        return fysiskDokument
+    }
+
+    suspend fun opprettInngåendeJournalpost(
+        fnrAvsender: String,
+        navnAvsender: String,
+        fnrBruker: String = fnrAvsender,
+        forsøkFerdigstill: Boolean = false,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ): String {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker,
+            fnrAvsender = fnrAvsender,
+            navnAvsender = navnAvsender,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
+        ).apply(block)
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = forsøkFerdigstill
+        )
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        return journalpost.journalpostId
+    }
+
+    suspend fun opprettUtgåendeJournalpost(
+        fnrAvsender: String,
+        navnAvsender: String,
+        fnrBruker: String = fnrAvsender,
+        forsøkFerdigstill: Boolean = false,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ): String {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker,
+            fnrAvsender = fnrAvsender,
+            navnAvsender = navnAvsender,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE
+        ).apply(block)
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = forsøkFerdigstill
+        )
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        return journalpost.journalpostId
+    }
+
+    suspend fun arkiverSøknad(
+        fnrBruker: String,
+        navnBruker: String,
+        søknadId: UUID,
+        søknadJson: JsonNode,
+        sakstype: Sakstype,
+        dokumenttittel: String,
+        eksternReferanseId: String = søknadId.toString() + "HJE-DIGITAL-SOKNAD",
+        datoMottatt: LocalDateTime? = null,
+    ): String {
+        log.info {
+            "Arkiverer søknad, søknadId: $søknadId, sakstype: $sakstype"
+        }
+        val fysiskDokument = genererPdf(søknadJson)
+        val dokumenttype = sakstype.dokumenttype
+        val journalpostId = opprettInngåendeJournalpost(
+            fnrAvsender = fnrBruker,
+            navnAvsender = navnBruker,
+            forsøkFerdigstill = false,
+        ) {
+            dokument(fysiskDokument, dokumenttype, dokumenttittel)
+            tittelFra(dokumenttype)
+            this.eksternReferanseId = eksternReferanseId
+            this.datoMottatt = datoMottatt
+            this.journalførendeEnhet = null
+        }
+        Prometheus.søknadArkivertCounter.inc()
+        return journalpostId
+    }
+
+    suspend fun feilregistrerSakstilknytning(journalpostId: String) =
         withLoggingContext("journalpostId" to journalpostId) {
             log.info {
                 "Feilregistrerer journalpost med journalpostId: $journalpostId"
             }
             dokarkivClient.feilregistrerSakstilknytning(journalpostId)
-            journalpostId
+            Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }
 
     suspend fun kopierJournalpost(søknadId: UUID, journalpostId: String): String =
@@ -46,7 +140,7 @@ class JoarkService(
                         val fysiskDokument = safClient.hentDokument(journalpostId, dokumentInfoId, it.variantformat)
                         DokumentVariant(
                             filtype = it.filtype ?: "PDFA",
-                            fysiskDokument = listOf(fysiskDokument),
+                            fysiskDokument = fysiskDokument,
                             variantformat = it.variantformat.toString(),
                         )
                     }
@@ -91,6 +185,19 @@ class JoarkService(
             }
             nyJournalpostId
         }
+
+    suspend fun endreTittel(
+        journalpostId: String,
+        tittel: String,
+        dokumenter: List<DokumentInfo>,
+    ): String {
+        log.info {
+            "Endrer tittel på journalpost med journalpostId: $journalpostId"
+        }
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(tittel = tittel, dokumenter = dokumenter)
+        val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+        return oppdaterJournalpostResponse.journalpostId
+    }
 
     private fun Journalposttype?.toDokarkiv(): OpprettJournalpostRequest.Journalposttype =
         when (this) {

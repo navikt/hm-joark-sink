@@ -19,6 +19,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
+import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
+import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostResponse
@@ -63,15 +65,20 @@ class DokarkivClient(
             parameter("forsoekFerdigstill", forsøkFerdigstill)
             setBody(opprettJournalpostRequest)
         }
-        return when (response.status) {
+        val journalpost: OpprettJournalpostResponse = when (response.status) {
             HttpStatusCode.Created -> response.body()
             HttpStatusCode.Conflict -> {
+                // skjer ved opprettelse av ny journalpost med samme eksternReferanseId
                 log.warn { "Duplikatvarsel ved opprettelse av journalpost, eksternReferanseId: $eksternReferanseId" }
                 response.body()
             }
 
             else -> response.feilmelding()
         }
+        if (forsøkFerdigstill != journalpost.journalpostferdigstilt) {
+            error("Journalpost ble ikke ferdigstilt, journalpostId: ${journalpost.journalpostId}")
+        }
+        return journalpost
     }
 
     suspend fun oppdaterJournalpost(
@@ -138,6 +145,17 @@ class DokarkivClient(
 
     private suspend fun HttpResponse.feilmelding(): Nothing {
         val body = runCatching { bodyAsText() }.getOrElse { it.message }
-        error("Uventet svar fra dokarkiv, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
+        dokarkivError("Uventet svar fra dokarkiv, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
     }
 }
+
+class DokarkivException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
+
+fun dokarkivError(message: String?, cause: Throwable? = null): Nothing =
+    throw DokarkivException(message, cause)
+
+fun avsenderMottakerMedFnr(fnr: String, navn: String? = null): AvsenderMottaker =
+    AvsenderMottaker(fnr, AvsenderMottaker.IdType.FNR, navn)
+
+fun brukerMedFnr(fnr: String): Bruker =
+    Bruker(fnr, Bruker.IdType.FNR)

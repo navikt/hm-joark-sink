@@ -13,7 +13,7 @@ import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
 import org.intellij.lang.annotations.Language
 
-private val logger = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 class PdfClient(
     private val baseUrl: String,
@@ -32,7 +32,7 @@ class PdfClient(
         genererPdf(søknadJson, "$basePath/barnebrille/barnebrille")
 
     private suspend fun genererPdf(@Language("JSON") søknadJson: String, path: String): ByteArray {
-        logger.info { "Generer PDF for path: $path" }
+        log.info { "Generer PDF for path: $path" }
         val response = client.post("$baseUrl/$path") {
             contentType(ContentType.Application.Json)
             setBody(søknadJson)
@@ -41,7 +41,7 @@ class PdfClient(
             HttpStatusCode.OK -> response.body()
             else -> {
                 val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
-                throw PdfException("Uventet status: ${response.status}, body: '$body'")
+                throw PdfException("Uventet status: '${response.status}', body: '$body'")
             }
         }
     }

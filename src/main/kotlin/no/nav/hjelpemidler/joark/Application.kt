@@ -7,21 +7,18 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.http.openid.azureADClient
-import no.nav.hjelpemidler.joark.joark.JoarkClientV1
-import no.nav.hjelpemidler.joark.joark.JoarkClientV2
-import no.nav.hjelpemidler.joark.joark.JoarkClientV4
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.JoarkDataSink
-import no.nav.hjelpemidler.joark.service.JoarkService
-import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillBarnebrillevedtakJournalpost
+import no.nav.hjelpemidler.joark.service.OpprettJournalpostForSøknadFordeltGammelFlyt
+import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.FeilregistrerFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.MerkAvvistBestilling
-import no.nav.hjelpemidler.joark.service.hotsak.OppdaterOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.OpprettMottattJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.OpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.OpprettNyJournalpostEtterFeilregistrering
+import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
 
@@ -31,6 +28,8 @@ fun main() {
     log.info {
         "Gjeldende miljø: ${Environment.current}"
     }
+
+    // Clients
     val engine = CIO.create()
     val azureADClient = azureADClient(engine) {
         cache(leeway = 10.seconds) {
@@ -41,52 +40,41 @@ fun main() {
         baseUrl = Configuration.JOARK_BASEURL,
         scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
-        engine
+        engine,
     )
-    val safClient = SafClient(azureADClient = azureADClient)
+    val safClient = SafClient(
+        azureADClient = azureADClient,
+        engine = engine,
+    )
     val pdfClient = PdfClient(
         baseUrl = Configuration.PDF_BASEURL,
-        engine
+        engine = engine,
     )
 
-    val joarkClient = JoarkClientV1(
-        baseUrl = Configuration.JOARK_PROXY_BASEURL,
-        scope = Configuration.JOARK_PROXY_SCOPE,
-        azureADClient = azureADClient,
-        engine
+    // Services
+    val journalpostService = JournalpostService(
+        pdfClient = pdfClient,
+        dokarkivClient = dokarkivClient,
+        safClient = safClient,
     )
-    val joarkClientV2 = JoarkClientV2(
-        baseUrl = Configuration.JOARK_PROXY_BASEURL,
-        scope = Configuration.JOARK_PROXY_SCOPE,
-        azureADClient = azureADClient,
-        engine
-    )
-    val joarkClientV4 = JoarkClientV4(
-        baseUrl = Configuration.JOARK_BASEURL,
-        scope = Configuration.JOARK_SCOPE,
-        azureADClient = azureADClient,
-        engine
-    )
-
-    val joarkService = JoarkService(dokarkivClient, safClient)
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
         .apply {
             register(statusListener)
-            JoarkDataSink(this, pdfClient, joarkClient)
+            OpprettJournalpostForSøknadFordeltGammelFlyt(this, journalpostService)
 
             // Hotsak
-            OpprettOgFerdigstillJournalpost(this, pdfClient, joarkClientV2)
-            FeilregistrerFerdigstillJournalpost(this, joarkService)
-            OpprettMottattJournalpost(this, pdfClient, joarkClient, joarkService)
-            MerkAvvistBestilling(this, joarkClientV2)
-            OppdaterOgFerdigstillJournalpost(this, dokarkivClient)
+            SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            SakTilbakeførtFeilregistrerJournalpost(this, journalpostService)
+            OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
+            BestillingAvvistOppdaterJournalpost(this, journalpostService)
+            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, dokarkivClient)
 
             // Barnebriller
-            OpprettOgFerdigstillBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
-            FeilregistrerBarnebrillerJournalpost(this, joarkService)
-            ResendBarnebrillerJournalpost(this, pdfClient, joarkClientV2)
-            OpprettOgFerdigstillBarnebrillevedtakJournalpost(this, joarkClientV4)
+            OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
+            FeilregistrerJournalpostBarnebriller(this, journalpostService)
+            ResendBarnebrillerJournalpost(this, journalpostService)
+            VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }
         .start()
 }
