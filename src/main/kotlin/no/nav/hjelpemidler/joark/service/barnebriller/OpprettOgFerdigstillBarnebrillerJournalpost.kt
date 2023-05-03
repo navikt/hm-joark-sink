@@ -85,7 +85,7 @@ internal class OpprettOgFerdigstillBarnebrillerJournalpost(
     private val JsonMessage.satsBeløp get() = this["satsBeløp"].decimalValue()
     private val JsonMessage.beløp get() = this["beløp"].decimalValue()
 
-    private val DOKUMENTTITTEL = "Journalføring barnebriller" // TODO: finn ut hva denne skal være
+    private val DOKUMENTTITTEL = "Tilskudd ved kjøp av briller til barn via optiker"
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         logger.error(problems.toExtendedReport())
