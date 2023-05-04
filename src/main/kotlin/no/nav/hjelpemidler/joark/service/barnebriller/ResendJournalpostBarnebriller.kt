@@ -12,7 +12,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 
 private val log = KotlinLogging.logger {}
 
-class ResendBarnebrillerJournalpost(
+class ResendJournalpostBarnebriller(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {

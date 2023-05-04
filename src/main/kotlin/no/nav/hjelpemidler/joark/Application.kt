@@ -13,7 +13,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.barnebriller.ResendBarnebrillerJournalpost
+import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
@@ -73,7 +73,7 @@ fun main() {
             // Barnebriller
             OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
             FeilregistrerJournalpostBarnebriller(this, journalpostService)
-            ResendBarnebrillerJournalpost(this, journalpostService)
+            ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }
         .start()
