@@ -60,6 +60,9 @@ class JournalpostService(
             forsøkFerdigstill = forsøkFerdigstill
         )
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        log.info {
+            "Inngående journalpost opprettet, journalpostId: ${journalpost.journalpostId}"
+        }
         return journalpost.journalpostId
     }
 
@@ -81,6 +84,9 @@ class JournalpostService(
             forsøkFerdigstill = forsøkFerdigstill
         )
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        log.info {
+            "Utgående journalpost opprettet, journalpostId: ${journalpost.journalpostId}"
+        }
         return journalpost.journalpostId
     }
 
@@ -111,6 +117,9 @@ class JournalpostService(
             this.journalførendeEnhet = null
         }
         Prometheus.søknadArkivertCounter.inc()
+        log.info {
+            "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId"
+        }
         return journalpostId
     }
 
