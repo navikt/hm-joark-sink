@@ -22,6 +22,9 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
 
+/**
+ * Vedtak for barnebrillesak er fattet i Hotsak, journalfør utgående vedtaksbrev
+ */
 class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,

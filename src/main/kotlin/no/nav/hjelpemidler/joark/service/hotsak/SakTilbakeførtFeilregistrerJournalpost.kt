@@ -106,27 +106,23 @@ class SakTilbakeførtFeilregistrerJournalpost(
         }.invokeOnCompletion {
             val sakId = data.sakId
             when (it) {
-                null -> {
-                    log.info {
-                        "Feilregistrerte sakstilknytning for sakId: $sakId, journalpostId: $journalpostId"
-                    }
+                null -> log.info {
+                    "Feilregistrerte sakstilknytning for sakId: $sakId, journalpostId: $journalpostId"
                 }
 
                 is CancellationException -> log.warn(it) {
                     "Cancelled"
                 }
 
-                else -> {
-                    log.error(it) {
-                        "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: $sakId"
-                    }
+                else -> log.error(it) {
+                    "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: $sakId"
                 }
             }
         }
     }
 }
 
-private fun skip(journalpostId: String) =
+private fun skip(journalpostId: String): Boolean =
     journalpostId in setOf("535250492")
 
 private data class FeilregistrerJournalpostData(

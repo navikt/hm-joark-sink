@@ -83,7 +83,7 @@ class ResendJournalpostBarnebriller(
             dokument(fysiskDokument, data.dokumenttype)
             sakFraOptiker(data.sakId)
             tittelFra(data.dokumenttype)
-            eksternReferanseId = "RE_" + data.sakId + "BARNEBRILLEAPI"
+            eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI"
             datoMottatt = packet.opprettet
         }
     }

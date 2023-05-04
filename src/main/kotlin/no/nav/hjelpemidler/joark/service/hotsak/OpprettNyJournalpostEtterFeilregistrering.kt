@@ -39,7 +39,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
-    private val JsonMessage.soknadJson get() = this["soknadJson"]
+    private val JsonMessage.søknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue().let(Sakstype::valueOf)
@@ -60,7 +60,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
                 val data = MottattJournalpostData(
                     fnrBruker = packet.fnrBruker,
                     navnBruker = packet.navnBruker,
-                    soknadJson = packet.soknadJson,
+                    soknadJson = packet.søknadJson,
                     soknadId = packet.søknadId,
                     sakId = sakId,
                     sakstype = packet.sakstype,
@@ -74,10 +74,10 @@ class OpprettNyJournalpostEtterFeilregistrering(
                         fnrBruker = data.fnrBruker,
                         navnBruker = data.navnBruker,
                         søknadId = data.soknadId,
-                        søknadJson = packet.soknadJson,
+                        søknadJson = packet.søknadJson,
                         sakstype = data.sakstype,
                         dokumenttittel = data.dokumentBeskrivelse,
-                        eksternReferanseId = data.soknadId.toString() + "HOTSAK_TIL_GOSYS",
+                        eksternReferanseId = "${data.soknadId}HOTSAK_TIL_GOSYS",
                     )
 
                     Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(packet.søknadId, packet.journalpostId)
@@ -112,17 +112,15 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     "Cancelled"
                 }
 
-                else -> {
-                    log.error(it) {
-                        "Klarte ikke å opprette journalpost med status mottatt i joark for søknadId: ${data.soknadId}"
-                    }
+                else -> log.error(it) {
+                    "Klarte ikke å opprette journalpost med status mottatt i joark for søknadId: ${data.soknadId}"
                 }
             }
         }
     }
 }
 
-private fun skip(sakId: String) =
+private fun skip(sakId: String): Boolean =
     sakId in setOf("2295")
 
 private data class MottattJournalpostData(

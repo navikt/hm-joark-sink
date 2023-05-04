@@ -19,6 +19,9 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
 
+/**
+ * Barnebrillevedtak er opprettet i optikerløsningen
+ */
 class OpprettOgFerdigstillJournalpostBarnebriller(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
@@ -92,7 +95,7 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                     dokument(fysiskDokument, data.dokumenttype)
                     sakFraOptiker(data.sakId)
                     tittelFra(data.dokumenttype)
-                    eksternReferanseId = data.sakId + "BARNEBRILLEAPI"
+                    eksternReferanseId = "${data.sakId}BARNEBRILLEAPI"
                     datoMottatt = data.opprettet
                 }
                 forward(journalpostId, data, context)

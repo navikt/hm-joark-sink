@@ -60,7 +60,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                         .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
                 )
                 log.info {
-                    "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, sakstype: $sakstype, dokumenttittel ${data.dokumentTittel}"
+                    "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, sakstype: $sakstype, dokumenttittel: '${data.dokumentTittel}'"
                 }
                 val fysiskDokument = journalpostService.genererPdf(data.soknadJson)
                 val dokumenttype = sakstype.dokumenttype
@@ -74,7 +74,6 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     tittelFra(dokumenttype)
                     eksternReferanseId = data.soknadId.toString() + "HOTSAK"
                 }
-
                 forward(journalpostId, data, context)
             }
         }

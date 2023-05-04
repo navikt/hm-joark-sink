@@ -8,7 +8,7 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.OpprettJournalpostForSøknadFordeltGammelFlyt
+import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
@@ -61,7 +61,7 @@ fun main() {
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
         .apply {
             register(statusListener)
-            OpprettJournalpostForSøknadFordeltGammelFlyt(this, journalpostService)
+            OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
 
             // Hotsak
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)

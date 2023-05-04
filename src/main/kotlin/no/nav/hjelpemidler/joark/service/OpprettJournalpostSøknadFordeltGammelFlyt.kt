@@ -21,9 +21,9 @@ private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
 
 /**
- * Journalføring av søknader som blir fordelt til gammel flyt (behandling i Gosys/Infotrygd)
+ * Journalføring av søknader som behandles i Gosys/Infotrygd
  */
-class OpprettJournalpostForSøknadFordeltGammelFlyt(
+class OpprettJournalpostSøknadFordeltGammelFlyt(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
     private val eventName: String = Configuration.EVENT_NAME,
@@ -72,6 +72,7 @@ class OpprettJournalpostForSøknadFordeltGammelFlyt(
                     søknadJson = packet.søknadJson,
                     sakstype = Sakstype.SØKNAD,
                     dokumenttittel = data.soknadGjelder,
+                    eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
                 )
                 forward(data, journalpostId, context)
             }
@@ -89,10 +90,8 @@ class OpprettJournalpostForSøknadFordeltGammelFlyt(
                 }
 
                 is CancellationException -> log.warn(it) { "Cancelled" }
-                else -> {
-                    log.error(it) {
-                        "Søknad ble ikke arkivert i joark, søknadId: ${søknadData.soknadId}"
-                    }
+                else -> log.error(it) {
+                    "Søknad ble ikke arkivert i joark, søknadId: ${søknadData.soknadId}"
                 }
             }
         }

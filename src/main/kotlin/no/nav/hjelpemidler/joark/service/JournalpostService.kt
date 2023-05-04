@@ -29,7 +29,7 @@ class JournalpostService(
     private val dokarkivClient: DokarkivClient,
     private val safClient: SafClient,
 ) {
-    suspend fun genererPdf(søknadJson: Any): ByteArray {
+    suspend fun genererPdf(søknadJson: JsonNode): ByteArray {
         val data = jsonMapper.writeValueAsString(søknadJson)
         val fysiskDokument = pdfClient.genererSøknadPdf(data)
         Prometheus.pdfGenerertCounter.inc()
@@ -97,7 +97,7 @@ class JournalpostService(
         søknadJson: JsonNode,
         sakstype: Sakstype,
         dokumenttittel: String,
-        eksternReferanseId: String = søknadId.toString() + "HJE-DIGITAL-SOKNAD",
+        eksternReferanseId: String,
         datoMottatt: LocalDateTime? = null,
     ): String {
         log.info {
