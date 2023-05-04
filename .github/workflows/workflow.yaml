@@ -9,6 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
+      - openapigen
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
@@ -52,16 +53,16 @@ jobs:
           RESOURCE: nais/nais-dev.yaml
           VARS: nais/dev-q2.json
 
-  deploy-prod:
-    name: Deploy til prod-gcp
-    needs: [ build, deploy-dev ]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          RESOURCE: nais/nais-prod.yaml
-          VARS: nais/prod.json
+#  deploy-prod:
+#    name: Deploy til prod-gcp
+#    needs: [ build, deploy-dev ]
+#    if: github.ref == 'refs/heads/main'
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: nais/deploy/actions/deploy@v1
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: prod-gcp
+#          RESOURCE: nais/nais-prod.yaml
+#          VARS: nais/prod.json

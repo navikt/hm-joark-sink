@@ -9,10 +9,6 @@ object Configuration {
     val JOARK_BASEURL by EnvironmentVariable
     val JOARK_SCOPE by EnvironmentVariable
 
-    // Joark via digihot-proxy
-    val JOARK_PROXY_BASEURL by EnvironmentVariable
-    val JOARK_PROXY_SCOPE by EnvironmentVariable
-
     // PDF-generator
     val PDF_BASEURL by EnvironmentVariable
 

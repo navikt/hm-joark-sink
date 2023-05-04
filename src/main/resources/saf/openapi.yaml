@@ -1,0 +1,114 @@
+openapi: 3.0.1
+info:
+  title: saf REST API
+  description: |
+    Her dokumenteres REST tjenestegrensesnittet til sak- og arkivfasade (SAF).
+
+    Til autentisering brukes OIDC-token (JWT via OAuth 2.0). Følgende format må brukes i Authorize sitt input-felt "Value": <strong>Bearer {token}</strong>.
+    Eksempel på verdi i input-feltet: <strong> Bearer eYdmifml0ejugm</strong>. Et gyldig token kommer til å ha mange flere karakterer enn i eksempelet.
+
+    Tokens for manuell test kan hentes fra <a href="https://ida.intern.nav.no/">IDA</a>. For maskinell test og produksjon kan tokens komme fra Azure V2, NAV REST-STS eller OpenAM.
+  version: ghcr.io/navikt/saf:67-94320c80
+servers:
+- url: https://saf-q2.dev-fss-pub.nais.io
+  description: Generated server url
+security:
+- Authorization: []
+tags:
+- name: saf REST API
+  description: Lesemodellen til fagarkivet. Henter dokumenter.
+paths:
+  /rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}:
+    get:
+      tags:
+      - saf REST API
+      summary: Henter fysiske dokumenter fra NAV sitt arkiv og gjør nødvendig tilgangskontroll.
+      operationId: hentDokument
+      parameters:
+      - name: journalpostId
+        in: path
+        description: Id for aktuell journalpost
+        required: true
+        schema:
+          type: string
+      - name: dokumentInfoId
+        in: path
+        description: Id for aktuelt dokument
+        required: true
+        schema:
+          type: string
+      - name: variantFormat
+        in: path
+        description: "Varianten til dokumentet som skal hentes. [Følg lenken for gyldige\
+          \ verdier](https://confluence.adeo.no/display/BOA/Enum%3A+Variantformat)."
+        required: true
+        schema:
+          type: string
+      - name: Nav-Callid
+        in: header
+        description: "(Valgfri) ID for logging og sporing på tvers av verdikjeder.\
+          \ Eksempel: UUID"
+        required: false
+        schema:
+          type: string
+      - name: Nav-User-Id
+        in: header
+        description: (Valgfri) NAV ident som overstyrer sporing for kall fra servicebrukere.
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK - dokument returneres. Representasjonen er en base64 encoded
+            string.
+          headers:
+            Content-Disposition:
+              description: |
+                Hvordan dokumentet skal vises og filnavnet hvis det skal lastes ned.
+                Standardverdi er inline for visning. Filnavnet er formattert som `<dokumentInfoId>_<variantformat>.<filendelse>`.
+                Fileendelse vil være tilpasset for mimetypen, f.eks Content-Type: application/pdf vil gi filendelse .pdf.
+                Eksempel: `Content-Disposition: inline; filename=400000000_ARKIV.pdf`.
+              required: true
+              style: simple
+            Content-Type:
+              description: "Mimetypen til dokumentet. Eksempel: `Content-Type: application/pdf`."
+              required: true
+              style: simple
+          content:
+            application/pdf:
+              example: JVBERi0xLjcgQmFzZTY0IGVuY29kZXQgZnlzaXNrIGRva3VtZW50
+        "401":
+          description: |-
+            * Vi kan ikke autorisere bruker gjennom token eller system som har gitt token er ukjent for saf.
+            * F.eks ugyldig, utgått, manglende OIDC token eller ingen audience hos saf.
+          content:
+            application/json: {}
+        "404":
+          description: |-
+            * Dokumentet ble ikke funnet i fagarkivet.
+            * Dette kan være av midlertidig natur i tilfeller der konsument får en claim check på en journalpostId før den er ferdig arkivert.
+            * Det er opp til utvikleren å vurdere om det skal forsøkes retry på denne feilstatusen.
+          content:
+            application/json: {}
+        "400":
+          description: |-
+            * Ugyldig input. JournalpostId og dokumentInfoId må være tall og variantFormat må være en gyldig kodeverk-verdi som ARKIV eller ORIGINAL.
+            * Journalposten tilhører et ustøttet arkivsaksystem. Arkivsaksystem må være GSAK, PSAK eller NULL (midlertidig journalpost).
+          content:
+            application/json: {}
+        "403":
+          description: |-
+            * Vi kan ikke gi tilgang til dokumentet på grunn av sikkerhet eller personvern.
+            * F.eks dokumentet tilhører egen ansatt eller bruker som bor på hemmelig adresse. Eller bruker har ikke tilgang til tema.
+            * Referer til [dokumentasjon om tilgangskontrollen til saf](https://confluence.adeo.no/display/BOA/saf+-+Tilgangskontroll) for mer informasjon.
+            * Tilgang for saksbehandler og system styres gjennom NORG og gruppemedlemskap i AD.
+          content:
+            application/json: {}
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      description: "Eksempel på verdi som skal inn i Value-feltet (Bearer trengs altså\
+        \ ikke å oppgis): 'eyAidH...'"
+      scheme: Bearer
+      bearerFormat: JWT

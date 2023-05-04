@@ -44,5 +44,4 @@ spec:
         - application: hm-soknad-pdfgen
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
-        - host: digihot-proxy.prod-fss-pub.nais.io
         - host: saf.prod-fss-pub.nais.io

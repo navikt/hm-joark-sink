@@ -7,8 +7,6 @@
   "PDF_BASEURL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local",
   "JOARK_BASEURL": "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1",
   "JOARK_SCOPE": "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
-  "JOARK_PROXY_BASEURL": "https://digihot-proxy.dev-fss-pub.nais.io/dokarkiv-aad",
-  "JOARK_PROXY_SCOPE": "api://dev-fss.teamdigihot.digihot-proxy/.default",
   "SAF_GRAPHQL_URL": "https://saf-q2.dev-fss-pub.nais.io/graphql",
   "SAF_REST_URL": "https://saf-q2.dev-fss-pub.nais.io/rest",
   "SAF_SCOPE": "api://dev-fss.teamdokumenthandtering.saf/.default",

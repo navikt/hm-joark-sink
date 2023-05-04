@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package no.nav.hjelpemidler.saf
 
 import com.expediagroup.graphql.client.converter.ScalarConverter

@@ -1,7 +1,6 @@
 import com.expediagroup.graphql.plugin.gradle.config.GraphQLScalar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
@@ -9,6 +8,7 @@ plugins {
     id("com.diffplug.spotless") version "6.12.1"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("com.expediagroup.graphql") version "6.4.0"
+    id("org.openapi.generator") version "6.5.0"
 }
 
 repositories {
@@ -40,10 +40,26 @@ dependencies {
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.29")
 
+    // Testing
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
     testImplementation("io.kotest:kotest-runner-junit5:5.5.5")
     testImplementation("io.kotest:kotest-assertions-core:5.5.5")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = TestExceptionFormat.FULL
+        events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+    }
+}
+
+tasks.compileKotlin {
+    kotlinOptions.jvmTarget = "17"
+    dependsOn(tasks.openApiGenerate)
 }
 
 graphql {
@@ -59,16 +75,33 @@ graphql {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        showExceptions = true
-        showStackTraces = true
-        exceptionFormat = TestExceptionFormat.FULL
-        events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
-    }
+openApiGenerate {
+    skipValidateSpec.set(true)
+    inputSpec.set("src/main/resources/dokarkiv/openapi.yaml")
+    outputDir.set("$buildDir/generated/source/dokarkiv")
+    generatorName.set("kotlin")
+    packageName.set("no.nav.hjelpemidler.dokarkiv")
+    globalProperties.set(
+        mapOf(
+            "apis" to "none",
+            "models" to "",
+            "modelDocs" to "false",
+        ),
+    )
+    configOptions.set(
+        mapOf(
+            "serializationLibrary" to "jackson",
+            "dateLibrary" to "java8-localdatetime", // burde vært default ("java8"), men eksterne saf/dokarkiv benytter LocalDateTime
+            "enumPropertyNaming" to "UPPERCASE",
+            "sourceFolder" to "main",
+        ),
+    )
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+sourceSets {
+    main {
+        kotlin {
+            srcDir("$buildDir/generated/source/dokarkiv/main")
+        }
+    }
 }

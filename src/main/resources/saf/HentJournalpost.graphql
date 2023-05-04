@@ -1,6 +1,7 @@
 query HentJournalpost($journalpostId: String!) {
   journalpost(journalpostId: $journalpostId) {
     journalpostId
+    eksternReferanseId
     tittel
     journalposttype
     journalstatus
