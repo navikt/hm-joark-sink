@@ -76,7 +76,7 @@ class DokarkivClient(
             else -> response.feilmelding()
         }
         if (forsøkFerdigstill != journalpost.journalpostferdigstilt) {
-            error("Journalpost ble ikke ferdigstilt, journalpostId: ${journalpost.journalpostId}")
+            dokarkivError("Journalpost ble ikke ferdigstilt, journalpostId: ${journalpost.journalpostId}")
         }
         return journalpost
     }
