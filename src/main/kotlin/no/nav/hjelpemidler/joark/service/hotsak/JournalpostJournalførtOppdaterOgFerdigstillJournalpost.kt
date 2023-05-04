@@ -15,6 +15,7 @@ import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
+import no.nav.hjelpemidler.saf.enums.Tema
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -70,6 +71,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             avsenderMottaker = avsenderMottakerMedFnr(packet.fnrBruker),
             bruker = brukerMedFnr(packet.fnrBruker),
             tittel = packet.tittel,
+            tema = Tema.HJE.toString(),
             sak = Sak(
                 fagsakId = sakId,
                 fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER,
