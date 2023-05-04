@@ -178,7 +178,10 @@ class JournalpostService(
                 tittel = journalpost.tittel.toString(),
             )
 
-            val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(opprettJournalpostRequest)
+            val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(
+                opprettJournalpostRequest = opprettJournalpostRequest,
+                forsøkFerdigstill = false
+            )
             val nyJournalpostId = opprettJournalpostResponse.journalpostId
             log.info {
                 "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId"
