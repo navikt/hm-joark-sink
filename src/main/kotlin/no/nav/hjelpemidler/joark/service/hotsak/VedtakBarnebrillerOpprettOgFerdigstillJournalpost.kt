@@ -75,7 +75,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     dokument(data.pdf, dokumenttype)
                     sakFraHotsak(sakId)
                     tittelFra(dokumenttype)
-                    eksternReferanseId = sakId + "BARNEBRILLEVEDTAK"
+                    eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
                 }
                 forward(journalpostId, data, context)
             }
@@ -106,10 +106,8 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "Cancelled"
                 }
 
-                else -> {
-                    log.error(it) {
-                        "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}"
-                    }
+                else -> log.error(it) {
+                    "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}"
                 }
             }
         }

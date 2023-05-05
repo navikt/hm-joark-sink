@@ -30,14 +30,17 @@ class JournalpostService(
     private val safClient: SafClient,
 ) {
     suspend fun genererPdf(søknadJson: JsonNode): ByteArray {
-        val data = jsonMapper.writeValueAsString(søknadJson)
-        val fysiskDokument = pdfClient.genererSøknadPdf(data)
+        val fysiskDokument = pdfClient.genererSøknadPdf(
+            jsonMapper.writeValueAsString(søknadJson),
+        )
         Prometheus.pdfGenerertCounter.inc()
         return fysiskDokument
     }
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
-        val fysiskDokument = pdfClient.genererBarnebrillePdf(jsonMapper.writeValueAsString(data))
+        val fysiskDokument = pdfClient.genererBarnebrillePdf(
+            jsonMapper.writeValueAsString(data),
+        )
         Prometheus.pdfGenerertCounter.inc()
         return fysiskDokument
     }

@@ -1,30 +1,26 @@
-package no.nav.hjelpemidler.joark.service.barnebriller
+package no.nav.hjelpemidler.joark.service.hotsak
 
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
-import no.nav.hjelpemidler.joark.jsonMapper
+import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.service.Dokumenttype
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
 import java.time.LocalDateTime
-import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class OpprettOgFerdigstillJournalpostBarnebrillerTest : TestSupport() {
+class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest : TestSupport() {
     override fun TestRapid.configure() {
-        OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
+        VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
     }
 
     @BeforeTest
     fun setUp() {
-        coEvery {
-            pdfClientMock.genererBarnebrillePdf(any())
-        } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(
                 capture(opprettJournalpostRequestSlot),
@@ -34,32 +30,25 @@ class OpprettOgFerdigstillJournalpostBarnebrillerTest : TestSupport() {
     }
 
     @Test
-    fun `Skal lage riktig request for opprettelse av journalpost`() {
+    fun `Sender vedtak om innvilget brillestøtte til barn til journalføring`() {
+        val sakId = "1"
         sendTestMessage(
-            "eventName" to "hm-barnebrillevedtak-opprettet",
-            "fnr" to "10101012345",
-            "brukersNavn" to "test",
-            "orgnr" to "123456789",
-            "orgNavn" to "test",
-            "orgAdresse" to "test",
+            "eventName" to "hm-manuelt-barnebrillevedtak-opprettet",
+            "saksnummer" to sakId,
+            "fnrBruker" to "10101012345",
+            "navnBruker" to "test",
             "navnAvsender" to "test",
-            "eventId" to UUID.randomUUID(),
-            "opprettetDato" to LocalDateTime.now(),
-            "sakId" to "1",
-            "brilleseddel" to jsonMapper.createObjectNode(),
-            "bestillingsdato" to "2023-05-01",
-            "bestillingsreferanse" to "test",
-            "satsBeskrivelse" to "test",
-            "satsBeløp" to "2475",
-            "beløp" to "1200",
+            "opprettet" to LocalDateTime.now(),
+            "pdf" to pdf,
         )
-        val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER
+        val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
         opprettJournalpostRequestSlot.assertSoftly {
             tittel shouldBe dokumenttype.tittel
             dokumenter.shouldForExactly(1) { dokument ->
                 dokument.tittel shouldBe dokumenttype.dokumenttittel
             }
-            eksternReferanseId shouldBe "1BARNEBRILLEAPI"
+            sak shouldBe Sak(sakId, Sak.Fagsaksystem.HJELPEMIDLER, Sak.Sakstype.FAGSAK)
+            eksternReferanseId shouldBe "${sakId}BARNEBRILLEVEDTAK"
             journalfoerendeEnhet shouldBe "9999"
         }
         forsøkFerdigstillSlot shouldHaveCaptured true

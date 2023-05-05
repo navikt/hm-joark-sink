@@ -8,17 +8,17 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
-import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
-import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettNyJournalpostEtterFeilregistrering
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
 
@@ -40,7 +40,7 @@ fun main() {
         baseUrl = Configuration.JOARK_BASEURL,
         scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
-        engine,
+        engine = engine,
     )
     val safClient = SafClient(
         azureADClient = azureADClient,

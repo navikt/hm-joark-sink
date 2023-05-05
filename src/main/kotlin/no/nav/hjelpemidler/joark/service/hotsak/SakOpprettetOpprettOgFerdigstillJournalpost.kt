@@ -100,10 +100,8 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     "Cancelled"
                 }
 
-                else -> {
-                    log.error(it) {
-                        "Klarte ikke å opprettet og ferdigstille journalpost i joark for søknadId: ${data.soknadId}"
-                    }
+                else -> log.error(it) {
+                    "Klarte ikke å opprettet og ferdigstille journalpost i joark for søknadId: ${data.soknadId}"
                 }
             }
         }

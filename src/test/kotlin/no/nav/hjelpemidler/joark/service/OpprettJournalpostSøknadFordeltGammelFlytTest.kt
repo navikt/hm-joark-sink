@@ -1,20 +1,19 @@
 package no.nav.hjelpemidler.joark.service
 
-import io.kotest.matchers.booleans.shouldBeFalse
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
-import org.intellij.lang.annotations.Language
+import no.nav.hjelpemidler.joark.test.assertSoftly
+import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
+import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class OpprettJournalpostSøknadFordeltGammelFlytTest : TestSupport() {
-    private val søknadId = "aa929fac-b949-4509-a25c-069fa7513d2f"
-
     override fun TestRapid.configure() {
         OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
     }
@@ -35,22 +34,25 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : TestSupport() {
 
     @Test
     fun `Oppretter journalpost for søknad fordelt til gammel flyt`() {
-        rapid.sendTestMessage(message)
-        val opprettJournalpostRequest = opprettJournalpostRequestSlot.captured
-        opprettJournalpostRequest.tittel shouldBe Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
-        opprettJournalpostRequest.dokumenter shouldHaveSize 1
-        opprettJournalpostRequest.eksternReferanseId shouldBe "${søknadId}HJE-DIGITAL-SOKNAD"
-        opprettJournalpostRequest.journalfoerendeEnhet.shouldBeNull()
-        forsøkFerdigstillSlot.captured.shouldBeFalse()
+        val søknadId = UUID.randomUUID()
+        val søknadGjelder = "søknadGjelder"
+        sendTestMessage(
+            "eventName" to "hm-søknadFordeltGammelFlyt",
+            "fodselNrBruker" to "fodselNrBruker",
+            "navnBruker" to "test",
+            "soknadId" to søknadId,
+            "soknad" to jsonMapper.createObjectNode(),
+            "soknadGjelder" to søknadGjelder
+        )
+        val dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER
+        opprettJournalpostRequestSlot.assertSoftly {
+            tittel shouldBe dokumenttype.tittel
+            dokumenter.shouldForExactly(1) { dokument ->
+                dokument.tittel shouldBe søknadGjelder
+            }
+            eksternReferanseId shouldBe "${søknadId}HJE-DIGITAL-SOKNAD"
+            journalfoerendeEnhet shouldBe null
+        }
+        forsøkFerdigstillSlot shouldHaveCaptured false
     }
-
-    @Language("JSON")
-    private val message = """{
-        "eventName": "hm-søknadFordeltGammelFlyt",
-        "fodselNrBruker": "10101012345",
-        "navnBruker": "test",
-        "soknadId": "$søknadId",
-        "soknad": {},
-        "soknadGjelder": "test"
-    }""".trimIndent()
 }
