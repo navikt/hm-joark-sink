@@ -183,7 +183,7 @@ class JournalpostService(
                     )
                 },
                 datoDokument = journalpost.datoOpprettet,
-                eksternReferanseId = søknadId.toString() + "HOTSAK_TIL_GOSYS",
+                eksternReferanseId = "${søknadId}HOTSAK_TIL_GOSYS",
                 journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
                 kanal = journalpost.kanal.toString(),
                 tema = journalpost.tema.toString(),
