@@ -29,7 +29,7 @@ enum class Dokumenttype(
     VEDTAKSBREV_BARNEBRILLER_HOTSAK(
         brevkode = "vedtaksbrev_barnebriller_hotsak",
         tittel = "Vedtaksbrev barnebriller",
-        dokumenttittel = "Tilskudd ved kjøp av briller til barn via søknad til NAV",
+        dokumenttittel = "Tilskudd ved kjøp av briller til barn",
     )
     ;
 }
