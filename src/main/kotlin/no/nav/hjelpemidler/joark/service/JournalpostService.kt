@@ -64,7 +64,7 @@ class JournalpostService(
         )
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
         log.info {
-            "Inngående journalpost opprettet, journalpostId: ${journalpost.journalpostId}"
+            "Inngående journalpost opprettet, journalpostId: ${journalpost.journalpostId}, ferdigstilt: ${journalpost.journalpostferdigstilt}"
         }
         return journalpost.journalpostId
     }
@@ -88,7 +88,7 @@ class JournalpostService(
         )
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
         log.info {
-            "Utgående journalpost opprettet, journalpostId: ${journalpost.journalpostId}"
+            "Utgående journalpost opprettet, journalpostId: ${journalpost.journalpostId}, ferdigstilt: ${journalpost.journalpostferdigstilt}"
         }
         return journalpost.journalpostId
     }
