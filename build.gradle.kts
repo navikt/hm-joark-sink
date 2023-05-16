@@ -38,7 +38,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:3.0.5")
 
     // Http
-    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.33")
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.35")
 
     // Testing
     testImplementation(kotlin("test"))
