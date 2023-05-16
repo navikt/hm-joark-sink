@@ -62,7 +62,7 @@ class DokarkivClient(
                     secureLog.info(message)
                 }
             }
-            level = LogLevel.ALL
+            level = LogLevel.HEADERS
         }
     }
 
