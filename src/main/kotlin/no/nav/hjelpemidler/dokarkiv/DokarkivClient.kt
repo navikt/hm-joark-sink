@@ -6,6 +6,8 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.request.accept
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
@@ -28,10 +30,12 @@ import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.http.logging
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
 
 private val log = KotlinLogging.logger {}
+private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class DokarkivClient(
     private val baseUrl: String,
@@ -52,6 +56,14 @@ class DokarkivClient(
             correlationId()
         }
         openID(scope, azureADClient)
+        logging {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    secureLog.info(message)
+                }
+            }
+            level = LogLevel.ALL
+        }
     }
 
     suspend fun opprettJournalpost(
