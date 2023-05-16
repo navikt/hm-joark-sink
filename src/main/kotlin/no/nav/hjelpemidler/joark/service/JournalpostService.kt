@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import mu.withLoggingContext
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
@@ -11,6 +10,7 @@ import no.nav.hjelpemidler.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
@@ -51,7 +51,7 @@ class JournalpostService(
         fnrBruker: String = fnrAvsender,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
-    ): String {
+    ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
             fnrAvsender = fnrAvsender,
@@ -62,11 +62,15 @@ class JournalpostService(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill
         )
-        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        val journalpostId = journalpost.journalpostId
+        val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
+        val ferdigstilt = journalpost.journalpostferdigstilt
+        val datoMottatt = lagOpprettJournalpostRequest.datoMottatt
         log.info {
-            "Inngående journalpost opprettet, journalpostId: ${journalpost.journalpostId}, ferdigstilt: ${journalpost.journalpostferdigstilt}"
+            "Inngående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt, datoMottatt: $datoMottatt"
         }
-        return journalpost.journalpostId
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        journalpostId
     }
 
     suspend fun opprettUtgåendeJournalpost(
@@ -75,7 +79,7 @@ class JournalpostService(
         fnrBruker: String = fnrAvsender,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
-    ): String {
+    ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
             fnrAvsender = fnrAvsender,
@@ -86,11 +90,14 @@ class JournalpostService(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill
         )
-        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        val journalpostId = journalpost.journalpostId
+        val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
+        val ferdigstilt = journalpost.journalpostferdigstilt
         log.info {
-            "Utgående journalpost opprettet, journalpostId: ${journalpost.journalpostId}, ferdigstilt: ${journalpost.journalpostferdigstilt}"
+            "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
         }
-        return journalpost.journalpostId
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        journalpostId
     }
 
     suspend fun arkiverSøknad(
@@ -102,9 +109,14 @@ class JournalpostService(
         dokumenttittel: String,
         eksternReferanseId: String,
         datoMottatt: LocalDateTime? = null,
-    ): String {
+    ): String = withCorrelationId(
+        "søknadId" to søknadId.toString(),
+        "sakstype" to sakstype.name,
+        "eksternReferanseId" to eksternReferanseId,
+        "datoMottatt" to datoMottatt?.toString(),
+    ) {
         log.info {
-            "Arkiverer søknad, søknadId: $søknadId, sakstype: $sakstype"
+            "Arkiverer søknad, søknadId: $søknadId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
         val fysiskDokument = genererPdf(søknadJson)
         val dokumenttype = sakstype.dokumenttype
@@ -119,15 +131,15 @@ class JournalpostService(
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null
         }
-        Prometheus.søknadArkivertCounter.inc()
         log.info {
-            "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId"
+            "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
         }
-        return journalpostId
+        Prometheus.søknadArkivertCounter.inc()
+        journalpostId
     }
 
     suspend fun feilregistrerSakstilknytning(journalpostId: String) =
-        withLoggingContext("journalpostId" to journalpostId) {
+        withCorrelationId("journalpostId" to journalpostId) {
             log.info {
                 "Feilregistrerer journalpost med journalpostId: $journalpostId"
             }
@@ -136,7 +148,7 @@ class JournalpostService(
         }
 
     suspend fun kopierJournalpost(søknadId: UUID, journalpostId: String): String =
-        withLoggingContext("søknadId" to søknadId.toString(), "journalpostId" to journalpostId) {
+        withCorrelationId("søknadId" to søknadId.toString(), "journalpostId" to journalpostId) {
             val journalpost = checkNotNull(safClient.hentJournalpost(journalpostId)) {
                 "Fant ikke journalpost med journalpostId: $journalpostId"
             }
@@ -205,13 +217,13 @@ class JournalpostService(
         journalpostId: String,
         tittel: String,
         dokumenter: List<DokumentInfo>,
-    ): String {
+    ): String = withCorrelationId("journalpostId" to journalpostId) {
         log.info {
             "Endrer tittel på journalpost med journalpostId: $journalpostId"
         }
         val oppdaterJournalpostRequest = OppdaterJournalpostRequest(tittel = tittel, dokumenter = dokumenter)
         val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
-        return oppdaterJournalpostResponse.journalpostId
+        oppdaterJournalpostResponse.journalpostId
     }
 
     private fun Journalposttype?.toDokarkiv(): OpprettJournalpostRequest.Journalposttype =

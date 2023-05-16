@@ -26,6 +26,7 @@ import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostResponse
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
@@ -48,6 +49,7 @@ class DokarkivClient(
         defaultRequest {
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
+            correlationId()
         }
         openID(scope, azureADClient)
     }

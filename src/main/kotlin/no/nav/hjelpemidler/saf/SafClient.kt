@@ -9,11 +9,11 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import mu.KotlinLogging
+import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
@@ -21,7 +21,6 @@ import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.saf.enums.Variantformat
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.net.URL
-import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -41,16 +40,14 @@ class SafClient(
                 exponentialDelay()
             }
             defaultRequest {
-                header("X-Correlation-ID", UUID.randomUUID().toString())
+                correlationId()
             }
         })
 
     private val clientRest = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
-            val id = UUID.randomUUID().toString()
-            header("X-Correlation-ID", id)
-            header("Nav-CallId", id)
+            correlationId()
         }
     }
 
