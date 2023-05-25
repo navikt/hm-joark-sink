@@ -43,7 +43,9 @@ class SakTilbakeførtFeilregistrerJournalpost(
                 it.interestedIn(
                     "sakstype",
                     "navIdent",
-                    "valgteÅrsaker"
+                    "valgteÅrsaker",
+                    "enhet",
+                    "begrunnelse",
                 )
             }
         }.register(this)
@@ -60,6 +62,8 @@ class SakTilbakeførtFeilregistrerJournalpost(
     private val JsonMessage.sakstype get() = this["sakstype"].textValue()
     private val JsonMessage.navIdent get() = this["navIdent"].textValue()
     private val JsonMessage.valgteÅrsaker: Set<String> get() = this["valgteÅrsaker"].map { it.textValue() }.toSet()
+    private val JsonMessage.enhet get() = this["enhet"].textValue()
+    private val JsonMessage.begrunnelse get() = this["begrunnelse"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
@@ -78,11 +82,13 @@ class SakTilbakeførtFeilregistrerJournalpost(
                     fnrBruker = packet.fnrBruker,
                     navnBruker = packet.navnBruker,
                     dokumentBeskrivelse = packet.dokumentBeskrivelse,
+                    enhet = packet.enhet,
                     soknadId = packet.søknadId,
                     soknadJson = packet.søknadJson,
                     mottattDato = packet.mottattDato,
                     navIdent = packet.navIdent,
                     valgteÅrsaker = packet.valgteÅrsaker,
+                    begrunnelse = packet.begrunnelse,
                 )
                 log.info {
                     "Journalpost til feilregistrering av sak mottatt (${data.sakstype}), sakId: ${data.sakId}, journalpostId: $journalpostId"
@@ -132,11 +138,13 @@ private data class FeilregistrerJournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
     val dokumentBeskrivelse: String,
+    val enhet: String,
     val soknadId: String,
     val soknadJson: JsonNode,
     val mottattDato: LocalDate,
     val navIdent: String?,
     val valgteÅrsaker: Set<String>,
+    val begrunnelse: String?,
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(nyJournalpostId: String, eventName: String): String {
@@ -151,6 +159,7 @@ private data class FeilregistrerJournalpostData(
             it["fnrBruker"] = this.fnrBruker
             it["navnBruker"] = this.navnBruker
             it["dokumentBeskrivelse"] = this.dokumentBeskrivelse
+            it["enhet"] = this.enhet
             it["soknadId"] = this.soknadId
             it["soknadJson"] = this.soknadJson
             it["mottattDato"] = this.mottattDato
@@ -158,6 +167,9 @@ private data class FeilregistrerJournalpostData(
                 it["navIdent"] = this.navIdent
             }
             it["valgteÅrsaker"] = this.valgteÅrsaker
+            if (this.begrunnelse != null) {
+                it["begrunnelse"] = this.begrunnelse
+            }
         }.toJson()
     }
 }

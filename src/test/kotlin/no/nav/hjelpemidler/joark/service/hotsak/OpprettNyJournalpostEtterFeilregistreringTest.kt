@@ -106,6 +106,7 @@ class OpprettNyJournalpostEtterFeilregistreringTest : TestSupport() {
             "navnBruker" to "test",
             "mottattDato" to nå,
             "dokumentBeskrivelse" to "test",
+            "enhet" to "1000",
             "sakstype" to sakstype,
             "nyJournalpostId" to journalpostId,
             "navIdent" to "X123456",
