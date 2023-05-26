@@ -41,6 +41,9 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "opprettet",
                     "pdf"
                 )
+                it.interestedIn(
+                    "vedtaksstatus"
+                )
             }
         }.register(this)
     }
@@ -51,6 +54,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
+    private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue().let(Vedtaksstatus::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         coroutineScope {
@@ -66,7 +70,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     pdf = packet.fysiskDokument
                 )
                 log.info { "Manuelt barnebrillevedtak til journalføring mottatt, sakId: ${data.sakId}" }
-                val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
+                val dokumenttype =
+                    when (packet.vedtaksstatus) {
+                        Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGET
+                        Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
+                    }
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
                     fnrAvsender = data.fnr,
                     navnAvsender = data.navnAvsender,
@@ -135,4 +143,9 @@ private data class JournalpostBarnebrillevedtakData(
             it["eventId"] = UUID.randomUUID()
         }.toJson()
     }
+}
+
+enum class Vedtaksstatus {
+    INNVILGET,
+    AVSLÅTT
 }
