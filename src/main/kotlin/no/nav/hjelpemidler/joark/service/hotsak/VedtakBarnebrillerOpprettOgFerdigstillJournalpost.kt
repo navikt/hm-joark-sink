@@ -54,7 +54,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
-    private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue().let(Vedtaksstatus::valueOf)
+    private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue()?.let(Vedtaksstatus::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         coroutineScope {
@@ -74,6 +74,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     when (packet.vedtaksstatus) {
                         Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGET
                         Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
+                        null -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
                     }
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
                     fnrAvsender = data.fnr,
