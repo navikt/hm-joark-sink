@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger {}
 
@@ -29,6 +30,14 @@ class OverførJournalpost(
         val journalpostId = packet.journalpostId
         log.info {
             "Overfører journalpost med journalpostId: $journalpostId"
+        }
+        val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
+        val nyJournalpostId = journalpostService.kopierJournalpost(
+            journalpostId = journalpostId,
+            nyEksternReferanseId = nyEksternReferanseId
+        )
+        log.info {
+            "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
         }
     }
 }

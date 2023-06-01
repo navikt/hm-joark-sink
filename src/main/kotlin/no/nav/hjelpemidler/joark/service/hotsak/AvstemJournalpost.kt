@@ -1,14 +1,13 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.saf.tekst
 
 private val log = KotlinLogging.logger {}
 
@@ -33,14 +32,10 @@ class AvstemJournalpost(
             "Avstemmer journalpost med journalpostId: $journalpostId"
         }
         try {
-            val journalpost = journalpostService.hentJournalpost(journalpostId)
-            when (journalpost) {
+            when (val journalpost = journalpostService.hentJournalpost(journalpostId)) {
                 null -> log.warn { "Fant ikke journalpost med journalpostId: $journalpostId" }
                 else -> log.info {
-                    val egenskaper = jsonMapper
-                        .convertValue<Map<String, Any?>>(journalpost)
-                        .minus(setOf("bruker", "avsenderMottaker", "dokumenter"))
-                    "Hentet journalpost med journalpostId: $journalpostId, egenskaper: $egenskaper"
+                    "Hentet journalpost for avstemming, ${journalpost.tekst()}"
                 }
             }
         } catch (e: Exception) {

@@ -148,16 +148,14 @@ class JournalpostService(
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }
 
-    suspend fun kopierJournalpost(søknadId: UUID, journalpostId: String): String =
-        withCorrelationId("søknadId" to søknadId.toString(), "journalpostId" to journalpostId) {
+    suspend fun kopierJournalpost(journalpostId: String, nyEksternReferanseId: String): String =
+        withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
             val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
                 "Fant ikke journalpost med journalpostId: $journalpostId"
             }
-
             log.info {
                 "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}"
             }
-
             val dokumenter = journalpost.dokumenter?.filterNotNull()
                 ?.map { dokument ->
                     val dokumentInfoId = dokument.dokumentInfoId
@@ -196,7 +194,7 @@ class JournalpostService(
                     )
                 },
                 datoDokument = journalpost.datoOpprettet,
-                eksternReferanseId = "${søknadId}HOTSAK_TIL_GOSYS",
+                eksternReferanseId = nyEksternReferanseId,
                 journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
                 kanal = journalpost.kanal.toString(),
                 tema = journalpost.tema.toString(),
@@ -209,7 +207,7 @@ class JournalpostService(
             )
             val nyJournalpostId = opprettJournalpostResponse.journalpostId
             log.info {
-                "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId"
+                "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
             }
             nyJournalpostId
         }

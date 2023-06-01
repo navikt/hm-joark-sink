@@ -73,6 +73,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     begrunnelse = packet.begrunnelse,
                 )
                 log.info { "Sak til journalføring etter feilregistrering mottatt, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
+                val eksternReferanseId = "${data.soknadId}HOTSAK_TIL_GOSYS"
                 val nyJournalpostId = when (data.sakstype) {
                     Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
                         fnrBruker = data.fnrBruker,
@@ -81,10 +82,13 @@ class OpprettNyJournalpostEtterFeilregistrering(
                         søknadJson = packet.søknadJson,
                         sakstype = data.sakstype,
                         dokumenttittel = data.dokumentBeskrivelse,
-                        eksternReferanseId = "${data.soknadId}HOTSAK_TIL_GOSYS",
+                        eksternReferanseId = eksternReferanseId,
                     )
 
-                    Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(packet.søknadId, packet.journalpostId)
+                    Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
+                        journalpostId = packet.journalpostId,
+                        nyEksternReferanseId = eksternReferanseId
+                    )
                 }
                 forward(nyJournalpostId, data, context)
             }
