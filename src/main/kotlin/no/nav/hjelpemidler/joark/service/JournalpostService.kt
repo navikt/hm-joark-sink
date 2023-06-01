@@ -19,6 +19,7 @@ import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
 import no.nav.hjelpemidler.saf.enums.Journalposttype
+import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -149,7 +150,7 @@ class JournalpostService(
 
     suspend fun kopierJournalpost(søknadId: UUID, journalpostId: String): String =
         withCorrelationId("søknadId" to søknadId.toString(), "journalpostId" to journalpostId) {
-            val journalpost = checkNotNull(safClient.hentJournalpost(journalpostId)) {
+            val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
                 "Fant ikke journalpost med journalpostId: $journalpostId"
             }
 
@@ -225,6 +226,9 @@ class JournalpostService(
         val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
         oppdaterJournalpostResponse.journalpostId
     }
+
+    suspend fun hentJournalpost(journalpostId: String): Journalpost? =
+        safClient.hentJournalpost(journalpostId)
 
     private fun Journalposttype?.toDokarkiv(): OpprettJournalpostRequest.Journalposttype =
         when (this) {
