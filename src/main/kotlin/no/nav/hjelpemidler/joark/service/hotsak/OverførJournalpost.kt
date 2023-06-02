@@ -31,13 +31,19 @@ class OverførJournalpost(
         log.info {
             "Overfører journalpost med journalpostId: $journalpostId"
         }
-        val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
-        val nyJournalpostId = journalpostService.kopierJournalpost(
-            journalpostId = journalpostId,
-            nyEksternReferanseId = nyEksternReferanseId
-        )
-        log.info {
-            "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+        try {
+            val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
+            val nyJournalpostId = journalpostService.kopierJournalpost(
+                journalpostId = journalpostId,
+                nyEksternReferanseId = nyEksternReferanseId
+            )
+            log.info {
+                "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+            }
+        } catch (e: Exception) {
+            log.warn(e) {
+                "Overføring feilet, kunne ikke kopiere journalpost med journalpostId: $journalpostId"
+            }
         }
     }
 }
