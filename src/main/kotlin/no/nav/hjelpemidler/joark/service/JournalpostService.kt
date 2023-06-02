@@ -177,22 +177,9 @@ class JournalpostService(
             val opprettJournalpostRequest = OpprettJournalpostRequest(
                 dokumenter = dokumenter,
                 journalposttype = journalpost.journalposttype.toDokarkiv(),
-                avsenderMottaker = journalpost.avsenderMottaker?.let { avsenderMottaker ->
-                    AvsenderMottaker(
-                        id = avsenderMottaker.id,
-                        idType = avsenderMottaker.type.toDokarkiv(),
-                        navn = avsenderMottaker.navn
-                    )
-                },
+                avsenderMottaker = journalpost.avsenderMottaker.toDokarkiv(),
                 behandlingstema = journalpost.behandlingstema,
-                bruker = journalpost.bruker?.let { bruker ->
-                    Bruker(
-                        id = checkNotNull(bruker.id) {
-                            "journalpost.bruker.id i journalpost hentet fra SAF var null, journalpostId: $journalpostId"
-                        },
-                        idType = bruker.type.toDokarkiv(),
-                    )
-                },
+                bruker = journalpost.bruker.toDokarkiv(),
                 datoDokument = journalpost.datoOpprettet,
                 eksternReferanseId = nyEksternReferanseId,
                 journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
@@ -251,5 +238,21 @@ class JournalpostService(
             BrukerIdType.ORGNR -> Bruker.IdType.ORGNR
             BrukerIdType.AKTOERID -> Bruker.IdType.AKTOERID
             else -> error("Ukjent brukerIdType: '$this'")
+        }
+
+    private fun no.nav.hjelpemidler.saf.hentjournalpost.AvsenderMottaker?.toDokarkiv(): AvsenderMottaker? =
+        when {
+            this == null -> null
+            id == null -> null
+            type == null -> null
+            else -> AvsenderMottaker(id, type.toDokarkiv())
+        }
+
+    private fun no.nav.hjelpemidler.saf.hentjournalpost.Bruker?.toDokarkiv(): Bruker? =
+        when {
+            this == null -> null
+            id == null -> null
+            type == null -> null
+            else -> Bruker(id, type.toDokarkiv())
         }
 }
