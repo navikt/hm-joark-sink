@@ -20,25 +20,31 @@ class OverførJournalpost(
             validate { it.demandValue("eventName", "hm-journalpost-overført") }
             validate {
                 it.requireKey("journalpostId")
+                it.interestedIn("journalførendeEnhet")
             }
         }.register(this)
     }
 
-    private val JsonMessage.journalpostId get() = this["journalpostId"].textValue()
+    private val JsonMessage.journalpostId: String
+        get() = this["journalpostId"].textValue()
+    private val JsonMessage.journalførendeEnhet: String?
+        get() = this["journalførendeEnhet"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
+        val journalførendeEnhet = packet.journalførendeEnhet
         log.info {
-            "Overfører journalpost med journalpostId: $journalpostId"
+            "Overfører journalpost med journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet"
         }
         try {
             val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
             val nyJournalpostId = journalpostService.kopierJournalpost(
                 journalpostId = journalpostId,
-                nyEksternReferanseId = nyEksternReferanseId
+                nyEksternReferanseId = nyEksternReferanseId,
+                journalførendeEnhet = journalførendeEnhet
             )
             log.info {
-                "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+                "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId, journalførendeEnhet: $journalførendeEnhet"
             }
         } catch (e: Exception) {
             log.warn(e) {

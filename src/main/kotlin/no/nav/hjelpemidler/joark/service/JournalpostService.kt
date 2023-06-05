@@ -148,7 +148,11 @@ class JournalpostService(
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }
 
-    suspend fun kopierJournalpost(journalpostId: String, nyEksternReferanseId: String): String =
+    suspend fun kopierJournalpost(
+        journalpostId: String,
+        nyEksternReferanseId: String,
+        journalførendeEnhet: String? = null,
+    ): String =
         withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
             val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
                 "Fant ikke journalpost med journalpostId: $journalpostId"
@@ -182,7 +186,7 @@ class JournalpostService(
                 bruker = journalpost.bruker.toDokarkiv(),
                 datoDokument = journalpost.datoOpprettet,
                 eksternReferanseId = nyEksternReferanseId,
-                journalfoerendeEnhet = journalpost.journalfoerendeEnhet,
+                journalfoerendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
                 kanal = journalpost.kanal.toString(),
                 tema = journalpost.tema.toString(),
                 tittel = journalpost.tittel.toString(),
