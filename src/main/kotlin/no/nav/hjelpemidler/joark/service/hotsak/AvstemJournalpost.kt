@@ -1,5 +1,9 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -24,22 +28,31 @@ class AvstemJournalpost(
         }.register(this)
     }
 
-    private val JsonMessage.journalpostId get() = this["journalpostId"].textValue()
+    private val JsonMessage.journalpostId: List<String>
+        get() = this["journalpostId"].map {
+            it.textValue()
+        }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
         log.info {
-            "Avstemmer journalpost med journalpostId: $journalpostId"
+            "Avstemmer journalposter med journalpostId: $journalpostId"
         }
         try {
-            when (val journalpost = journalpostService.hentJournalpost(journalpostId)) {
-                null -> log.warn { "Fant ikke journalpost med journalpostId: $journalpostId" }
-                else -> log.info {
-                    "Hentet journalpost for avstemming, ${journalpost.tekst()}"
-                }
+            val journalposter: Map<String, String> = supervisorScope {
+                journalpostId
+                    .map {
+                        async(Dispatchers.IO) {
+                            it to journalpostService.hentJournalpost(it)
+                        }
+                    }
+                    .awaitAll()
+                    .toMap()
+                    .mapValues { it.value.tekst() }
             }
+            log.info { "Hentet journalposter til avstemming, $journalposter" }
         } catch (e: Exception) {
-            log.warn(e) { "Kunne ikke avstemme journalpost med journalpostId: $journalpostId" }
+            log.warn(e) { "Kunne ikke avstemme journalposter med journalpostId: $journalpostId" }
         }
     }
 }
