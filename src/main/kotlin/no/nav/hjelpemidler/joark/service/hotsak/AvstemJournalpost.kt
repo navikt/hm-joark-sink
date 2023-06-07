@@ -16,6 +16,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 
 private val log = KotlinLogging.logger {}
+private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class AvstemJournalpost(
     rapidsConnection: RapidsConnection,
@@ -54,7 +55,7 @@ class AvstemJournalpost(
                     .awaitAll()
                     .toMap()
             }
-            log.info { "Hentet journalposter til avstemming: '${jsonMapper.writeValueAsString(journalposter)}'" }
+            secureLog.info { "Hentet journalposter til avstemming: '${jsonMapper.writeValueAsString(journalposter)}'" }
         } catch (e: Exception) {
             log.warn(e) { "Kunne ikke avstemme journalposter med journalpostId: $journalpostId" }
         }
