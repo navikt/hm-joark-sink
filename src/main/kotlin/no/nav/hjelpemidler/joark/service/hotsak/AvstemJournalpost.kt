@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -29,8 +30,11 @@ class AvstemJournalpost(
     }
 
     private val JsonMessage.journalpostId: List<String>
-        get() = this["journalpostId"].map {
-            it.textValue()
+        get() = this["journalpostId"].let {
+            when {
+                it.isArray -> it.map(JsonNode::textValue)
+                else -> listOf(it.textValue())
+            }
         }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
