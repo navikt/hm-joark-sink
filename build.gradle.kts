@@ -4,11 +4,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version "1.8.20"
-    id("com.diffplug.spotless") version "6.12.1"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("com.expediagroup.graphql") version "6.4.0"
-    id("org.openapi.generator") version "6.5.0"
+    kotlin("jvm") version "1.8.22"
+    id("com.diffplug.spotless") version "6.19.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.expediagroup.graphql") version "6.5.2"
+    id("org.openapi.generator") version "6.6.0"
 }
 
 repositories {
@@ -23,11 +23,11 @@ application {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(platform("io.ktor:ktor-bom:2.3.0"))
-    implementation("com.github.navikt:rapids-and-rivers:2023042611061682500003.f24c0756e00a")
+    implementation(platform("io.ktor:ktor-bom:2.3.1"))
+    implementation("com.github.navikt:rapids-and-rivers:2023060108511685602318.b6acfa4d79a1")
 
     // GraphQL
-    val graphQLVersion = "6.4.0"
+    val graphQLVersion = "6.5.2"
     implementation("com.expediagroup:graphql-kotlin-ktor-client:$graphQLVersion") {
         exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
         exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
@@ -38,13 +38,13 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:3.0.5")
 
     // Http
-    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.36")
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.37")
 
     // Testing
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.4")
-    testImplementation("io.kotest:kotest-runner-junit5:5.5.5")
-    testImplementation("io.kotest:kotest-assertions-core:5.5.5")
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
+    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
 }
 
 tasks.test {
