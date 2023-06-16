@@ -7,10 +7,12 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Del av mekanisme for å overføre en journalpost fra Gosys til Hotsak.
+ */
 class OverførJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
@@ -33,19 +35,8 @@ class OverførJournalpost(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
         val journalførendeEnhet = packet.journalførendeEnhet
-        log.info {
-            "Overfører journalpost med journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet"
-        }
         try {
-            val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
-            val nyJournalpostId = journalpostService.kopierJournalpost(
-                journalpostId = journalpostId,
-                nyEksternReferanseId = nyEksternReferanseId,
-                journalførendeEnhet = journalførendeEnhet
-            )
-            log.info {
-                "Journalpost til overføring opprettet, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId, journalførendeEnhet: $journalførendeEnhet"
-            }
+            journalpostService.overførJournalpost(context, journalpostId, journalførendeEnhet)
         } catch (e: Exception) {
             log.warn(e) {
                 "Overføring feilet, kunne ikke kopiere journalpost med journalpostId: $journalpostId"

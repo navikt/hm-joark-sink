@@ -2,23 +2,33 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
+import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
+import no.nav.hjelpemidler.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
 import no.nav.hjelpemidler.saf.enums.Journalposttype
+import no.nav.hjelpemidler.saf.enums.Journalstatus
+import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
 import java.util.UUID
@@ -157,9 +167,11 @@ class JournalpostService(
             val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
                 "Fant ikke journalpost med journalpostId: $journalpostId"
             }
+
             log.info {
                 "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}"
             }
+
             val dokumenter = journalpost.dokumenter?.filterNotNull()
                 ?.map { dokument ->
                     val dokumentInfoId = dokument.dokumentInfoId
@@ -197,9 +209,11 @@ class JournalpostService(
                 forsøkFerdigstill = false
             )
             val nyJournalpostId = opprettJournalpostResponse.journalpostId
+
             log.info {
                 "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
             }
+
             nyJournalpostId
         }
 
@@ -211,9 +225,164 @@ class JournalpostService(
         log.info {
             "Endrer tittel på journalpost med journalpostId: $journalpostId"
         }
+
         val oppdaterJournalpostRequest = OppdaterJournalpostRequest(tittel = tittel, dokumenter = dokumenter)
         val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+
         oppdaterJournalpostResponse.journalpostId
+    }
+
+    /**
+     * Overfør en journalpost fra Gosys til Hotsak
+     */
+    suspend fun overførJournalpost(
+        context: MessageContext,
+        journalpostId: String,
+        journalførendeEnhet: String?,
+    ) {
+        log.info {
+            "Overfører journalpost med journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet"
+        }
+
+        val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
+            "Fant ikke journalpost med journalpostId: $journalpostId"
+        }
+
+        check(journalpost.journalposttype == Journalposttype.I) {
+            "Kun inngående journalposter kan overføres, journalpostId: $journalpostId, journalposttype: ${journalpost.journalposttype}"
+        }
+
+        when (val journalstatus = journalpost.journalstatus) {
+            Journalstatus.MOTTATT,
+            Journalstatus.JOURNALFOERT,
+            Journalstatus.FEILREGISTRERT,
+            -> {
+                val dokumenter = journalpost.dokumenter?.filterNotNull()?.map {
+                    Dokument(
+                        dokumentId = it.dokumentInfoId,
+                        tittel = it.tittel,
+                        brevkode = it.brevkode,
+                        skjerming = it.skjerming,
+                        vedlegg = it.logiskeVedlegg.filterNotNull().map { vedlegg ->
+                            Vedlegg(
+                                vedleggId = vedlegg.logiskVedleggId,
+                                tittel = vedlegg.tittel,
+                            )
+                        },
+                        varianter = it.dokumentvarianter.filterNotNull().map { variant ->
+                            Variant(
+                                format = variant.variantformat,
+                                skjerming = null, // fixme
+                            )
+                        }
+                    )
+                } ?: emptyList()
+
+                require(journalpost.bruker?.type == BrukerIdType.FNR) {
+                    "Vi støtter kun BrukerIdType == FNR"
+                }
+
+                val fnr = requireNotNull(journalpost.bruker?.id) {
+                    "fnr for bruker mangler"
+                }
+
+                context.publish(
+                    key = fnr,
+                    message = JournalpostMottattEvent(
+                        fnr = fnr,
+                        journalpostId = journalpost.journalpostId,
+                        mottattJournalpost = MottattJournalpost(
+                            tema = checkNotNull(journalpost.tema),
+                            journalpostOpprettet = journalpost.datoOpprettet,
+                            journalførendeEnhet = journalpost.journalfoerendeEnhet,
+                            tittel = journalpost.tittel,
+                            kanal = journalpost.kanal,
+                            dokumenter = dokumenter,
+                        )
+                    )
+                )
+
+                log.info {
+                    "Journalpost til overføring opprettet, journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, eksternReferanseId: ${journalpost.eksternReferanseId}"
+                }
+            }
+
+            Journalstatus.UTGAAR -> {
+                val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
+                val nyJournalpostId = kopierJournalpost(
+                    journalpostId = journalpostId,
+                    nyEksternReferanseId = nyEksternReferanseId,
+                    journalførendeEnhet = journalførendeEnhet
+                )
+
+                log.info {
+                    "Journalpost til overføring opprettet, journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+                }
+            }
+
+            else -> error("Mangler støtte for å overføre journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
+        }
+    }
+
+    suspend fun ferdigstillJournalpost(
+        journalpostId: String,
+        fnrBruker: String,
+        sakId: String,
+        tittel: String,
+        journalførendeEnhet: String,
+    ): String {
+        val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
+            "Fant ikke journalpost med journalpostId: $journalpostId"
+        }
+        val journalstatus = journalpost.journalstatus
+        log.info {
+            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus"
+        }
+        return when (journalstatus) {
+            Journalstatus.MOTTATT -> {
+                val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                    avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                    bruker = brukerMedFnr(fnrBruker),
+                    sak = fagsakHjelpemidler(sakId),
+                    tema = Tema.HJE.toString(),
+                    tittel = tittel,
+                )
+                val ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
+                    journalfoerendeEnhet = journalførendeEnhet
+                )
+                dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+                dokarkivClient.ferdigstillJournalpost(journalpostId, ferdigstillJournalpostRequest)
+                journalpostId
+            }
+
+            Journalstatus.FEILREGISTRERT,
+            Journalstatus.JOURNALFOERT,
+            -> {
+                log.info {
+                    "Journalpost er allerede journalført eller feilregistrert, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
+                }
+                val knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
+                    bruker = brukerMedFnr(fnrBruker),
+                    fagsakId = sakId,
+                    fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER.toString(),
+                    journalfoerendeEnhet = journalførendeEnhet,
+                    sakstype = KnyttTilAnnenSakRequest.Sakstype.FAGSAK,
+                    tema = Tema.HJE.toString(),
+                )
+                val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
+                    journalpostId = journalpostId,
+                    knyttTilAnnenSakRequest = knyttTilAnnenSakRequest
+                )
+                val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
+                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sakId: $sakId"
+                }.toString()
+                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, sakId: $sakId, nyJournalpostId: $nyJournalpostId" }
+                dokarkivClient.oppdaterJournalpost(nyJournalpostId, OppdaterJournalpostRequest(tittel = tittel))
+                nyJournalpostId
+            }
+
+            else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus")
+        }
     }
 
     suspend fun hentJournalpost(journalpostId: String): Journalpost? =

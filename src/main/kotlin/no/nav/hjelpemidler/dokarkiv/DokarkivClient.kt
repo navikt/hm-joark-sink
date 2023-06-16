@@ -24,10 +24,13 @@ import mu.KotlinLogging
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
+import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakResponse
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostResponse
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
@@ -157,6 +160,23 @@ class DokarkivClient(
         }
     }
 
+    suspend fun knyttTilAnnenSak(
+        journalpostId: String,
+        knyttTilAnnenSakRequest: KnyttTilAnnenSakRequest,
+    ): KnyttTilAnnenSakResponse {
+        val url = "$baseUrl/journalpost/$journalpostId/knyttTilAnnenSak"
+        log.info {
+            "Knytter til annen sak med url: '$url', journalpostId: $journalpostId"
+        }
+        val response = client.put(url) {
+            setBody(knyttTilAnnenSakRequest)
+        }
+        return when (response.status) {
+            HttpStatusCode.OK -> response.body()
+            else -> response.feilmelding()
+        }
+    }
+
     private suspend fun HttpResponse.feilmelding(): Nothing {
         val body = runCatching { bodyAsText() }.getOrElse { it.message }
         dokarkivError("Uventet svar fra dokarkiv, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
@@ -173,3 +193,17 @@ fun avsenderMottakerMedFnr(fnr: String, navn: String? = null): AvsenderMottaker 
 
 fun brukerMedFnr(fnr: String): Bruker =
     Bruker(fnr, Bruker.IdType.FNR)
+
+fun fagsakHjelpemidler(sakId: String): Sak =
+    Sak(
+        fagsakId = sakId,
+        fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER,
+        sakstype = Sak.Sakstype.FAGSAK,
+    )
+
+fun fagsakBarnebriller(sakId: String): Sak =
+    Sak(
+        fagsakId = sakId,
+        fagsaksystem = Sak.Fagsaksystem.BARNEBRILLER,
+        sakstype = Sak.Sakstype.FAGSAK,
+    )

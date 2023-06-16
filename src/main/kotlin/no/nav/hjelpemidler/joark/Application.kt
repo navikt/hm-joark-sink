@@ -70,7 +70,7 @@ fun main() {
             SakTilbakeførtFeilregistrerJournalpost(this, journalpostService)
             OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
-            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, dokarkivClient)
+            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService, dokarkivClient)
             AvstemJournalpost(this, journalpostService)
             OverførJournalpost(this, journalpostService)
 

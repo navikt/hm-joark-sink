@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.joark.service
 
 import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.dokarkiv.fagsakBarnebriller
+import no.nav.hjelpemidler.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
@@ -38,11 +40,11 @@ class OpprettJournalpostRequestConfigurer(
 
     private var sak: Sak? = null
     fun sakFraHotsak(sakId: String) {
-        sak = Sak(sakId, Sak.Fagsaksystem.HJELPEMIDLER, Sak.Sakstype.FAGSAK)
+        sak = fagsakHjelpemidler(sakId)
     }
 
     fun sakFraOptiker(sakId: String) {
-        sak = Sak(sakId, Sak.Fagsaksystem.BARNEBRILLER, Sak.Sakstype.FAGSAK)
+        sak = fagsakBarnebriller(sakId)
     }
 
     private var tittel: String? = null
