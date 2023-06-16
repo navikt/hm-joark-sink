@@ -36,7 +36,11 @@ class OverførJournalpost(
         val journalpostId = packet.journalpostId
         val journalførendeEnhet = packet.journalførendeEnhet
         try {
-            journalpostService.overførJournalpost(context, journalpostId, journalførendeEnhet)
+            journalpostService.overførJournalpost(
+                context = context,
+                journalpostId = journalpostId,
+                journalførendeEnhet = journalførendeEnhet
+            )
         } catch (e: Exception) {
             log.warn(e) {
                 "Overføring feilet, kunne ikke kopiere journalpost med journalpostId: $journalpostId"

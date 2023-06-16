@@ -294,7 +294,7 @@ class JournalpostService(
                         mottattJournalpost = MottattJournalpost(
                             tema = checkNotNull(journalpost.tema),
                             journalpostOpprettet = journalpost.datoOpprettet,
-                            journalførendeEnhet = journalpost.journalfoerendeEnhet,
+                            journalførendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
                             tittel = journalpost.tittel,
                             kanal = journalpost.kanal,
                             dokumenter = dokumenter,
