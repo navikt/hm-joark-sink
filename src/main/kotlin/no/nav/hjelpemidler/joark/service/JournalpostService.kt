@@ -330,6 +330,8 @@ class JournalpostService(
         sakId: String,
         tittel: String,
         journalførendeEnhet: String,
+        dokumenttittel: String?,
+        dokumentId: String?
     ): String {
         val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
             "Fant ikke journalpost med journalpostId: $journalpostId"
@@ -340,13 +342,29 @@ class JournalpostService(
         }
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
-                    avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                    bruker = brukerMedFnr(fnrBruker),
-                    sak = fagsakHjelpemidler(sakId),
-                    tema = Tema.HJE.toString(),
-                    tittel = tittel,
-                )
+                val oppdaterJournalpostRequest = when {
+                    dokumenttittel != null && dokumentId != null -> {
+                        OppdaterJournalpostRequest(
+                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                            bruker = brukerMedFnr(fnrBruker),
+                            sak = fagsakHjelpemidler(sakId),
+                            tema = Tema.HJE.toString(),
+                            tittel = tittel,
+                            dokumenter = listOf(DokumentInfo(dokumentInfoId = dokumentId, tittel = dokumenttittel)),
+                        )
+                    }
+
+                    else -> {
+                        OppdaterJournalpostRequest(
+                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                            bruker = brukerMedFnr(fnrBruker),
+                            sak = fagsakHjelpemidler(sakId),
+                            tema = Tema.HJE.toString(),
+                            tittel = tittel,
+                        )
+                    }
+                }
+
                 val ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
                     journalfoerendeEnhet = journalførendeEnhet
                 )

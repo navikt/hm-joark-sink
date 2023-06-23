@@ -35,7 +35,10 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         River(rapidsConnection)
             .apply {
                 validate { it.demandValue("eventName", "hm-journalpost-journalført") }
-                validate { it.requireKey("journalpostId", "journalførendeEnhet", "tittel", "fnrBruker", "sakId") }
+                validate {
+                    it.requireKey("journalpostId", "journalførendeEnhet", "tittel", "fnrBruker", "sakId")
+                    it.interestedIn("dokumenttittel", "dokumentId")
+                }
             }
             .register(this)
     }
@@ -55,6 +58,12 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     private val JsonMessage.sakId: String
         get() = get("sakId").textValue()
 
+    private val JsonMessage.dokumenttittel: String?
+        get() = get("dokumenttittel").textValue()
+
+    private val JsonMessage.dokumentId: String?
+        get() = get("dokumentId").textValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
         if (journalpostId in skip) {
@@ -65,6 +74,9 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val sakId = packet.sakId
         val tittel = packet.tittel
         val journalførendeEnhet = packet.journalførendeEnhet
+        val dokumenttittel = packet.dokumenttittel
+        val dokumentId = packet.dokumentId
+
         log.info {
             "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
         }
@@ -74,6 +86,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             sakId = sakId,
             tittel = tittel,
             journalførendeEnhet = journalførendeEnhet,
+            dokumentId = dokumentId,
+            dokumenttittel = dokumenttittel
         )
         context.publish(
             key = fnrBruker,
