@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
@@ -229,47 +228,6 @@ class JournalpostService(
         val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
 
         oppdaterJournalpostResponse.journalpostId
-    }
-
-    /**
-     * Overfør en utgått journalpost fra Gosys til Hotsak (bør kunne fases ut).
-     */
-    @Deprecated("Ble brukt til å overføre en utgått journalpost fra Gosys til Hotsak, men bør kunne fases ut. Funksjonalitet for å overføre journalposter flyttes til hm-joark-listener.")
-    suspend fun overførJournalpost(
-        context: MessageContext,
-        journalpostId: String,
-        journalførendeEnhet: String?,
-    ) {
-        log.info {
-            "Overfører journalpost med journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet"
-        }
-
-        val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
-            "Fant ikke journalpost med journalpostId: $journalpostId"
-        }
-
-        check(journalpost.journalposttype == Journalposttype.I) {
-            "Kun inngående journalposter kan overføres, journalpostId: $journalpostId, journalposttype: ${journalpost.journalposttype}"
-        }
-
-        when (val journalstatus = journalpost.journalstatus) {
-            Journalstatus.UTGAAR -> {
-                val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
-                val nyJournalpostId = kopierJournalpost(
-                    journalpostId = journalpostId,
-                    nyEksternReferanseId = nyEksternReferanseId,
-                    journalførendeEnhet = journalførendeEnhet
-                )
-
-                log.info {
-                    "Journalpost til overføring opprettet, journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
-                }
-            }
-
-            else -> log.warn {
-                "Mangler støtte for å overføre journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId"
-            }
-        }
     }
 
     suspend fun ferdigstillJournalpost(

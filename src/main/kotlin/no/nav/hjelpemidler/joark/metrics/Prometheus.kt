@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.joark.metrics
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Counter
 
-internal object Prometheus {
+object Prometheus {
     private val collectorRegistry: CollectorRegistry =
         CollectorRegistry.defaultRegistry
 
