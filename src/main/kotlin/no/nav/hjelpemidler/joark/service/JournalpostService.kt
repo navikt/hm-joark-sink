@@ -297,7 +297,6 @@ class JournalpostService(
                             bruker = brukerMedFnr(fnrBruker),
                             sak = fagsakHjelpemidler(sakId),
                             tema = Tema.HJE.toString(),
-                            tittel = tittel,
                             dokumenter = listOf(DokumentInfo(dokumentInfoId = dokumentId, tittel = dokumenttittel)),
                         )
                     }
@@ -308,7 +307,6 @@ class JournalpostService(
                             bruker = brukerMedFnr(fnrBruker),
                             sak = fagsakHjelpemidler(sakId),
                             tema = Tema.HJE.toString(),
-                            tittel = tittel,
                         )
                     }
                 }
