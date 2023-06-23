@@ -21,7 +21,6 @@ import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.PdfClient
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
@@ -233,8 +232,9 @@ class JournalpostService(
     }
 
     /**
-     * Overfør en journalpost fra Gosys til Hotsak
+     * Overfør en utgått journalpost fra Gosys til Hotsak (bør kunne fases ut).
      */
+    @Deprecated("Ble brukt til å overføre en utgått journalpost fra Gosys til Hotsak, men bør kunne fases ut. Funksjonalitet for å overføre journalposter flyttes til hm-joark-listener.")
     suspend fun overførJournalpost(
         context: MessageContext,
         journalpostId: String,
@@ -253,60 +253,6 @@ class JournalpostService(
         }
 
         when (val journalstatus = journalpost.journalstatus) {
-            Journalstatus.MOTTATT,
-            Journalstatus.JOURNALFOERT,
-            Journalstatus.FEILREGISTRERT,
-            -> {
-                val dokumenter = journalpost.dokumenter?.filterNotNull()?.map {
-                    Dokument(
-                        dokumentId = it.dokumentInfoId,
-                        tittel = it.tittel,
-                        brevkode = it.brevkode,
-                        skjerming = it.skjerming,
-                        vedlegg = it.logiskeVedlegg.filterNotNull().map { vedlegg ->
-                            Vedlegg(
-                                vedleggId = vedlegg.logiskVedleggId,
-                                tittel = vedlegg.tittel,
-                            )
-                        },
-                        varianter = it.dokumentvarianter.filterNotNull().map { variant ->
-                            Variant(
-                                format = variant.variantformat,
-                                skjerming = null, // fixme
-                            )
-                        }
-                    )
-                } ?: emptyList()
-
-                require(journalpost.bruker?.type == BrukerIdType.FNR) {
-                    "Vi støtter kun BrukerIdType == FNR"
-                }
-
-                val fnr = requireNotNull(journalpost.bruker?.id) {
-                    "fnr for bruker mangler"
-                }
-
-                context.publish(
-                    key = fnr,
-                    message = JournalpostMottattEvent(
-                        fnr = fnr,
-                        journalpostId = journalpost.journalpostId,
-                        mottattJournalpost = MottattJournalpost(
-                            tema = checkNotNull(journalpost.tema),
-                            journalpostOpprettet = journalpost.datoOpprettet,
-                            journalførendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
-                            tittel = journalpost.tittel,
-                            kanal = journalpost.kanal,
-                            dokumenter = dokumenter,
-                        )
-                    )
-                )
-
-                log.info {
-                    "Journalpost til overføring opprettet, journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, eksternReferanseId: ${journalpost.eksternReferanseId}"
-                }
-            }
-
             Journalstatus.UTGAAR -> {
                 val nyEksternReferanseId = "${journalpostId}_${LocalDateTime.now()}_GOSYS_TIL_HOTSAK"
                 val nyJournalpostId = kopierJournalpost(
@@ -320,7 +266,9 @@ class JournalpostService(
                 }
             }
 
-            else -> error("Mangler støtte for å overføre journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
+            else -> log.warn {
+                "Mangler støtte for å overføre journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId"
+            }
         }
     }
 
