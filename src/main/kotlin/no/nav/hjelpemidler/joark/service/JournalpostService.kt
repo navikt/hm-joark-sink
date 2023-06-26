@@ -162,9 +162,7 @@ class JournalpostService(
         journalførendeEnhet: String? = null,
     ): String =
         withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
-            val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
-                "Fant ikke journalpost med journalpostId: $journalpostId"
-            }
+            val journalpost = hentJournalpost(journalpostId)
 
             log.info {
                 "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}"
@@ -232,48 +230,49 @@ class JournalpostService(
 
     suspend fun ferdigstillJournalpost(
         journalpostId: String,
+        journalførendeEnhet: String,
         fnrBruker: String,
         sakId: String,
-        tittel: String,
-        journalførendeEnhet: String,
+        dokumentId: String?,
         dokumenttittel: String?,
-        dokumentId: String?
-    ): String {
-        val journalpost = checkNotNull(hentJournalpost(journalpostId)) {
-            "Fant ikke journalpost med journalpostId: $journalpostId"
-        }
+    ): Journalpost {
+        val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
+
         log.info {
             "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus"
         }
-        return when (journalstatus) {
-            Journalstatus.MOTTATT -> {
-                val oppdaterJournalpostRequest = when {
-                    dokumenttittel != null && dokumentId != null -> {
-                        OppdaterJournalpostRequest(
-                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                            bruker = brukerMedFnr(fnrBruker),
-                            sak = fagsakHjelpemidler(sakId),
-                            tema = Tema.HJE.toString(),
-                            dokumenter = listOf(DokumentInfo(dokumentInfoId = dokumentId, tittel = dokumenttittel)),
-                        )
-                    }
 
-                    else -> {
-                        OppdaterJournalpostRequest(
-                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                            bruker = brukerMedFnr(fnrBruker),
-                            sak = fagsakHjelpemidler(sakId),
-                            tema = Tema.HJE.toString(),
-                        )
-                    }
-                }
-
-                val ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
-                    journalfoerendeEnhet = journalførendeEnhet
+        val dokumenter = when {
+            dokumentId == null || dokumenttittel == null -> null
+            else -> listOf(
+                DokumentInfo(
+                    dokumentInfoId = dokumentId,
+                    tittel = dokumenttittel,
                 )
-                dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
-                dokarkivClient.ferdigstillJournalpost(journalpostId, ferdigstillJournalpostRequest)
+            )
+        }
+
+        val nyJournalpostId = when (journalstatus) {
+            Journalstatus.MOTTATT -> {
+                dokarkivClient.oppdaterJournalpost(
+                    journalpostId = journalpostId,
+                    oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                        avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                        bruker = brukerMedFnr(fnrBruker),
+                        sak = fagsakHjelpemidler(sakId),
+                        tema = Tema.HJE.toString(),
+                        dokumenter = dokumenter,
+                    )
+                )
+
+                dokarkivClient.ferdigstillJournalpost(
+                    journalpostId = journalpostId,
+                    ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
+                        journalfoerendeEnhet = journalførendeEnhet,
+                    )
+                )
+
                 journalpostId
             }
 
@@ -283,32 +282,45 @@ class JournalpostService(
                 log.info {
                     "Journalpost er allerede journalført eller feilregistrert, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
                 }
-                val knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
-                    bruker = brukerMedFnr(fnrBruker),
-                    fagsakId = sakId,
-                    fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER.toString(),
-                    journalfoerendeEnhet = journalførendeEnhet,
-                    sakstype = KnyttTilAnnenSakRequest.Sakstype.FAGSAK,
-                    tema = Tema.HJE.toString(),
-                )
+
                 val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
                     journalpostId = journalpostId,
-                    knyttTilAnnenSakRequest = knyttTilAnnenSakRequest
+                    knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
+                        bruker = brukerMedFnr(fnrBruker),
+                        fagsakId = sakId,
+                        fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER.toString(),
+                        journalfoerendeEnhet = journalførendeEnhet,
+                        sakstype = KnyttTilAnnenSakRequest.Sakstype.FAGSAK,
+                        tema = Tema.HJE.toString(),
+                    )
                 )
+
                 val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
                     "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sakId: $sakId"
                 }.toString()
-                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, sakId: $sakId, nyJournalpostId: $nyJournalpostId" }
-                dokarkivClient.oppdaterJournalpost(nyJournalpostId, OppdaterJournalpostRequest(tittel = tittel))
+
+                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, sakId: $sakId" }
+
+                if (dokumenter != null) {
+                    dokarkivClient.oppdaterJournalpost(
+                        nyJournalpostId,
+                        OppdaterJournalpostRequest(dokumenter = dokumenter)
+                    )
+                }
+
                 nyJournalpostId
             }
 
             else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus")
         }
+
+        return hentJournalpost(nyJournalpostId)
     }
 
-    suspend fun hentJournalpost(journalpostId: String): Journalpost? =
-        safClient.hentJournalpost(journalpostId)
+    suspend fun hentJournalpost(journalpostId: String): Journalpost =
+        checkNotNull(safClient.hentJournalpost(journalpostId)) {
+            "Fant ikke journalpost med journalpostId: $journalpostId"
+        }
 
     private fun Journalposttype?.toDokarkiv(): OpprettJournalpostRequest.Journalposttype =
         when (this) {

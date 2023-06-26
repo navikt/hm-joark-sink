@@ -41,7 +41,7 @@ dependencies {
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.37")
 
     // Testing
-    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit5"))
     testImplementation("io.mockk:mockk:1.13.4")
     testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")

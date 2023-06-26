@@ -69,7 +69,7 @@ fun main() {
             SakTilbakeførtFeilregistrerJournalpost(this, journalpostService)
             OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
-            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService, dokarkivClient)
+            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
             AvstemJournalpost(this, journalpostService)
 
             // Barnebriller

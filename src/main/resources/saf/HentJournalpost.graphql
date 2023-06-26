@@ -43,6 +43,7 @@ query HentJournalpost($journalpostId: String!) {
         filnavn
         filtype
         variantformat
+        skjerming
       }
     }
   }
