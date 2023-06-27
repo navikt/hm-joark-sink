@@ -8,14 +8,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.saf.enums.Journalstatus
-import no.nav.hjelpemidler.saf.enums.Kanal
-import no.nav.hjelpemidler.saf.enums.SkjermingType
-import no.nav.hjelpemidler.saf.enums.Tema
-import no.nav.hjelpemidler.saf.enums.Variantformat
-import no.nav.hjelpemidler.saf.hentjournalpost.DokumentInfo
-import no.nav.hjelpemidler.saf.hentjournalpost.Dokumentvariant
-import no.nav.hjelpemidler.saf.hentjournalpost.LogiskVedlegg
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -83,7 +75,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
         }
 
-        val journalpost = journalpostService.ferdigstillJournalpost(
+        val nyJournalpostId = journalpostService.ferdigstillJournalpost(
             journalpostId = journalpostId,
             journalførendeEnhet = journalførendeEnhet,
             fnrBruker = fnrBruker,
@@ -97,14 +89,9 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             message = JournalpostOppdatertOgFerdigstilt(
                 journalpostId = journalpostId,
                 journalførendeEnhet = journalførendeEnhet,
-                nyJournalpostId = journalpost.journalpostId,
+                nyJournalpostId = nyJournalpostId,
                 fnrBruker = fnrBruker,
                 sakId = sakId,
-                tittel = journalpost.tittel,
-                ferdigstiltJournalpost = JournalpostOppdatertOgFerdigstilt.Journalpost(
-                    journalpost = journalpost,
-                    journalførendeEnhet = journalførendeEnhet,
-                )
             )
         )
     }
@@ -119,70 +106,4 @@ data class JournalpostOppdatertOgFerdigstilt(
     val nyJournalpostId: String,
     val fnrBruker: String,
     val sakId: String,
-    val tittel: String?,
-    val ferdigstiltJournalpost: Journalpost,
-) {
-    data class Journalpost(
-        val tema: Tema?,
-        val journalpostOpprettet: LocalDateTime,
-        val opprettetAvEnhet: String = "9999",
-        val journalførendeEnhet: String?,
-        val tittel: String?,
-        val kanal: Kanal?,
-        val dokumenter: List<Dokument> = emptyList(),
-        val status: Journalstatus?,
-    ) {
-        constructor(
-            journalpost: no.nav.hjelpemidler.saf.hentjournalpost.Journalpost,
-            journalførendeEnhet: String?,
-        ) : this(
-            tema = journalpost.tema,
-            journalpostOpprettet = journalpost.datoOpprettet,
-            journalførendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
-            tittel = journalpost.tittel,
-            kanal = journalpost.kanal,
-            dokumenter = journalpost.dokumenter
-                ?.filterNotNull()
-                ?.map(JournalpostOppdatertOgFerdigstilt::Dokument) ?: emptyList(),
-            status = journalpost.journalstatus,
-        )
-    }
-
-    data class Dokument(
-        val dokumentId: String,
-        val tittel: String?,
-        val brevkode: String?,
-        val skjerming: String?,
-        val vedlegg: List<Vedlegg> = emptyList(),
-        val varianter: List<Variant> = emptyList(),
-    ) {
-        constructor(dokument: DokumentInfo) : this(
-            dokumentId = dokument.dokumentInfoId,
-            tittel = dokument.tittel,
-            brevkode = dokument.brevkode,
-            skjerming = dokument.skjerming,
-            vedlegg = dokument.logiskeVedlegg.filterNotNull().map(JournalpostOppdatertOgFerdigstilt::Vedlegg),
-            varianter = dokument.dokumentvarianter.filterNotNull().map(JournalpostOppdatertOgFerdigstilt::Variant)
-        )
-    }
-
-    data class Vedlegg(
-        val vedleggId: String,
-        val tittel: String?,
-    ) {
-        constructor(vedlegg: LogiskVedlegg) : this(
-            vedleggId = vedlegg.logiskVedleggId,
-            tittel = vedlegg.tittel,
-        )
-    }
-
-    data class Variant(
-        val format: Variantformat,
-        val skjerming: SkjermingType?,
-    ) {
-        constructor(variant: Dokumentvariant) : this(
-            format = variant.variantformat,
-            skjerming = variant.skjerming,
-        )
-    }
-}
+)

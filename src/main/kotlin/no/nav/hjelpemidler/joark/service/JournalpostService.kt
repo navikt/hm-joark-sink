@@ -235,7 +235,7 @@ class JournalpostService(
         sakId: String,
         dokumentId: String?,
         dokumenttittel: String?,
-    ): Journalpost {
+    ): String {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
 
@@ -253,7 +253,7 @@ class JournalpostService(
             )
         }
 
-        val nyJournalpostId = when (journalstatus) {
+        return when (journalstatus) {
             Journalstatus.MOTTATT -> {
                 dokarkivClient.oppdaterJournalpost(
                     journalpostId = journalpostId,
@@ -313,8 +313,6 @@ class JournalpostService(
 
             else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus")
         }
-
-        return hentJournalpost(nyJournalpostId)
     }
 
     suspend fun hentJournalpost(journalpostId: String): Journalpost =
