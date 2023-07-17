@@ -3,7 +3,6 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    application
     alias(libs.plugins.graphql)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.ktor)
