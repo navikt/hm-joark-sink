@@ -4,16 +4,11 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version "1.8.22"
-    id("com.diffplug.spotless") version "6.19.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("com.expediagroup.graphql") version "6.5.2"
-    id("org.openapi.generator") version "6.6.0"
-}
-
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
+    alias(libs.plugins.graphql)
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.openapi)
+    alias(libs.plugins.spotless)
 }
 
 application {
@@ -22,29 +17,23 @@ application {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(platform("io.ktor:ktor-bom:2.3.1"))
-    implementation("com.github.navikt:rapids-and-rivers:2023060108511685602318.b6acfa4d79a1")
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.logging)
+    implementation(enforcedPlatform(libs.ktor.bom))
+    implementation(libs.rapidsAndRivers)
+
+    // HTTP
+    implementation(libs.hm.http)
 
     // GraphQL
-    val graphQLVersion = "6.5.2"
-    implementation("com.expediagroup:graphql-kotlin-ktor-client:$graphQLVersion") {
+    implementation(libs.graphql.kotlin.ktor.client) {
         exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
         exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
     }
-    implementation("com.expediagroup:graphql-kotlin-client-jackson:$graphQLVersion")
-
-    // Logging
-    implementation("io.github.microutils:kotlin-logging:3.0.5")
-
-    // Http
-    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.37")
+    implementation(libs.graphql.kotlin.client.jackson)
 
     // Testing
-    testImplementation(kotlin("test-junit5"))
-    testImplementation("io.mockk:mockk:1.13.4")
-    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
-    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
+    testImplementation(libs.bundles.test)
 }
 
 tasks.test {
@@ -52,7 +41,7 @@ tasks.test {
     testLogging {
         showExceptions = true
         showStackTraces = true
-        exceptionFormat = TestExceptionFormat.FULL
+        exceptionFormat = TestExceptionFormat.SHORT
         events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
     }
 }
