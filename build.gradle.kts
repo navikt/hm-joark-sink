@@ -16,12 +16,10 @@ application {
 }
 
 dependencies {
+    implementation(enforcedPlatform(libs.ktor.bom))
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.logging)
-    implementation(enforcedPlatform(libs.ktor.bom))
     implementation(libs.rapidsAndRivers)
-
-    // HTTP
     implementation(libs.hm.http)
 
     // GraphQL

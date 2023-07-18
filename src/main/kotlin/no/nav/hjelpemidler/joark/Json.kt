@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
+import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import no.nav.helse.rapids_rivers.MessageContext
 import java.util.UUID
+import kotlin.reflect.full.findAnnotation
 
 val jsonMapper: JsonMapper = jacksonMapperBuilder()
     .addModule(JavaTimeModule())
@@ -15,8 +17,18 @@ val jsonMapper: JsonMapper = jacksonMapperBuilder()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .build()
 
-fun <T : Any> MessageContext.publish(key: String, message: T) =
-    publish(key, jsonMapper.writeValueAsString(message))
+inline fun <reified T : Any> MessageContext.publish(key: String, message: T) =
+    when (val hendelse = message::class.findAnnotation<Hendelse>()) {
+        null -> publish(key, jsonMapper.writeValueAsString(message))
+        else -> publish(
+            key,
+            jsonMapper
+                .writerFor(jacksonTypeRef<T>())
+                .withAttribute(Hendelse.EVENT_ID_PROPERTY, UUID.randomUUID())
+                .withAttribute(Hendelse.EVENT_NAME_PROPERTY, hendelse.navn)
+                .writeValueAsString(message)
+        )
+    }
 
 fun JsonNode.uuidValue(): UUID =
     UUID.fromString(textValue())

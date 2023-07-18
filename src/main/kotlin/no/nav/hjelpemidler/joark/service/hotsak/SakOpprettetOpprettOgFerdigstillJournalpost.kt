@@ -66,7 +66,6 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                 val dokumenttype = sakstype.dokumenttype
                 val journalpostId = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnrBruker,
-                    navnAvsender = data.navnBruker,
                     forsøkFerdigstill = true,
                 ) {
                     dokument(fysiskDokument, dokumenttype, data.dokumentTittel)

@@ -72,13 +72,12 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 log.info { "Manuelt barnebrillevedtak til journalføring mottatt, sakId: ${data.sakId}" }
                 val dokumenttype =
                     when (packet.vedtaksstatus) {
-                        Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGET
+                        Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
                         Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
                         null -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
                     }
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
-                    fnrAvsender = data.fnr,
-                    navnAvsender = data.navnAvsender,
+                    fnrMottaker = data.fnr,
                     forsøkFerdigstill = true
                 ) {
                     dokument(data.pdf, dokumenttype)

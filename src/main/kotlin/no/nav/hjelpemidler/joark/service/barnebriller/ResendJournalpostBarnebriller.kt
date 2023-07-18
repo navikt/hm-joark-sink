@@ -77,7 +77,6 @@ class ResendJournalpostBarnebriller(
         val fysiskDokument = journalpostService.genererPdf(data)
         journalpostService.opprettInngåendeJournalpost(
             fnrAvsender = data.fnr,
-            navnAvsender = data.navnAvsender,
             forsøkFerdigstill = true,
         ) {
             dokument(fysiskDokument, data.dokumenttype)

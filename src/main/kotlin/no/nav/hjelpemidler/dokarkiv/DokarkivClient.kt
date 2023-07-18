@@ -188,8 +188,8 @@ class DokarkivException(message: String?, cause: Throwable? = null) : RuntimeExc
 fun dokarkivError(message: String?, cause: Throwable? = null): Nothing =
     throw DokarkivException(message, cause)
 
-fun avsenderMottakerMedFnr(fnr: String, navn: String? = null): AvsenderMottaker =
-    AvsenderMottaker(fnr, AvsenderMottaker.IdType.FNR, navn)
+fun avsenderMottakerMedFnr(fnr: String): AvsenderMottaker =
+    AvsenderMottaker(fnr, AvsenderMottaker.IdType.FNR, null)
 
 fun brukerMedFnr(fnr: String): Bruker =
     Bruker(fnr, Bruker.IdType.FNR)

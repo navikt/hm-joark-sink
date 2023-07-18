@@ -56,15 +56,13 @@ class JournalpostService(
 
     suspend fun opprettInngåendeJournalpost(
         fnrAvsender: String,
-        navnAvsender: String,
         fnrBruker: String = fnrAvsender,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsender = fnrAvsender,
-            navnAvsender = navnAvsender,
+            fnrAvsenderMottaker = fnrAvsender,
             journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
         ).apply(block)
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -83,16 +81,14 @@ class JournalpostService(
     }
 
     suspend fun opprettUtgåendeJournalpost(
-        fnrAvsender: String,
-        navnAvsender: String,
-        fnrBruker: String = fnrAvsender,
+        fnrMottaker: String,
+        fnrBruker: String = fnrMottaker,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsender = fnrAvsender,
-            navnAvsender = navnAvsender,
+            fnrAvsenderMottaker = fnrMottaker,
             journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE
         ).apply(block)
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -131,7 +127,6 @@ class JournalpostService(
         val dokumenttype = sakstype.dokumenttype
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
-            navnAvsender = navnBruker,
             forsøkFerdigstill = false,
         ) {
             dokument(fysiskDokument, dokumenttype, dokumenttittel)

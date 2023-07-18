@@ -42,7 +42,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest : TestSupport() {
             "pdf" to pdf,
             "vedtaksstatus" to Vedtaksstatus.INNVILGET,
         )
-        val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGET
+        val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
         opprettJournalpostRequestSlot.assertSoftly {
             tittel shouldBe dokumenttype.tittel
             dokumenter.shouldForExactly(1) { dokument ->

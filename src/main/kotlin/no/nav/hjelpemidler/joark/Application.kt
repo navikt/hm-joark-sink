@@ -14,6 +14,7 @@ import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBa
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.OpprettNyJournalpostEtterFeilregistrering
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
@@ -64,15 +65,16 @@ fun main() {
             OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
 
             // Hotsak
+            BestillingAvvistOppdaterJournalpost(this, journalpostService)
+            BrevsendingOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
+            OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             SakTilbakeførtFeilregistrerJournalpost(this, journalpostService)
-            OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
-            BestillingAvvistOppdaterJournalpost(this, journalpostService)
-            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
 
             // Barnebriller
-            OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
             FeilregistrerJournalpostBarnebriller(this, journalpostService)
+            OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
             ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }

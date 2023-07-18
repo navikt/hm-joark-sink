@@ -89,7 +89,6 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                 val fysiskDokument = journalpostService.genererPdf(data)
                 val journalpostId = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnr,
-                    navnAvsender = data.navnAvsender,
                     forsøkFerdigstill = true,
                 ) {
                     dokument(fysiskDokument, data.dokumenttype)

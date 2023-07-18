@@ -15,8 +15,7 @@ import java.time.LocalDateTime
 
 class OpprettJournalpostRequestConfigurer(
     val fnrBruker: String,
-    val fnrAvsender: String = fnrBruker,
-    val navnAvsender: String,
+    val fnrAvsenderMottaker: String = fnrBruker,
     val journalposttype: OpprettJournalpostRequest.Journalposttype,
 ) {
     private var dokumenter = mutableListOf<Dokument>()
@@ -39,6 +38,7 @@ class OpprettJournalpostRequestConfigurer(
     )
 
     private var sak: Sak? = null
+
     fun sakFraHotsak(sakId: String) {
         sak = fagsakHjelpemidler(sakId)
     }
@@ -47,7 +47,7 @@ class OpprettJournalpostRequestConfigurer(
         sak = fagsakBarnebriller(sakId)
     }
 
-    private var tittel: String? = null
+    var tittel: String? = null
     fun tittelFra(dokumenttype: Dokumenttype?) {
         tittel = dokumenttype?.tittel
     }
@@ -62,18 +62,18 @@ class OpprettJournalpostRequestConfigurer(
             "Ingen dokumenter er lagt til!"
         }
         return OpprettJournalpostRequest(
-            avsenderMottaker = avsenderMottakerMedFnr(fnrAvsender, navnAvsender),
+            avsenderMottaker = avsenderMottakerMedFnr(fnrAvsenderMottaker),
             bruker = brukerMedFnr(fnrBruker),
-            journalposttype = journalposttype,
-            dokumenter = dokumenter,
-            sak = sak,
-            tittel = tittel,
-            eksternReferanseId = eksternReferanseId,
             datoDokument = datoDokument,
             datoMottatt = datoMottatt,
-            tema = Tema.HJE.toString(),
-            kanal = Kanal.NAV_NO.toString(),
+            dokumenter = dokumenter,
+            eksternReferanseId = eksternReferanseId,
             journalfoerendeEnhet = journalførendeEnhet,
+            journalposttype = journalposttype,
+            kanal = Kanal.NAV_NO.toString(),
+            sak = sak,
+            tema = Tema.HJE.toString(),
+            tittel = tittel,
         )
     }
 }
