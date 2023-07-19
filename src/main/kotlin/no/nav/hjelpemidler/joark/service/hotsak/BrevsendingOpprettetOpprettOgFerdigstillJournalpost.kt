@@ -23,7 +23,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "fnrMottaker",
                         "fnrBruker",
                         "fysiskDokument",
-                        "dokumenttittel"
+                        "dokumenttittel",
+                        "brevtype",
                     )
                     it.interestedIn()
                 }
@@ -46,10 +47,14 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
 
+    private val JsonMessage.brevtype: String
+        get() = this["brevtype"].textValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
         val fnrBruker = packet.fnrBruker
+        val brevkode = packet.brevtype
         val dokumenttittel = packet.dokumenttittel
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
@@ -58,6 +63,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         ) {
             dokument(
                 fysiskDokument = packet.fysiskDokument.toByteArray(),
+                brevkode = brevkode,
                 dokumenttittel = dokumenttittel,
             )
             sakFraHotsak(sakId)
@@ -70,6 +76,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val sakId: String,
             val fnrMottaker: String,
             val fnrBruker: String,
+            val brevkode: String,
             val dokumenttittel: String,
         )
 
@@ -80,6 +87,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                 sakId = sakId,
                 fnrMottaker = packet.fnrMottaker,
                 fnrBruker = fnrBruker,
+                brevkode = brevkode,
                 dokumenttittel = dokumenttittel,
             )
         )

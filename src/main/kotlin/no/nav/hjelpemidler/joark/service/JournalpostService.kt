@@ -129,7 +129,11 @@ class JournalpostService(
             fnrAvsender = fnrBruker,
             forsøkFerdigstill = false,
         ) {
-            dokument(fysiskDokument, dokumenttype, dokumenttittel)
+            dokument(
+                fysiskDokument = fysiskDokument,
+                dokumenttype = dokumenttype,
+                dokumenttittel = dokumenttittel,
+            )
             tittelFra(dokumenttype)
             this.eksternReferanseId = eksternReferanseId
             this.datoMottatt = datoMottatt

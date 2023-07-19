@@ -79,7 +79,7 @@ class ResendJournalpostBarnebriller(
             fnrAvsender = data.fnr,
             forsøkFerdigstill = true,
         ) {
-            dokument(fysiskDokument, data.dokumenttype)
+            dokument(fysiskDokument = fysiskDokument, dokumenttype = data.dokumenttype)
             sakFraOptiker(data.sakId)
             tittelFra(data.dokumenttype)
             eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI"

@@ -80,7 +80,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     fnrMottaker = data.fnr,
                     forsøkFerdigstill = true
                 ) {
-                    dokument(data.pdf, dokumenttype)
+                    dokument(fysiskDokument = data.pdf, dokumenttype = dokumenttype)
                     sakFraHotsak(sakId)
                     tittelFra(dokumenttype)
                     eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"

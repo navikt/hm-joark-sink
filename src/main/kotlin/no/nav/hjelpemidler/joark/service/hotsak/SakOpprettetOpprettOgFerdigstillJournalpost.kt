@@ -68,7 +68,11 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     fnrAvsender = data.fnrBruker,
                     forsøkFerdigstill = true,
                 ) {
-                    dokument(fysiskDokument, dokumenttype, data.dokumentTittel)
+                    dokument(
+                        fysiskDokument = fysiskDokument,
+                        dokumenttype = dokumenttype,
+                        dokumenttittel = data.dokumentTittel
+                    )
                     sakFraHotsak(data.sakId)
                     tittelFra(dokumenttype)
                     eksternReferanseId = data.soknadId.toString() + "HOTSAK"

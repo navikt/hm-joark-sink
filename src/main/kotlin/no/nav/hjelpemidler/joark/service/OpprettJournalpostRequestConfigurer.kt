@@ -22,10 +22,11 @@ class OpprettJournalpostRequestConfigurer(
     fun dokument(
         fysiskDokument: ByteArray,
         dokumenttype: Dokumenttype? = null,
+        brevkode: String? = null,
         dokumenttittel: String? = null,
     ) = dokumenter.add(
         Dokument(
-            brevkode = dokumenttype?.brevkode,
+            brevkode = brevkode ?: dokumenttype?.brevkode,
             dokumentvarianter = listOf(
                 DokumentVariant(
                     filtype = "PDFA",

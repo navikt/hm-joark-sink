@@ -91,7 +91,7 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                     fnrAvsender = data.fnr,
                     forsøkFerdigstill = true,
                 ) {
-                    dokument(fysiskDokument, data.dokumenttype)
+                    dokument(fysiskDokument = fysiskDokument, dokumenttype = data.dokumenttype)
                     sakFraOptiker(data.sakId)
                     tittelFra(data.dokumenttype)
                     eksternReferanseId = "${data.sakId}BARNEBRILLEAPI"
