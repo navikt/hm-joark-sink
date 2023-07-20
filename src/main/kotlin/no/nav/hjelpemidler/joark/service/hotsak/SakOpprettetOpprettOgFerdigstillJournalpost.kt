@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.joark.service.Sakstype
+import no.nav.hjelpemidler.domain.Sakstype
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -66,15 +66,14 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                 val dokumenttype = sakstype.dokumenttype
                 val journalpostId = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnrBruker,
+                    dokumenttype = dokumenttype,
                     forsøkFerdigstill = true,
                 ) {
                     dokument(
                         fysiskDokument = fysiskDokument,
-                        dokumenttype = dokumenttype,
                         dokumenttittel = data.dokumentTittel
                     )
-                    sakFraHotsak(data.sakId)
-                    tittelFra(dokumenttype)
+                    hotsak(data.sakId)
                     eksternReferanseId = data.soknadId.toString() + "HOTSAK"
                 }
                 forward(journalpostId, data, context)

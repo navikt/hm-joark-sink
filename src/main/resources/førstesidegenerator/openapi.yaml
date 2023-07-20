@@ -1,0 +1,315 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: https://foerstesidegenerator.dev-fss-pub.nais.io
+  description: Generated server url
+paths:
+  /api/foerstesidegenerator/v1/foersteside:
+    post:
+      tags:
+      - foersteside-rest-controller
+      operationId: postNew
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostFoerstesideRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PostFoerstesideResponse'
+  /api/foerstesidegenerator/v1/foersteside/{loepenummer}:
+    get:
+      tags:
+      - foersteside-rest-controller
+      operationId: getFoerstesideDataFromLoepenummer
+      parameters:
+      - name: loepenummer
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/FoerstesideResponse'
+components:
+  schemas:
+    Adresse:
+      required:
+      - adresselinje1
+      - postnummer
+      - poststed
+      type: object
+      properties:
+        adresselinje1:
+          type: string
+          description: Trykkes på førstesiden
+          example: Gateveien 1
+        adresselinje2:
+          type: string
+          description: Trykkes på førstesiden
+        adresselinje3:
+          type: string
+          description: Trykkes på førstesiden
+        postnummer:
+          type: string
+          description: Trykkes på førstesiden
+          example: "1234"
+        poststed:
+          type: string
+          description: Trykkes på førstesiden
+          example: Oslo
+      description: |
+        Adressen som brukeren skal sende dokumentene til. Adressen blir trykket på førstesiden.
+        Dersom dokumentene skal sendes til primærskanningleverandør (idag NETS), kan konsument velge å la adressefeltet stå blankt, og kun oppgi postboks. Resten av adressen blir da fylt ut automatisk.
+    Arkivsak:
+      required:
+      - arkivsaksnummer
+      - arkivsaksystem
+      type: object
+      properties:
+        arkivsaksystem:
+          type: string
+          description: |
+            "PSAK" for forsendelser med tema PEN eller UFO. "GSAK" for alle andre tema.
+          example: GSAK
+          enum:
+          - GSAK
+          - PSAK
+        arkivsaksnummer:
+          type: string
+          description: Saksnummeret i GSAK eller PSAK
+          example: abc123456
+      description: Saken i GSAK/PSAK som journalposten skal knyttes til.
+    Avsender:
+      type: object
+      properties:
+        avsenderId:
+          type: string
+          description: Avsenders fødselsnummer eller personnummer
+          example: "01234567890"
+        avsenderNavn:
+          type: string
+          description: Navn på avsender
+          example: Per Hansen
+      description: Avsender av dokumentene
+    Bruker:
+      required:
+      - brukerId
+      - brukerType
+      type: object
+      properties:
+        brukerId:
+          type: string
+          description: Fødselsnummeret eller organisasjonsnummeret som dokumentene
+            omhandler. Fødselsnummeret vil bli trykket i klartekst på førstesiden.
+          example: "01234567890"
+        brukerType:
+          type: string
+          description: |
+            Typen bruker. Gyldige verdier er:
+            * PERSON
+            * ORGANISASJON
+          example: PERSON
+          enum:
+          - PERSON
+          - ORGANISASJON
+      description: Personen eller organisasjonen som dokumentene gjelder
+    PostFoerstesideRequest:
+      required:
+      - foerstesidetype
+      - overskriftstittel
+      - spraakkode
+      type: object
+      properties:
+        spraakkode:
+          type: string
+          description: |
+            Målformen førstesiden skal produseres på.
+
+            Gyldige verdier er NB, NN og EN.
+
+            Default verdi er NB
+          example: NB
+          enum:
+          - NB
+          - NN
+          - EN
+        adresse:
+          $ref: '#/components/schemas/Adresse'
+        netsPostboks:
+          type: string
+          description: |
+            Postboksen hos hovedskanningleverandør (idag NETS) som dokumentene skal sendes til.
+            "NB: Dersom adresse ikke er oppgitt, er postboks påkrevd, og vil bli brukt til å generere en korrekt adresse.
+          example: "1234"
+        avsender:
+          $ref: '#/components/schemas/Avsender'
+        bruker:
+          $ref: '#/components/schemas/Bruker'
+        ukjentBrukerPersoninfo:
+          type: string
+          description: |
+            Kan settes dersom man ikke kjenner brukerens fødselsnummer, men har noe informasjon om brukeren som kan være relevant når en saksbehandler skal finne ut hvor saken skal behandles. Dette kan være brukerens navn eller informasjon om hvilket NAV-kontor han/hun har vært innom.
+            ukjentBrukerPersoninfo trykkes nederst på førstesiden.
+        tema:
+          type: string
+          description: |
+            Temaet for forsendelsen, for eksempel FOR (Foreldrepenger), SYK (Sykepenger) eller BID (bidrag).
+            Tjenesten vil validere at konsument oppgir et gyldig tema for arkivering.
+          example: FOR
+        behandlingstema:
+          type: string
+          description: |
+            Behandlingstema for forsendelsen, for eksempel ab0001 (Ordinære dagpenger).
+            "NB: Koden skal oppgis, ikke dekoden.
+          example: ab0001
+        arkivtittel:
+          type: string
+          description: |
+            Tittelen det skannede dokumentet skal få i journalen. For eksempel "Søknad om foreldrepenger ved fødsel" eller "Ettersendelse til søknad om foreldrepenger ved fødsel".
+            Arkivtittelen vil, såfremt den ikke blir endret under journalføring, vises frem i brukers journal på nav.no, samt til saksbehandler i fagsystemer som Gosys og Modia.
+            Arkivtittel skal oppgis på norsk (bokmål).
+          example: Søknad om foreldrepenger ved fødsel
+        vedleggsliste:
+          type: array
+          description: |-
+            Liste over vedlegg avsender skal sende inn.
+            NB: Selve skjemaet skal ikke inngå i vedleggslisten.
+            Arkivtittel på et vedlegg som skal sendes inn, for eksempel "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+            Tittel skal oppgis på norsk (bokmål).
+          example: "[Terminbekreftelse, Dokumentasjon av inntekt]"
+          items:
+            type: string
+            description: |-
+              Liste over vedlegg avsender skal sende inn.
+              NB: Selve skjemaet skal ikke inngå i vedleggslisten.
+              Arkivtittel på et vedlegg som skal sendes inn, for eksempel "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+              Tittel skal oppgis på norsk (bokmål).
+            example: "[Terminbekreftelse, Dokumentasjon av inntekt]"
+        navSkjemaId:
+          type: string
+          description: |
+            Identifikator på skjema som er valgt.
+            "NAV-skjemaID skal oppgis på format "NAV 14.05-07" uavhengig av om forsendelsen er en søknad eller ettersendelse.
+          example: NAV 14.05-07
+        overskriftstittel:
+          type: string
+          description: "Teksten som skal trykkes som overskrift på førstesiden. Overskriften\
+            \ kan oppgis på brukers eget språk (bokmål, nynorsk eller engelsk)."
+          example: '"Søknad om foreldrepenger ved fødsel - NAV 14.05-07"'
+        dokumentlisteFoersteside:
+          type: array
+          description: |-
+            Alt som skal trykkes på førstesiden under "Send inn følgende dokumenter".
+            Tittel på et dokument som skal sendes inn, for eksempel "Søknad om foreldrepenger ved fødsel", "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+            Titlene kan oppgis på brukers eget språk (bokmål, nynorsk eller engelsk)
+          example: "[Søknad om foreldrepenger ved fødsel, Terminbekreftelse, Dokumentasjon\
+            \ av inntekt]"
+          items:
+            type: string
+            description: |-
+              Alt som skal trykkes på førstesiden under "Send inn følgende dokumenter".
+              Tittel på et dokument som skal sendes inn, for eksempel "Søknad om foreldrepenger ved fødsel", "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+              Titlene kan oppgis på brukers eget språk (bokmål, nynorsk eller engelsk)
+            example: "[Søknad om foreldrepenger ved fødsel, Terminbekreftelse, Dokumentasjon\
+              \ av inntekt]"
+        foerstesidetype:
+          type: string
+          description: |
+            Sier hvorvidt forsendelsen er et NAV-skjema, NAV-internt, en ettersendelse til et skjema, eller løspost (altså frittstående dokumentasjon som ikke er knyttet til et skjema).
+            Foerstesidetypen styrer hvilken brevkode journalposten får i arkivet.
+          example: SKJEMA
+          enum:
+          - ETTERSENDELSE
+          - LOESPOST
+          - SKJEMA
+          - NAV_INTERN
+        enhetsnummer:
+          type: string
+          description: |
+            NAV-enheten som dokumentene skal rutes til for journalføring og/eller saksbehandling.
+            Feltet skal kun benyttes dersom det er behov for å overstyre fagsystemets egne rutingregler. Dette kan feks være dersom avsender vet bedre enn NAV hvilken enhet som skal motta dokumentene.
+          example: "9999"
+        arkivsak:
+          $ref: '#/components/schemas/Arkivsak'
+    PostFoerstesideResponse:
+      type: object
+      properties:
+        foersteside:
+          type: string
+          format: byte
+          description: Førsteside pdf
+        loepenummer:
+          type: string
+          description: Løpenummer for førsteside
+    FoerstesideResponse:
+      type: object
+      properties:
+        avsender:
+          $ref: '#/components/schemas/Avsender'
+        bruker:
+          $ref: '#/components/schemas/Bruker'
+        tema:
+          type: string
+          description: |
+            Temaet for forsendelsen, for eksempel FOR (Foreldrepenger), SYK (Sykepenger) eller BID (bidrag).
+            Tjenesten vil validere at konsument oppgir et gyldig tema for arkivering.
+          example: FOR
+        behandlingstema:
+          type: string
+          description: |
+            Behandlingstema for forsendelsen, for eksempel ab0001 (Ordinære dagpenger).
+            "NB: Koden skal oppgis, ikke dekoden.
+          example: ab0001
+        arkivtittel:
+          type: string
+          description: |
+            Tittelen det skannede dokumentet skal få i journalen. For eksempel "Søknad om foreldrepenger ved fødsel" eller "Ettersendelse til søknad om foreldrepenger ved fødsel".
+            Arkivtittelen vil, såfremt den ikke blir endret under journalføring, vises frem i brukers journal på nav.no, samt til saksbehandler i fagsystemer som Gosys og Modia.
+            Arkivtittel skal oppgis på norsk (bokmål).
+          example: Ettersendelse til søknad om foreldrepenger ved fødsel
+        vedleggsliste:
+          type: array
+          description: |-
+            Liste over vedlegg avsender skal sende inn.
+            NB: Selve skjemaet skal ikke inngå i vedleggslisten.
+            Arkivtittel på et vedlegg som skal sendes inn, for eksempel "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+            Tittel skal oppgis på norsk (bokmål).
+          example: "[Terminbekreftelse, Dokumentasjon av inntekt]"
+          items:
+            type: string
+            description: |-
+              Liste over vedlegg avsender skal sende inn.
+              NB: Selve skjemaet skal ikke inngå i vedleggslisten.
+              Arkivtittel på et vedlegg som skal sendes inn, for eksempel "Terminbekreftelse" eller "Dokumentasjon av inntekt".
+              Tittel skal oppgis på norsk (bokmål).
+            example: "[Terminbekreftelse, Dokumentasjon av inntekt]"
+        navSkjemaId:
+          type: string
+          description: |
+            Identifikator på skjema som er valgt.
+            NAV-skjemaID skal oppgis på format "NAV 14.05-07" uavhengig av om forsendelsen er en søknad eller ettersendelse.
+          example: NAV 14.05-07
+        enhetsnummer:
+          type: string
+          description: |
+            NAV-enheten som dokumentene skal rutes til for journalføring og/eller saksbehandling.
+            Feltet skal kun benyttes dersom det er behov for å overstyre fagsystemets egne rutingregler. Dette kan feks være dersom avsender vet bedre enn NAV hvilken enhet som skal motta dokumentene.
+          example: "9999"
+        arkivsak:
+          $ref: '#/components/schemas/Arkivsak'
+        foerstesideOpprettetAv:
+          type: string
+          description: Systemet som opprettet dokumentene
+          example: GOSYS

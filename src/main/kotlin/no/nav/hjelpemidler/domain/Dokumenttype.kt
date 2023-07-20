@@ -1,7 +1,7 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.domain
 
 enum class Dokumenttype(
-    val brevkode: String?,
+    val brevkode: String,
     val tittel: String,
     val dokumenttittel: String = tittel,
 ) {
@@ -17,9 +17,9 @@ enum class Dokumenttype(
         brevkode = "NAV 10-07.34",
         tittel = "Tilskudd ved kjøp av briller til barn"
     ),
-    TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN_ETTERSENDING(
+    TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN_ETTERSENDELSE(
         brevkode = "NAVe 10-07.34",
-        tittel = "Tilskudd ved kjøp av briller til barn - Ettersending"
+        tittel = "Ettersendelse til tilskudd ved kjøp av briller til barn",
     ),
     VEDTAKSBREV_BARNEBRILLER_OPTIKER(
         brevkode = "vedtaksbrev_barnebriller_optiker",
@@ -38,8 +38,8 @@ enum class Dokumenttype(
     ),
     VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE(
         brevkode = "vedtaksbrev_barnebriller_hotsak_innvilgelse",
-        tittel = "Innvilget: Vedtaksbrev barnebriller",
-        dokumenttittel = "Innvilget: Tilskudd ved kjøp av briller til barn",
+        tittel = "Innvilgelse: Vedtaksbrev barnebriller",
+        dokumenttittel = "Innvilgelse: Tilskudd ved kjøp av briller til barn",
     ),
     ;
 }

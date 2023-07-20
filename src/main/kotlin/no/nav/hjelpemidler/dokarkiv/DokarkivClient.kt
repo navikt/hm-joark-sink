@@ -36,13 +36,14 @@ import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.joark.Configuration
 
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class DokarkivClient(
-    private val baseUrl: String,
-    private val scope: String,
+    private val baseUrl: String = Configuration.JOARK_BASE_URL,
+    private val scope: String = Configuration.JOARK_SCOPE,
     private val azureADClient: OpenIDClient,
     engine: HttpClientEngine = CIO.create(),
 ) {

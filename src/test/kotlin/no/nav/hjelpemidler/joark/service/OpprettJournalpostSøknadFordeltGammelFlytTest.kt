@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly

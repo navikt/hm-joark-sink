@@ -7,6 +7,7 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
+import no.nav.hjelpemidler.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
 
 class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
@@ -26,7 +27,9 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "dokumenttittel",
                         "brevtype",
                     )
-                    it.interestedIn()
+                    it.interestedIn(
+                        "lagFørsteside",
+                    )
                 }
             }
             .register(this)
@@ -50,23 +53,30 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.brevtype: String
         get() = this["brevtype"].textValue()
 
+    private val JsonMessage.lagFørsteside: Boolean
+        get() = this["lagFørsteside"].booleanValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
         val fnrBruker = packet.fnrBruker
-        val brevkode = packet.brevtype
+        val fysiskDokument = packet.fysiskDokument
         val dokumenttittel = packet.dokumenttittel
+        val brevtype = packet.brevtype
+        val lagFørsteside = packet.lagFørsteside
+
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
-            forsøkFerdigstill = true
+            dokumenttype = Dokumenttype.valueOf(brevtype), // fixme
+            forsøkFerdigstill = true,
+            lagFørsteside = lagFørsteside,
         ) {
             dokument(
-                fysiskDokument = packet.fysiskDokument.toByteArray(),
-                brevkode = brevkode,
+                fysiskDokument = fysiskDokument.toByteArray(),
                 dokumenttittel = dokumenttittel,
             )
-            sakFraHotsak(sakId)
+            hotsak(sakId)
             tittel = dokumenttittel
         }
 
@@ -76,19 +86,19 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val sakId: String,
             val fnrMottaker: String,
             val fnrBruker: String,
-            val brevkode: String,
             val dokumenttittel: String,
+            val brevtype: String,
         )
 
         context.publish(
-            key = fnrMottaker,
+            key = fnrBruker,
             message = BrevsendingJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
                 fnrMottaker = packet.fnrMottaker,
                 fnrBruker = fnrBruker,
-                brevkode = brevkode,
                 dokumenttittel = dokumenttittel,
+                brevtype = brevtype,
             )
         )
     }

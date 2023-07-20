@@ -12,6 +12,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.domain.Dokumenttype
+import no.nav.hjelpemidler.domain.Sakstype
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.jsonMapper
 import java.time.LocalDateTime
@@ -67,7 +69,6 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 }
                 val journalpostId = journalpostService.arkiverSøknad(
                     fnrBruker = data.fnrBruker,
-                    navnBruker = data.navnBruker,
                     søknadId = data.soknadId,
                     søknadJson = packet.søknadJson,
                     sakstype = Sakstype.SØKNAD,

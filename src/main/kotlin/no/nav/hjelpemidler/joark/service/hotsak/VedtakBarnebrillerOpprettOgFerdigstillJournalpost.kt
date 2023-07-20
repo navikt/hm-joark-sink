@@ -14,7 +14,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
-import no.nav.hjelpemidler.joark.service.Dokumenttype
+import no.nav.hjelpemidler.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.time.LocalDateTime
 import java.util.UUID
@@ -78,11 +78,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     }
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
                     fnrMottaker = data.fnr,
+                    dokumenttype = dokumenttype,
                     forsøkFerdigstill = true
                 ) {
-                    dokument(fysiskDokument = data.pdf, dokumenttype = dokumenttype)
-                    sakFraHotsak(sakId)
-                    tittelFra(dokumenttype)
+                    dokument(fysiskDokument = data.pdf)
+                    hotsak(sakId)
                     eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
                 }
                 forward(journalpostId, data, context)

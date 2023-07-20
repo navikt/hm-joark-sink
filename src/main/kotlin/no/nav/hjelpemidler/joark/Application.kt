@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -38,8 +39,6 @@ fun main() {
         }
     }
     val dokarkivClient = DokarkivClient(
-        baseUrl = Configuration.JOARK_BASEURL,
-        scope = Configuration.JOARK_SCOPE,
         azureADClient = azureADClient,
         engine = engine,
     )
@@ -48,7 +47,10 @@ fun main() {
         engine = engine,
     )
     val pdfClient = PdfClient(
-        baseUrl = Configuration.PDF_BASEURL,
+        engine = engine,
+    )
+    val førstesidegeneratorClient = FørstesidegeneratorClient(
+        azureADClient = azureADClient,
         engine = engine,
     )
 
@@ -57,6 +59,7 @@ fun main() {
         pdfClient = pdfClient,
         dokarkivClient = dokarkivClient,
         safClient = safClient,
+        førstesidegeneratorClient = førstesidegeneratorClient,
     )
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)

@@ -16,6 +16,10 @@ import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
+import no.nav.hjelpemidler.domain.Dokumenttype
+import no.nav.hjelpemidler.domain.Sakstype
+import no.nav.hjelpemidler.domain.Språkkode
+import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
@@ -37,6 +41,7 @@ class JournalpostService(
     private val pdfClient: PdfClient,
     private val dokarkivClient: DokarkivClient,
     private val safClient: SafClient,
+    private val førstesidegeneratorClient: FørstesidegeneratorClient,
 ) {
     suspend fun genererPdf(søknadJson: JsonNode): ByteArray {
         val fysiskDokument = pdfClient.genererSøknadPdf(
@@ -57,12 +62,14 @@ class JournalpostService(
     suspend fun opprettInngåendeJournalpost(
         fnrAvsender: String,
         fnrBruker: String = fnrAvsender,
+        dokumenttype: Dokumenttype,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
             fnrAvsenderMottaker = fnrAvsender,
+            dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
         ).apply(block)
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -83,14 +90,30 @@ class JournalpostService(
     suspend fun opprettUtgåendeJournalpost(
         fnrMottaker: String,
         fnrBruker: String = fnrMottaker,
+        dokumenttype: Dokumenttype,
         forsøkFerdigstill: Boolean = false,
+        lagFørsteside: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
             fnrAvsenderMottaker = fnrMottaker,
-            journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE
+            dokumenttype = dokumenttype,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
         ).apply(block)
+        if (lagFørsteside) {
+            try {
+                val fysiskDokument = førstesidegeneratorClient.lagFørsteside(
+                    språkkode = Språkkode.NB,
+                    overskrift = dokumenttype.dokumenttittel,
+                    fnrBruker = fnrBruker,
+                    navSkjemaId = dokumenttype.brevkode,
+                )
+                lagOpprettJournalpostRequest.førsteside(fysiskDokument)
+            } catch (e: Exception) {
+                log.error(e) { "Feil under generering av førsteside" }
+            }
+        }
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill
@@ -107,7 +130,6 @@ class JournalpostService(
 
     suspend fun arkiverSøknad(
         fnrBruker: String,
-        navnBruker: String,
         søknadId: UUID,
         søknadJson: JsonNode,
         sakstype: Sakstype,
@@ -127,14 +149,13 @@ class JournalpostService(
         val dokumenttype = sakstype.dokumenttype
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
+            dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER,
             forsøkFerdigstill = false,
         ) {
             dokument(
                 fysiskDokument = fysiskDokument,
-                dokumenttype = dokumenttype,
                 dokumenttittel = dokumenttittel,
             )
-            tittelFra(dokumenttype)
             this.eksternReferanseId = eksternReferanseId
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null

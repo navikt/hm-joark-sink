@@ -5,6 +5,7 @@ import io.mockk.slot
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -15,11 +16,13 @@ abstract class TestSupport {
     val pdfClientMock = mockk<PdfClient>()
     val dokarkivClientMock = mockk<DokarkivClient>()
     val safClientMock = mockk<SafClient>()
+    val førstesidegeneratorClientMock = mockk<FørstesidegeneratorClient>()
 
     val journalpostService = JournalpostService(
         pdfClient = pdfClientMock,
         dokarkivClient = dokarkivClientMock,
-        safClient = safClientMock
+        safClient = safClientMock,
+        førstesidegeneratorClient = førstesidegeneratorClientMock
     )
 
     val pdf = Random.nextBytes(8)

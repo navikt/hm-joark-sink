@@ -15,7 +15,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.joark.service.Sakstype
+import no.nav.hjelpemidler.domain.Sakstype
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -77,7 +77,6 @@ class OpprettNyJournalpostEtterFeilregistrering(
                 val nyJournalpostId = when (data.sakstype) {
                     Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
                         fnrBruker = data.fnrBruker,
-                        navnBruker = data.navnBruker,
                         søknadId = data.soknadId,
                         søknadJson = packet.søknadJson,
                         sakstype = data.sakstype,

@@ -1,10 +1,11 @@
 import com.expediagroup.graphql.plugin.gradle.config.GraphQLScalar
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
     alias(libs.plugins.graphql)
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.openapi)
     alias(libs.plugins.spotless)
@@ -45,7 +46,7 @@ tasks.test {
 
 tasks.compileKotlin {
     kotlinOptions.jvmTarget = "17"
-    dependsOn(tasks.openApiGenerate)
+    dependsOn(tasks.openApiGenerate, førstesidegenerator)
 }
 
 graphql {
@@ -84,10 +85,34 @@ openApiGenerate {
     )
 }
 
+val førstesidegenerator by tasks.registering(GenerateTask::class) {
+    skipValidateSpec.set(true)
+    inputSpec.set("src/main/resources/førstesidegenerator/openapi.yaml")
+    outputDir.set("$buildDir/generated/source/førstesidegenerator")
+    generatorName.set("kotlin")
+    packageName.set("no.nav.hjelpemidler.førstesidegenerator")
+    globalProperties.set(
+        mapOf(
+            "apis" to "none",
+            "models" to "",
+            "modelDocs" to "false",
+        ),
+    )
+    configOptions.set(
+        mapOf(
+            "serializationLibrary" to "jackson",
+            "dateLibrary" to "java8-localdatetime", // burde vært default ("java8"), men eksterne saf/dokarkiv benytter LocalDateTime
+            "enumPropertyNaming" to "UPPERCASE",
+            "sourceFolder" to "main",
+        ),
+    )
+}
+
 sourceSets {
     main {
         kotlin {
             srcDir("$buildDir/generated/source/dokarkiv/main")
+            srcDir("$buildDir/generated/source/førstesidegenerator/main")
         }
     }
 }

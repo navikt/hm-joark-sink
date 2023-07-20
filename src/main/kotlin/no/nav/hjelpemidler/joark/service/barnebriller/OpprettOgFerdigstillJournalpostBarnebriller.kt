@@ -89,11 +89,11 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                 val fysiskDokument = journalpostService.genererPdf(data)
                 val journalpostId = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnr,
+                    dokumenttype = data.dokumenttype,
                     forsøkFerdigstill = true,
                 ) {
-                    dokument(fysiskDokument = fysiskDokument, dokumenttype = data.dokumenttype)
-                    sakFraOptiker(data.sakId)
-                    tittelFra(data.dokumenttype)
+                    dokument(fysiskDokument = fysiskDokument)
+                    optiker(data.sakId)
                     eksternReferanseId = "${data.sakId}BARNEBRILLEAPI"
                     datoMottatt = data.opprettet
                 }

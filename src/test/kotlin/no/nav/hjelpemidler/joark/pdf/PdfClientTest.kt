@@ -12,7 +12,7 @@ import java.util.Base64
 class PdfClientTest {
     private val pdf = Base64.getEncoder().encode("foobar".toByteArray())
     private val pdfClient = PdfClient(
-        baseUrl = Configuration.PDF_BASEURL,
+        baseUrl = Configuration.PDF_BASE_URL,
         engine = MockEngine {
             respond(pdf, HttpStatusCode.OK)
         }

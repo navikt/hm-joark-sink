@@ -11,12 +11,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.joark.Configuration
 import org.intellij.lang.annotations.Language
 
 private val log = KotlinLogging.logger {}
 
 class PdfClient(
-    private val baseUrl: String,
+    private val baseUrl: String = Configuration.PDF_BASE_URL,
     engine: HttpClientEngine = CIO.create(),
 ) {
     private val basePath = "api/v1/genpdf"
