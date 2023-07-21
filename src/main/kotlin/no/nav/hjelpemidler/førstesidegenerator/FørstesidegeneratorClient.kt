@@ -29,8 +29,8 @@ import no.nav.hjelpemidler.saf.enums.Tema
 private val log = KotlinLogging.logger {}
 
 class FørstesidegeneratorClient(
-    private val baseUrl: String = Configuration.FØRSTESIDEGENERATOR_BASE_URL,
-    private val scope: String = Configuration.FØRSTESIDEGENERATOR_SCOPE,
+    private val baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
+    private val scope: String = Configuration.FORSTESIDEGENERATOR_SCOPE,
     private val azureADClient: OpenIDClient,
     engine: HttpClientEngine = CIO.create(),
 ) {

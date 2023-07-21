@@ -10,8 +10,8 @@ object Configuration {
     val JOARK_SCOPE by EnvironmentVariable
 
     // Førstesidegenerator
-    val FØRSTESIDEGENERATOR_BASE_URL by EnvironmentVariable
-    val FØRSTESIDEGENERATOR_SCOPE by EnvironmentVariable
+    val FORSTESIDEGENERATOR_BASE_URL by EnvironmentVariable
+    val FORSTESIDEGENERATOR_SCOPE by EnvironmentVariable
 
     // PDF-generator
     val PDF_BASE_URL by EnvironmentVariable
