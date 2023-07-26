@@ -107,7 +107,7 @@ class JournalpostService(
         if (lagFørsteside) {
             try {
                 val fysiskDokument = førstesidegeneratorClient.lagFørsteside(
-                    språkkode = Språkkode.NB,
+                    språkkode = Språkkode.NB, // fixme
                     overskrift = dokumenttype.dokumenttittel,
                     fnrBruker = fnrBruker,
                     navSkjemaId = dokumenttype.brevkode,

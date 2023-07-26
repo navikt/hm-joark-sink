@@ -4,10 +4,11 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.domain.Dokumenttype
+import no.nav.hjelpemidler.domain.Språkkode
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
-import no.nav.hjelpemidler.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
 
 class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
@@ -25,10 +26,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "fnrBruker",
                         "fysiskDokument",
                         "dokumenttittel",
-                        "brevtype",
-                    )
-                    it.interestedIn(
-                        "lagFørsteside",
+                        "dokumenttype",
+                        "språkkode",
                     )
                 }
             }
@@ -50,11 +49,11 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
 
-    private val JsonMessage.brevtype: String
-        get() = this["brevtype"].textValue()
+    private val JsonMessage.dokumenttype: Dokumenttype
+        get() = this["dokumenttype"].textValue().let(Dokumenttype::valueOf)
 
-    private val JsonMessage.lagFørsteside: Boolean
-        get() = this["lagFørsteside"].booleanValue()
+    private val JsonMessage.språkkode: Språkkode
+        get() = this["språkkode"].textValue().let(Språkkode::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
@@ -62,15 +61,15 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val fnrBruker = packet.fnrBruker
         val fysiskDokument = packet.fysiskDokument
         val dokumenttittel = packet.dokumenttittel
-        val brevtype = packet.brevtype
-        val lagFørsteside = packet.lagFørsteside
+        val dokumenttype = packet.dokumenttype
+        val språkkode = packet.språkkode
 
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
-            dokumenttype = Dokumenttype.valueOf(brevtype), // fixme
+            dokumenttype = dokumenttype,
             forsøkFerdigstill = true,
-            lagFørsteside = lagFørsteside,
+            lagFørsteside = true, // fixme -> baser på dokumenttype?
         ) {
             dokument(
                 fysiskDokument = fysiskDokument.toByteArray(),
@@ -87,7 +86,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val fnrMottaker: String,
             val fnrBruker: String,
             val dokumenttittel: String,
-            val brevtype: String,
+            val dokumenttype: Dokumenttype,
         )
 
         context.publish(
@@ -98,7 +97,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                 fnrMottaker = packet.fnrMottaker,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
-                brevtype = brevtype,
+                dokumenttype = dokumenttype,
             )
         )
     }
