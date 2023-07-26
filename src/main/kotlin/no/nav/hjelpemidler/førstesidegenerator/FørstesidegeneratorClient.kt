@@ -68,7 +68,7 @@ class FørstesidegeneratorClient(
             )
         }
         return when (response.status) {
-            HttpStatusCode.OK -> {
+            HttpStatusCode.Created -> {
                 val body = response.body<PostFoerstesideResponse>()
                 log.info { "Førsteside ble generert med løpenummer: ${body.loepenummer}" }
                 checkNotNull(body.foersteside) {
