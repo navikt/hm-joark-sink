@@ -43,8 +43,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].textValue()
 
-    private val JsonMessage.fysiskDokument: String
-        get() = this["fysiskDokument"].textValue()
+    private val JsonMessage.fysiskDokument: ByteArray
+        get() = this["fysiskDokument"].binaryValue()
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
@@ -72,7 +72,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             lagFørsteside = true, // fixme -> baser på dokumenttype?
         ) {
             dokument(
-                fysiskDokument = fysiskDokument.toByteArray(),
+                fysiskDokument = fysiskDokument,
                 dokumenttittel = dokumenttittel,
             )
             hotsak(sakId)
