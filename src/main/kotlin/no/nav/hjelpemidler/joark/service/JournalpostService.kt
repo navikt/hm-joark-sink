@@ -34,7 +34,6 @@ import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 private val log = KotlinLogging.logger {}
@@ -112,9 +111,9 @@ class JournalpostService(
                     fnrBruker = fnrBruker,
                     navSkjemaId = dokumenttype.brevkode,
                 )
-                log.info { Base64.UrlSafe.encode(fysiskDokument) }
                 lagOpprettJournalpostRequest.førsteside(fysiskDokument)
             } catch (e: Exception) {
+                // fixme -> fjernes når stabilt, river skal feile hvis førsteside ikke blir laget
                 log.error(e) { "Feil under generering av førsteside" }
             }
         }
