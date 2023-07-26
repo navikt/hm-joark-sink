@@ -77,7 +77,7 @@ class OpprettJournalpostRequestConfigurer(
             bruker = brukerMedFnr(fnrBruker),
             datoDokument = datoDokument,
             datoMottatt = datoMottatt,
-            dokumenter = dokumenter,
+            dokumenter = dokumenter.toList(),
             eksternReferanseId = eksternReferanseId,
             journalfoerendeEnhet = journalførendeEnhet,
             journalposttype = journalposttype,
