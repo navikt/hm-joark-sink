@@ -50,7 +50,7 @@ class FørstesidegeneratorClient(
         navSkjemaId: String,
     ): ByteArray {
         val tokenSet = azureADClient.grant(scope)
-        val response = client.post("$baseUrl/test") {
+        val response = client.post("$baseUrl/foersteside") {
             bearerAuth(tokenSet)
             setBody(
                 PostFoerstesideRequest(
