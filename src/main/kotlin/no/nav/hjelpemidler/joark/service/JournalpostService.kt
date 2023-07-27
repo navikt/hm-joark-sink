@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.joark.service
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.hjelpemidler.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.dokarkiv.fagsakHjelpemidler
@@ -18,7 +19,6 @@ import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.domain.Dokumenttype
 import no.nav.hjelpemidler.domain.Sakstype
-import no.nav.hjelpemidler.domain.Språkkode
 import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
@@ -34,7 +34,6 @@ import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 private val log = KotlinLogging.logger {}
 
@@ -88,13 +87,11 @@ class JournalpostService(
         journalpostId
     }
 
-    @OptIn(ExperimentalEncodingApi::class)
     suspend fun opprettUtgåendeJournalpost(
         fnrMottaker: String,
         fnrBruker: String = fnrMottaker,
         dokumenttype: Dokumenttype,
         forsøkFerdigstill: Boolean = false,
-        lagFørsteside: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
@@ -103,15 +100,13 @@ class JournalpostService(
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
         ).apply(block)
-        if (lagFørsteside) {
+        val opprettFørstesideRequest = lagOpprettJournalpostRequest.opprettFørstesideRequest
+        if (opprettFørstesideRequest != null) {
             try {
-                val fysiskDokument = førstesidegeneratorClient.lagFørsteside(
-                    språkkode = Språkkode.NB, // fixme
-                    overskrift = dokumenttype.dokumenttittel,
-                    fnrBruker = fnrBruker,
-                    navSkjemaId = dokumenttype.brevkode,
+                val førsteside = førstesidegeneratorClient.lagFørsteside(
+                    opprettFørstesideRequest
                 )
-                lagOpprettJournalpostRequest.førsteside(fysiskDokument)
+                lagOpprettJournalpostRequest.dokument(førsteside)
             } catch (e: Exception) {
                 // fixme -> fjernes når stabilt, river skal feile hvis førsteside ikke blir laget
                 log.error(e) { "Feil under generering av førsteside" }
@@ -149,7 +144,6 @@ class JournalpostService(
             "Arkiverer søknad, søknadId: $søknadId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
         val fysiskDokument = genererPdf(søknadJson)
-        val dokumenttype = sakstype.dokumenttype
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
             dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER,

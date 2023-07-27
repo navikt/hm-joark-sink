@@ -1,14 +1,13 @@
-package no.nav.hjelpemidler.joark.service
+package no.nav.hjelpemidler.dokarkiv
 
-import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
-import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
-import no.nav.hjelpemidler.dokarkiv.fagsakBarnebriller
-import no.nav.hjelpemidler.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.domain.Dokumenttype
+import no.nav.hjelpemidler.førstesidegenerator.Førsteside
+import no.nav.hjelpemidler.førstesidegenerator.OpprettFørstesideRequest
+import no.nav.hjelpemidler.førstesidegenerator.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat
@@ -27,6 +26,9 @@ class OpprettJournalpostRequestConfigurer(
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"
 
+    var opprettFørstesideRequest: OpprettFørstesideRequest? = null
+        private set
+
     var dokumenter = LinkedList<Dokument>()
         private set
 
@@ -37,12 +39,20 @@ class OpprettJournalpostRequestConfigurer(
         tittel = dokumenttype.tittel
     }
 
-    fun førsteside(fysiskDokument: ByteArray) {
+    fun førsteside(
+        dokumenttittel: String = dokumenttype.dokumenttittel,
+        block: OpprettFørstesideRequestConfigurer.() -> Unit = {},
+    ) {
+        val lagOpprettFørstesideRequest = OpprettFørstesideRequestConfigurer(dokumenttittel, fnrBruker).apply(block)
+        opprettFørstesideRequest = lagOpprettFørstesideRequest()
+    }
+
+    fun dokument(førsteside: Førsteside) {
         dokumenter.addFirst(
             Dokument(
-                brevkode = dokumenttype.brevkode,
-                dokumentvarianter = listOf(fysiskDokument.toArkiv()),
-                tittel = dokumenttype.dokumenttittel,
+                brevkode = førsteside.brevkode,
+                dokumentvarianter = listOf(førsteside.fysiskDokument.toArkiv()),
+                tittel = førsteside.tittel,
             )
         )
     }
@@ -89,9 +99,6 @@ class OpprettJournalpostRequestConfigurer(
     }
 }
 
-private fun ByteArray.toArkiv(): DokumentVariant =
-    DokumentVariant(
-        filtype = "PDFA",
-        fysiskDokument = this,
-        variantformat = Variantformat.ARKIV.toString()
-    )
+private fun ByteArray.toArkiv(): DokumentVariant = DokumentVariant(
+    filtype = "PDFA", fysiskDokument = this, variantformat = Variantformat.ARKIV.toString()
+)

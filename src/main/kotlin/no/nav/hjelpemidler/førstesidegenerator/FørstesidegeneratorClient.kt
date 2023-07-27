@@ -14,17 +14,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
-import no.nav.hjelpemidler.domain.Språkkode
-import no.nav.hjelpemidler.førstesidegenerator.models.Adresse
-import no.nav.hjelpemidler.førstesidegenerator.models.Bruker
-import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideRequest
 import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideResponse
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.saf.enums.Tema
 
 private val log = KotlinLogging.logger {}
 
@@ -43,37 +38,20 @@ class FørstesidegeneratorClient(
         }
     }
 
-    suspend fun lagFørsteside(
-        språkkode: Språkkode = Språkkode.NB,
-        overskrift: String,
-        fnrBruker: String,
-        navSkjemaId: String,
-    ): ByteArray {
+    suspend fun lagFørsteside(request: OpprettFørstesideRequest): Førsteside {
         val tokenSet = azureADClient.grant(scope)
         val response = client.post("$baseUrl/foersteside") {
             bearerAuth(tokenSet)
-            setBody(
-                PostFoerstesideRequest(
-                    spraakkode = språkkode.førstesidegenerator,
-                    overskriftstittel = overskrift,
-                    foerstesidetype = PostFoerstesideRequest.Foerstesidetype.ETTERSENDELSE,
-                    adresse = defaultAdresse,
-                    avsender = null,
-                    bruker = Bruker(fnrBruker, Bruker.BrukerType.PERSON),
-                    tema = Tema.HJE.toString(),
-                    navSkjemaId = navSkjemaId,
-                    dokumentlisteFoersteside = vedlegg[språkkode],
-                    vedleggsliste = vedlegg[språkkode],
-                )
-            )
+            setBody(request)
         }
         return when (response.status) {
             HttpStatusCode.Created -> {
                 val body = response.body<PostFoerstesideResponse>()
                 log.info { "Førsteside ble generert med løpenummer: ${body.loepenummer}" }
-                checkNotNull(body.foersteside) {
+                val fysiskDokument = checkNotNull(body.foersteside) {
                     "Mangler førsteside i svaret fra førstesidegenerator!"
                 }
+                Førsteside(fysiskDokument, request.overskriftstittel, request.navSkjemaId)
             }
 
             else -> response.feilmelding()
@@ -85,16 +63,3 @@ class FørstesidegeneratorClient(
         error("Uventet svar fra førstesidegenerator, kall: '${request.method.value} ${request.url}', status: '${status}', body: '$body'")
     }
 }
-
-val vedlegg = mapOf(
-    Språkkode.NB to listOf("Se vedlagte brev"),
-    Språkkode.NN to listOf("Sjå vedlagte brev"),
-    Språkkode.EN to listOf("See the attached letters"),
-)
-
-val defaultAdresse = Adresse(
-    adresselinje1 = "Nav Skanning",
-    adresselinje2 = "Postboks 1400",
-    postnummer = "0109",
-    poststed = "OSLO",
-)

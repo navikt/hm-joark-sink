@@ -62,15 +62,17 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val fysiskDokument = packet.fysiskDokument
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
-        val språkkode = packet.språkkode
 
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
             forsøkFerdigstill = true,
-            lagFørsteside = true, // fixme -> baser på dokumenttype?
         ) {
+            førsteside(packet.dokumenttittel) {
+                språkkode = packet.språkkode
+                brevkode = dokumenttype.brevkode
+            }
             dokument(
                 fysiskDokument = fysiskDokument,
                 dokumenttittel = dokumenttittel,
