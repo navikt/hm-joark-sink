@@ -20,6 +20,7 @@ data class JournalpostBarnebrillevedtakData(
     val brilleseddel: JsonNode,
     val opprettet: LocalDateTime,
     val bestillingsdato: LocalDate,
+    val bestillingsår: Int,
     val bestillingsreferanse: String,
     val satsBeskrivelse: String,
     val satsBeløp: BigDecimal,

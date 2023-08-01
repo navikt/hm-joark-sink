@@ -68,6 +68,7 @@ class ResendJournalpostBarnebriller(
             brilleseddel = packet.brilleseddel,
             opprettet = packet.opprettet,
             bestillingsdato = packet.bestillingsdato,
+            bestillingsår = packet.bestillingsdato.year,
             bestillingsreferanse = packet.bestillingsreferanse,
             satsBeskrivelse = packet.satsBeskrivelse,
             satsBeløp = packet.satsBeløp,
