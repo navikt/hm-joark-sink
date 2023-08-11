@@ -5,8 +5,8 @@ import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.dokarkiv.DokarkivClient
-import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.pdf.PdfClient
 import no.nav.hjelpemidler.joark.service.JournalpostService

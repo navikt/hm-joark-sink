@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.førstesidegenerator
+package no.nav.hjelpemidler.joark.pdf
 
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine

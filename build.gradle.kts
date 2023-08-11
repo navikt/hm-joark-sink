@@ -67,7 +67,7 @@ openApiGenerate {
     inputSpec.set("src/main/resources/dokarkiv/openapi.yaml")
     outputDir.set("$buildDir/generated/source/dokarkiv")
     generatorName.set("kotlin")
-    packageName.set("no.nav.hjelpemidler.dokarkiv")
+    packageName.set("no.nav.hjelpemidler.joark.dokarkiv")
     globalProperties.set(
         mapOf(
             "apis" to "none",
@@ -90,7 +90,7 @@ val førstesidegenerator by tasks.registering(GenerateTask::class) {
     inputSpec.set("src/main/resources/førstesidegenerator/openapi.yaml")
     outputDir.set("$buildDir/generated/source/førstesidegenerator")
     generatorName.set("kotlin")
-    packageName.set("no.nav.hjelpemidler.førstesidegenerator")
+    packageName.set("no.nav.hjelpemidler.joark.førstesidegenerator")
     globalProperties.set(
         mapOf(
             "apis" to "none",

@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.domain
+package no.nav.hjelpemidler.joark.domain
 
 enum class Dokumenttype(
     val brevkode: String,

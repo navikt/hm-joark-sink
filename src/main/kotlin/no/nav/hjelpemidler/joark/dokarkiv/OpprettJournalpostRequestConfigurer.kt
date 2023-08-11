@@ -1,13 +1,13 @@
-package no.nav.hjelpemidler.dokarkiv
+package no.nav.hjelpemidler.joark.dokarkiv
 
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
-import no.nav.hjelpemidler.domain.Dokumenttype
-import no.nav.hjelpemidler.førstesidegenerator.Førsteside
-import no.nav.hjelpemidler.førstesidegenerator.OpprettFørstesideRequest
-import no.nav.hjelpemidler.førstesidegenerator.OpprettFørstesideRequestConfigurer
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.pdf.Førsteside
+import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequest
+import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat

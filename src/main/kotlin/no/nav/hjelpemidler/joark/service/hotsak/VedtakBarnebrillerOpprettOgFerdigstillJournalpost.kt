@@ -14,7 +14,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
-import no.nav.hjelpemidler.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.time.LocalDateTime
 import java.util.UUID

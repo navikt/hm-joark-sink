@@ -1,6 +1,4 @@
-package no.nav.hjelpemidler.domain
-
-import no.nav.hjelpemidler.domain.Dokumenttype
+package no.nav.hjelpemidler.joark.domain
 
 enum class Sakstype(val dokumenttype: Dokumenttype) {
     SØKNAD(Dokumenttype.SØKNAD_OM_HJELPEMIDLER),

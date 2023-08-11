@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.dokarkiv
+package no.nav.hjelpemidler.joark.dokarkiv
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.call.body

@@ -4,8 +4,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.domain.Dokumenttype
-import no.nav.hjelpemidler.domain.Språkkode
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener

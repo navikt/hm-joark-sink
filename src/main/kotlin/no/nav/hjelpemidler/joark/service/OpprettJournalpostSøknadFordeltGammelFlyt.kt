@@ -12,8 +12,8 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.hjelpemidler.domain.Dokumenttype
-import no.nav.hjelpemidler.domain.Sakstype
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.jsonMapper
 import java.time.LocalDateTime

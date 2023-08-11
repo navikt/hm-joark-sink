@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.domain
+package no.nav.hjelpemidler.joark.domain
 
 import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideRequest
 

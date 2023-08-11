@@ -2,11 +2,11 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.hjelpemidler.dokarkiv.DokarkivClient
-import no.nav.hjelpemidler.dokarkiv.OpprettJournalpostRequestConfigurer
-import no.nav.hjelpemidler.dokarkiv.avsenderMottakerMedFnr
-import no.nav.hjelpemidler.dokarkiv.brukerMedFnr
-import no.nav.hjelpemidler.dokarkiv.fagsakHjelpemidler
+import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
+import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
+import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
@@ -17,9 +17,9 @@ import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
-import no.nav.hjelpemidler.domain.Dokumenttype
-import no.nav.hjelpemidler.domain.Sakstype
-import no.nav.hjelpemidler.førstesidegenerator.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus

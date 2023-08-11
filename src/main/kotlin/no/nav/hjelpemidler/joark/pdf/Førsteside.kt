@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.førstesidegenerator
+package no.nav.hjelpemidler.joark.pdf
 
 data class Førsteside(
     val fysiskDokument: ByteArray,
