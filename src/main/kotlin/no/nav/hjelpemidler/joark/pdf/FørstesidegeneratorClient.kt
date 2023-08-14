@@ -15,13 +15,13 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
-import no.nav.hjelpemidler.førstesidegenerator.models.FoerstesideResponse
-import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideResponse
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.FoerstesideResponse
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideResponse
 
 private val log = KotlinLogging.logger {}
 

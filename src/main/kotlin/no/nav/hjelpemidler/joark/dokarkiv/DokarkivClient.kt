@@ -21,22 +21,22 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
-import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
-import no.nav.hjelpemidler.dokarkiv.models.Bruker
-import no.nav.hjelpemidler.dokarkiv.models.FerdigstillJournalpostRequest
-import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
-import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakResponse
-import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
-import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostResponse
-import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
-import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
-import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
+import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
+import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakResponse
+import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostResponse
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")

@@ -1,10 +1,10 @@
 package no.nav.hjelpemidler.joark.pdf
 
-import no.nav.hjelpemidler.førstesidegenerator.models.Adresse
-import no.nav.hjelpemidler.førstesidegenerator.models.Bruker
-import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideRequest
-import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideRequest.Foerstesidetype
 import no.nav.hjelpemidler.joark.domain.Språkkode
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.Adresse
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.Bruker
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideRequest
+import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideRequest.Foerstesidetype
 import no.nav.hjelpemidler.saf.enums.Tema
 
 typealias OpprettFørstesideRequest = PostFoerstesideRequest

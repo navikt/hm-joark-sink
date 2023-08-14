@@ -4,9 +4,9 @@ import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostResponse
-import no.nav.hjelpemidler.joark.jsonMapper
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured

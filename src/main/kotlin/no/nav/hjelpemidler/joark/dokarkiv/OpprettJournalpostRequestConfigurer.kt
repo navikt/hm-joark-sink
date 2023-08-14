@@ -1,11 +1,10 @@
 package no.nav.hjelpemidler.joark.dokarkiv
 
-import no.nav.hjelpemidler.dokarkiv.models.Dokument
-import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
-import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
-import no.nav.hjelpemidler.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.dokarkiv.models.Dokument
+import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentVariant
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequest
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat

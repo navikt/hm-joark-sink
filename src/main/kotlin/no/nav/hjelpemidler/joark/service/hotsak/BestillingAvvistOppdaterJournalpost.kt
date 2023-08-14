@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.hjelpemidler.dokarkiv.models.DokumentInfo
+import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.util.UUID
