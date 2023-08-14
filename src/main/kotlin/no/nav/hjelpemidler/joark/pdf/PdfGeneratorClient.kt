@@ -32,7 +32,7 @@ class PdfGeneratorClient(
 
     suspend fun kombinerPdf(vararg pdf: ByteArray): ByteArray {
         log.info { "Kombinerer ${pdf.size} dokumenter" }
-        val response = client.submitFormWithBinaryData("/kombiner-til-pdf", formData {
+        val response = client.submitFormWithBinaryData("kombiner-til-pdf", formData {
             pdf.forEachIndexed { index, bytes ->
                 val name = "pdf_$index"
                 append(name, bytes, Headers.build {

@@ -5,14 +5,12 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.hjelpemidler.joark.Configuration
 import org.junit.jupiter.api.Test
 import java.util.Base64
 
-class PdfClientTest {
+class SøknadPdfGeneratorClientTest {
     private val pdf = Base64.getUrlEncoder().encode("foobar".toByteArray())
-    private val pdfClient = SøknadPdfGeneratorClient(
-        baseUrl = Configuration.SOKNAD_PDFGEN_BASE_URL,
+    private val client = SøknadPdfGeneratorClient(
         engine = MockEngine {
             respond(pdf, HttpStatusCode.OK)
         }
@@ -21,7 +19,7 @@ class PdfClientTest {
     @Test
     fun `genererer pdf`() {
         runBlocking {
-            val response = pdfClient.genererPdfSøknad(
+            val response = client.genererPdfSøknad(
                 """
                     {
                         "soknad": "soknad"

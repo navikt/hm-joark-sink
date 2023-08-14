@@ -47,6 +47,7 @@ class SafClient(
     private val clientRest = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
+            url(baseUrlRest)
             correlationId()
         }
     }
@@ -62,7 +63,7 @@ class SafClient(
     }
 
     suspend fun hentDokument(journalpostId: String, dokumentInfoId: String, variantformat: Variantformat): ByteArray {
-        val url = "$baseUrlRest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
+        val url = "hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
         log.info {
             "Henter dokument fra SAF, url: '$url'"
         }

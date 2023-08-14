@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class DokarkivClient(
-    private val baseUrl: String = Configuration.JOARK_BASE_URL,
+    baseUrl: String = Configuration.JOARK_BASE_URL,
     private val scope: String = Configuration.JOARK_SCOPE,
     private val azureADClient: OpenIDClient,
     engine: HttpClientEngine = CIO.create(),
@@ -55,6 +55,7 @@ class DokarkivClient(
             exponentialDelay()
         }
         defaultRequest {
+            url(baseUrl)
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             correlationId()
@@ -74,7 +75,7 @@ class DokarkivClient(
         opprettJournalpostRequest: OpprettJournalpostRequest,
         forsøkFerdigstill: Boolean = false,
     ): OpprettJournalpostResponse {
-        val url = "$baseUrl/journalpost"
+        val url = "journalpost"
         val eksternReferanseId = opprettJournalpostRequest.eksternReferanseId
         log.info {
             "Oppretter journalpost med url: '$url', eksternReferanseId: $eksternReferanseId"
@@ -103,7 +104,7 @@ class DokarkivClient(
         journalpostId: String,
         oppdaterJournalpostRequest: OppdaterJournalpostRequest,
     ): OppdaterJournalpostResponse {
-        val url = "$baseUrl/journalpost/$journalpostId"
+        val url = "journalpost/$journalpostId"
         log.info {
             "Oppdaterer journalpost med url: '$url', journalpostId: $journalpostId"
         }
@@ -120,7 +121,7 @@ class DokarkivClient(
         journalpostId: String,
         ferdigstillJournalpostRequest: FerdigstillJournalpostRequest,
     ) {
-        val url = "$baseUrl/journalpost/$journalpostId/ferdigstill"
+        val url = "journalpost/$journalpostId/ferdigstill"
         log.info {
             "Ferdigstiller journalpost med url: '$url', journalpostId: $journalpostId"
         }
@@ -134,7 +135,7 @@ class DokarkivClient(
     }
 
     suspend fun feilregistrerSakstilknytning(journalpostId: String) {
-        val url = "$baseUrl/journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning"
+        val url = "journalpost/$journalpostId/feilregistrer/feilregistrerSakstilknytning"
         log.info {
             "Feilregistrerer sakstilknytning med url: '$url', journalpostId: $journalpostId"
         }
@@ -165,7 +166,7 @@ class DokarkivClient(
         journalpostId: String,
         knyttTilAnnenSakRequest: KnyttTilAnnenSakRequest,
     ): KnyttTilAnnenSakResponse {
-        val url = "$baseUrl/journalpost/$journalpostId/knyttTilAnnenSak"
+        val url = "journalpost/$journalpostId/knyttTilAnnenSak"
         log.info {
             "Knytter til annen sak med url: '$url', journalpostId: $journalpostId"
         }

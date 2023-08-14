@@ -25,17 +25,17 @@ class SøknadPdfGeneratorClient(
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
-            url("$baseUrl/api/v1/genpdf")
+            url(baseUrl)
             accept(ContentType.Application.Pdf)
             contentType(ContentType.Application.Json)
         }
     }
 
     suspend fun genererPdfSøknad(@Language("JSON") søknadJson: String): ByteArray =
-        genererPdf(søknadJson, "/hmb/hmb")
+        genererPdf(søknadJson, "hmb/hmb")
 
     suspend fun genererPdfBarnebriller(@Language("JSON") søknadJson: String): ByteArray =
-        genererPdf(søknadJson, "/barnebrille/barnebrille")
+        genererPdf(søknadJson, "barnebrille/barnebrille")
 
     private suspend fun genererPdf(@Language("JSON") søknadJson: String, path: String): ByteArray {
         log.info { "Genererer PDF for path: '$path'" }

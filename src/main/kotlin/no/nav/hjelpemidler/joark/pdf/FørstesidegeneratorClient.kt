@@ -34,7 +34,7 @@ class FørstesidegeneratorClient(
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
-            url("$baseUrl/api/foerstesidegenerator/v1")
+            url(baseUrl)
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             correlationId()
@@ -43,7 +43,7 @@ class FørstesidegeneratorClient(
 
     suspend fun lagFørsteside(request: OpprettFørstesideRequest): Førsteside {
         val tokenSet = azureADClient.grant(scope)
-        val response = client.post("/foersteside") {
+        val response = client.post("foersteside") {
             bearerAuth(tokenSet)
             setBody(request)
         }
@@ -70,7 +70,7 @@ class FørstesidegeneratorClient(
     suspend fun hentFørsteside(løpenummer: String): FoerstesideResponse {
         log.info { "Henter førsteside med løpenummer: $løpenummer" }
         val tokenSet = azureADClient.grant(scope)
-        val response = client.get("/foersteside/$løpenummer") {
+        val response = client.get("foersteside/$løpenummer") {
             bearerAuth(tokenSet)
         }
         return when (response.status) {
