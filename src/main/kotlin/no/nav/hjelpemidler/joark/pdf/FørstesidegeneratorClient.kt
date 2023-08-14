@@ -34,7 +34,7 @@ class FørstesidegeneratorClient(
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
-            url(baseUrl)
+            url("$baseUrl/api/foerstesidegenerator/v1")
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             correlationId()
