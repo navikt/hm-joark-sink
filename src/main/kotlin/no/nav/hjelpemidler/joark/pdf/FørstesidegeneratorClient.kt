@@ -20,8 +20,10 @@ import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.førstesidegenerator.models.FoerstesideResponse
-import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideResponse
+
+typealias OpprettFørstesideRequest = no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideRequest
+typealias OpprettFørstesideResponse = no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideResponse
+typealias FørstesideResponse = no.nav.hjelpemidler.joark.førstesidegenerator.models.FoerstesideResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -49,7 +51,7 @@ class FørstesidegeneratorClient(
         }
         return when (response.status) {
             HttpStatusCode.Created -> {
-                val body = response.body<PostFoerstesideResponse>()
+                val body = response.body<OpprettFørstesideResponse>()
                 val løpenummer = checkNotNull(body.loepenummer) {
                     "Mangler løpenummer i svaret fra førstesidegenerator!"
                 }
@@ -67,14 +69,14 @@ class FørstesidegeneratorClient(
         }
     }
 
-    suspend fun hentFørsteside(løpenummer: String): FoerstesideResponse {
+    suspend fun hentFørsteside(løpenummer: String): FørstesideResponse {
         log.info { "Henter førsteside med løpenummer: $løpenummer" }
         val tokenSet = azureADClient.grant(scope)
         val response = client.get("foersteside/$løpenummer") {
             bearerAuth(tokenSet)
         }
         return when (response.status) {
-            HttpStatusCode.OK -> response.body<FoerstesideResponse>()
+            HttpStatusCode.OK -> response.body<FørstesideResponse>()
             else -> response.feilmelding()
         }
     }

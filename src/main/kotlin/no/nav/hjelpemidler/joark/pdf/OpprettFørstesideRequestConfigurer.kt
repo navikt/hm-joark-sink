@@ -7,8 +7,6 @@ import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideRequ
 import no.nav.hjelpemidler.joark.førstesidegenerator.models.PostFoerstesideRequest.Foerstesidetype
 import no.nav.hjelpemidler.saf.enums.Tema
 
-typealias OpprettFørstesideRequest = PostFoerstesideRequest
-
 class OpprettFørstesideRequestConfigurer(
     val tittel: String,
     val fnrBruker: String,
