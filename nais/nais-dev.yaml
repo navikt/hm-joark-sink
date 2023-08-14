@@ -42,6 +42,7 @@ spec:
     outbound:
       rules:
         - application: hm-soknad-pdfgen
+        - application: hm-pdf-generator
       external:
         - host: dokarkiv.dev-fss-pub.nais.io # q1
         - host: dokarkiv-q2.dev-fss-pub.nais.io # q2
