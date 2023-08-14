@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
+import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -11,6 +12,8 @@ import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+
+private val log = KotlinLogging.logger {}
 
 class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
@@ -63,11 +66,15 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
 
-        val fysiskDokument =
-            journalpostService.genererFørsteside(packet.dokumenttittel, fnrBruker, packet.fysiskDokument) {
-                språkkode = packet.språkkode
-                brevkode = brevkodeForEttersendelse[dokumenttype]
+        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype" }
+
+        val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
+            null -> packet.fysiskDokument
+            else -> journalpostService.genererFørsteside(packet.dokumenttittel, fnrBruker, packet.fysiskDokument) {
+                this.språkkode = packet.språkkode
+                this.brevkode = brevkode
             }
+        }
 
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
