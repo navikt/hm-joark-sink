@@ -5,14 +5,11 @@ import no.nav.hjelpemidler.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.pdf.Førsteside
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequest
-import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat
 import java.time.LocalDateTime
-import java.util.LinkedList
 
 class OpprettJournalpostRequestConfigurer(
     val fnrBruker: String,
@@ -26,10 +23,7 @@ class OpprettJournalpostRequestConfigurer(
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"
 
-    var opprettFørstesideRequest: OpprettFørstesideRequest? = null
-        private set
-
-    var dokumenter = LinkedList<Dokument>()
+    var dokumenter = mutableListOf<Dokument>()
         private set
 
     var sak: Sak? = null
@@ -37,24 +31,6 @@ class OpprettJournalpostRequestConfigurer(
 
     init {
         tittel = dokumenttype.tittel
-    }
-
-    fun førsteside(
-        dokumenttittel: String = dokumenttype.dokumenttittel,
-        block: OpprettFørstesideRequestConfigurer.() -> Unit = {},
-    ) {
-        val lagOpprettFørstesideRequest = OpprettFørstesideRequestConfigurer(dokumenttittel, fnrBruker).apply(block)
-        opprettFørstesideRequest = lagOpprettFørstesideRequest()
-    }
-
-    fun dokument(førsteside: Førsteside) {
-        dokumenter.addFirst(
-            Dokument(
-                brevkode = førsteside.brevkode,
-                dokumentvarianter = listOf(førsteside.fysiskDokument.toArkiv()),
-                tittel = førsteside.tittel,
-            )
-        )
     }
 
     fun dokument(

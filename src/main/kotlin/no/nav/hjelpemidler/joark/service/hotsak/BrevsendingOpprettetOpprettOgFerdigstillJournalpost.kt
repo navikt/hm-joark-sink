@@ -4,9 +4,10 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Språkkode
-import no.nav.hjelpemidler.joark.Hendelse
+import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -59,9 +60,14 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
         val fnrBruker = packet.fnrBruker
-        val fysiskDokument = packet.fysiskDokument
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
+
+        val fysiskDokument =
+            journalpostService.genererFørsteside(packet.dokumenttittel, fnrBruker, packet.fysiskDokument) {
+                språkkode = packet.språkkode
+                brevkode = brevkodeForEttersendelse[dokumenttype]
+            }
 
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
             fnrMottaker = fnrMottaker,
@@ -69,16 +75,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             dokumenttype = dokumenttype,
             forsøkFerdigstill = true,
         ) {
-            førsteside(packet.dokumenttittel) {
-                språkkode = packet.språkkode
-                brevkode = dokumenttype.brevkode
-            }
-            dokument(
-                fysiskDokument = fysiskDokument,
-                dokumenttittel = dokumenttittel,
-            )
+            dokument(fysiskDokument)
             hotsak(sakId)
-            tittel = dokumenttittel
         }
 
         @Hendelse("hm-brevsending-journalført")

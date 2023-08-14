@@ -23,7 +23,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpostTest : TestSupport() {
     @BeforeTest
     fun setUp() {
         coEvery {
-            pdfClientMock.genererSøknadPdf(any())
+            pdfClientMock.genererPdfSøknad(any())
         } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(

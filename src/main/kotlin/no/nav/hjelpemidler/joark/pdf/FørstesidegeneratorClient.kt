@@ -5,6 +5,7 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -14,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import mu.KotlinLogging
+import no.nav.hjelpemidler.førstesidegenerator.models.FoerstesideResponse
 import no.nav.hjelpemidler.førstesidegenerator.models.PostFoerstesideResponse
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
@@ -24,7 +26,7 @@ import no.nav.hjelpemidler.joark.Configuration
 private val log = KotlinLogging.logger {}
 
 class FørstesidegeneratorClient(
-    private val baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
+    baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
     private val scope: String = Configuration.FORSTESIDEGENERATOR_SCOPE,
     private val azureADClient: OpenIDClient,
     engine: HttpClientEngine = CIO.create(),
@@ -32,6 +34,7 @@ class FørstesidegeneratorClient(
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
+            url(baseUrl)
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             correlationId()
@@ -40,20 +43,38 @@ class FørstesidegeneratorClient(
 
     suspend fun lagFørsteside(request: OpprettFørstesideRequest): Førsteside {
         val tokenSet = azureADClient.grant(scope)
-        val response = client.post("$baseUrl/foersteside") {
+        val response = client.post("/foersteside") {
             bearerAuth(tokenSet)
             setBody(request)
         }
         return when (response.status) {
             HttpStatusCode.Created -> {
                 val body = response.body<PostFoerstesideResponse>()
-                log.info { "Førsteside ble generert med løpenummer: ${body.loepenummer}" }
+                val løpenummer = checkNotNull(body.loepenummer) {
+                    "Mangler løpenummer i svaret fra førstesidegenerator!"
+                }
+                val førsteside = hentFørsteside(løpenummer)
+                log.info {
+                    "Førsteside ble generert med løpenummer: $løpenummer, arkivtittel: '${førsteside.arkivtittel}', navSkjemaId: '${førsteside.navSkjemaId}', saksnummer: ${førsteside.arkivsak?.arkivsaksnummer}"
+                }
                 val fysiskDokument = checkNotNull(body.foersteside) {
                     "Mangler førsteside i svaret fra førstesidegenerator!"
                 }
                 Førsteside(fysiskDokument, request.overskriftstittel, request.navSkjemaId)
             }
 
+            else -> response.feilmelding()
+        }
+    }
+
+    suspend fun hentFørsteside(løpenummer: String): FoerstesideResponse {
+        log.info { "Henter førsteside med løpenummer: $løpenummer" }
+        val tokenSet = azureADClient.grant(scope)
+        val response = client.get("/foersteside/$løpenummer") {
+            bearerAuth(tokenSet)
+        }
+        return when (response.status) {
+            HttpStatusCode.OK -> response.body<FoerstesideResponse>()
             else -> response.feilmelding()
         }
     }

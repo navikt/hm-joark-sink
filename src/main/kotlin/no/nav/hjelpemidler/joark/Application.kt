@@ -5,10 +5,11 @@ import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
-import no.nav.hjelpemidler.http.openid.azureADClient
-import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
@@ -46,7 +47,10 @@ fun main() {
         azureADClient = azureADClient,
         engine = engine,
     )
-    val pdfClient = PdfClient(
+    val pdfGeneratorClient = PdfGeneratorClient(
+        engine = engine,
+    )
+    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(
         engine = engine,
     )
     val førstesidegeneratorClient = FørstesidegeneratorClient(
@@ -56,7 +60,8 @@ fun main() {
 
     // Services
     val journalpostService = JournalpostService(
-        pdfClient = pdfClient,
+        pdfGeneratorClient = pdfGeneratorClient,
+        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
         dokarkivClient = dokarkivClient,
         safClient = safClient,
         førstesidegeneratorClient = førstesidegeneratorClient,

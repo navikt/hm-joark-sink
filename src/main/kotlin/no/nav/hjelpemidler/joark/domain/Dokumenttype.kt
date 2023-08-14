@@ -41,5 +41,14 @@ enum class Dokumenttype(
         tittel = "Innvilgelse: Vedtaksbrev barnebriller",
         dokumenttittel = "Innvilgelse: Tilskudd ved kjøp av briller til barn",
     ),
+    INNHENTE_OPPLYSNINGER_BARNEBRILLER(
+        brevkode = "innhente_opplysninger_barnebriller",
+        tittel = "Briller til barn: NAV etterspør opplysninger",
+        dokumenttittel = "Briller til barn: NAV etterspør opplysninger",
+    ),
     ;
 }
+
+val brevkodeForEttersendelse: Map<Dokumenttype, String> = mapOf(
+    Dokumenttype.INNHENTE_OPPLYSNINGER_BARNEBRILLER to Dokumenttype.TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN.brevkode,
+)

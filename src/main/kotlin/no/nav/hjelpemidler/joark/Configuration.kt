@@ -13,8 +13,11 @@ object Configuration {
     val FORSTESIDEGENERATOR_BASE_URL by EnvironmentVariable
     val FORSTESIDEGENERATOR_SCOPE by EnvironmentVariable
 
+    // Søknad PDF-generator
+    val SOKNAD_PDFGEN_BASE_URL by EnvironmentVariable
+
     // PDF-generator
-    val PDF_BASE_URL by EnvironmentVariable
+    val PDF_GENERATOR_BASE_URL by EnvironmentVariable
 
     // SAF
     val SAF_GRAPHQL_URL by EnvironmentVariable

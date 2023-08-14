@@ -2,11 +2,6 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
-import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
-import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
-import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
-import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.dokarkiv.models.Dokument
@@ -17,13 +12,20 @@ import no.nav.hjelpemidler.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.dokarkiv.models.Sak
+import no.nav.hjelpemidler.http.withCorrelationId
+import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
+import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
+import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
-import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
-import no.nav.hjelpemidler.joark.pdf.PdfClient
+import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
+import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
@@ -38,25 +40,45 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 
 class JournalpostService(
-    private val pdfClient: PdfClient,
+    private val pdfGeneratorClient: PdfGeneratorClient,
+    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
     private val dokarkivClient: DokarkivClient,
     private val safClient: SafClient,
     private val førstesidegeneratorClient: FørstesidegeneratorClient,
 ) {
     suspend fun genererPdf(søknadJson: JsonNode): ByteArray {
-        val fysiskDokument = pdfClient.genererSøknadPdf(
+        val fysiskDokument = søknadPdfGeneratorClient.genererPdfSøknad(
             jsonMapper.writeValueAsString(søknadJson),
         )
+
         Prometheus.pdfGenerertCounter.inc()
+
         return fysiskDokument
     }
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
-        val fysiskDokument = pdfClient.genererBarnebrillePdf(
+        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
             jsonMapper.writeValueAsString(data),
         )
+
         Prometheus.pdfGenerertCounter.inc()
+
         return fysiskDokument
+    }
+
+    suspend fun genererFørsteside(
+        tittel: String,
+        fnrBruker: String,
+        dokument: ByteArray,
+        block: OpprettFørstesideRequestConfigurer.() -> Unit = {},
+    ): ByteArray {
+        val lagRequest = OpprettFørstesideRequestConfigurer(tittel, fnrBruker).apply(block)
+
+        log.info { "Lager førsteside til dokument, tittel: '${lagRequest.tittel}', brevkode: ${lagRequest.brevkode}" }
+
+        val førsteside = førstesidegeneratorClient.lagFørsteside(lagRequest())
+
+        return pdfGeneratorClient.kombinerPdf(dokument, førsteside.fysiskDokument)
     }
 
     suspend fun opprettInngåendeJournalpost(
@@ -72,18 +94,23 @@ class JournalpostService(
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
         ).apply(block)
+
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill
         )
+
         val journalpostId = journalpost.journalpostId
         val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
         val ferdigstilt = journalpost.journalpostferdigstilt
         val datoMottatt = lagOpprettJournalpostRequest.datoMottatt
+
         log.info {
             "Inngående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt, datoMottatt: $datoMottatt"
         }
+
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+
         journalpostId
     }
 
@@ -100,29 +127,22 @@ class JournalpostService(
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
         ).apply(block)
-        val opprettFørstesideRequest = lagOpprettJournalpostRequest.opprettFørstesideRequest
-        if (opprettFørstesideRequest != null) {
-            try {
-                val førsteside = førstesidegeneratorClient.lagFørsteside(
-                    opprettFørstesideRequest
-                )
-                lagOpprettJournalpostRequest.dokument(førsteside)
-            } catch (e: Exception) {
-                // fixme -> fjernes når stabilt, river skal feile hvis førsteside ikke blir laget
-                log.error(e) { "Feil under generering av førsteside" }
-            }
-        }
+
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill
         )
+
         val journalpostId = journalpost.journalpostId
         val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
         val ferdigstilt = journalpost.journalpostferdigstilt
+
         log.info {
             "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
         }
+
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+
         journalpostId
     }
 
@@ -157,10 +177,13 @@ class JournalpostService(
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null
         }
+
         log.info {
             "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
         }
+
         Prometheus.søknadArkivertCounter.inc()
+
         journalpostId
     }
 
