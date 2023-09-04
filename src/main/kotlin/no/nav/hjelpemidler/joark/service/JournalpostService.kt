@@ -97,7 +97,7 @@ class JournalpostService(
 
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
-            forsøkFerdigstill = forsøkFerdigstill
+            forsøkFerdigstill = forsøkFerdigstill,
         )
 
         val journalpostId = journalpost.journalpostId
@@ -130,7 +130,7 @@ class JournalpostService(
 
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
-            forsøkFerdigstill = forsøkFerdigstill
+            forsøkFerdigstill = forsøkFerdigstill,
         )
 
         val journalpostId = journalpost.journalpostId
@@ -222,7 +222,7 @@ class JournalpostService(
                     Dokument(
                         brevkode = dokument.brevkode,
                         dokumentvarianter = dokumentvarianter,
-                        tittel = dokument.tittel
+                        tittel = dokument.tittel,
                     )
                 } ?: emptyList()
 
@@ -242,7 +242,7 @@ class JournalpostService(
 
             val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(
                 opprettJournalpostRequest = opprettJournalpostRequest,
-                forsøkFerdigstill = false
+                forsøkFerdigstill = false,
             )
             val nyJournalpostId = opprettJournalpostResponse.journalpostId
 
@@ -280,7 +280,7 @@ class JournalpostService(
         val journalstatus = journalpost.journalstatus
 
         log.info {
-            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus"
+            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}"
         }
 
         val dokumenter = when {
@@ -289,7 +289,7 @@ class JournalpostService(
                 DokumentInfo(
                     dokumentInfoId = dokumentId,
                     tittel = dokumenttittel,
-                )
+                ),
             )
         }
 
@@ -303,14 +303,14 @@ class JournalpostService(
                         sak = fagsakHjelpemidler(sakId),
                         tema = Tema.HJE.toString(),
                         dokumenter = dokumenter,
-                    )
+                    ),
                 )
 
                 dokarkivClient.ferdigstillJournalpost(
                     journalpostId = journalpostId,
                     ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
                         journalfoerendeEnhet = journalførendeEnhet,
-                    )
+                    ),
                 )
 
                 journalpostId
@@ -332,7 +332,7 @@ class JournalpostService(
                         journalfoerendeEnhet = journalførendeEnhet,
                         sakstype = KnyttTilAnnenSakRequest.Sakstype.FAGSAK,
                         tema = Tema.HJE.toString(),
-                    )
+                    ),
                 )
 
                 val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
@@ -344,7 +344,7 @@ class JournalpostService(
                 if (dokumenter != null) {
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
-                        OppdaterJournalpostRequest(dokumenter = dokumenter)
+                        OppdaterJournalpostRequest(dokumenter = dokumenter),
                     )
                 }
 
