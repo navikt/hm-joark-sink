@@ -295,16 +295,31 @@ class JournalpostService(
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                dokarkivClient.oppdaterJournalpost(
-                    journalpostId = journalpostId,
-                    oppdaterJournalpostRequest = OppdaterJournalpostRequest(
-                        avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                        bruker = brukerMedFnr(fnrBruker),
-                        sak = fagsakHjelpemidler(sakId),
-                        tema = Tema.HJE.toString(),
-                        dokumenter = dokumenter,
-                    ),
-                )
+                if (journalpostId in listOf("625194715", "625087510") && journalpost.tittel == null) {
+                    log.info("Patch tittel på journalposter uten tittel 625194715 og 625087510")
+                    dokarkivClient.oppdaterJournalpost(
+                        journalpostId = journalpostId,
+                        oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                            bruker = brukerMedFnr(fnrBruker),
+                            sak = fagsakHjelpemidler(sakId),
+                            tema = Tema.HJE.toString(),
+                            dokumenter = dokumenter,
+                            tittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn",
+                        ),
+                    )
+                } else {
+                    dokarkivClient.oppdaterJournalpost(
+                        journalpostId = journalpostId,
+                        oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
+                            bruker = brukerMedFnr(fnrBruker),
+                            sak = fagsakHjelpemidler(sakId),
+                            tema = Tema.HJE.toString(),
+                            dokumenter = dokumenter,
+                        ),
+                    )
+                }
 
                 dokarkivClient.ferdigstillJournalpost(
                     journalpostId = journalpostId,
