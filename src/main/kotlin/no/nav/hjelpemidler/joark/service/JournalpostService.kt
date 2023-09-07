@@ -304,7 +304,15 @@ class JournalpostService(
                             bruker = brukerMedFnr(fnrBruker),
                             sak = fagsakHjelpemidler(sakId),
                             tema = Tema.HJE.toString(),
-                            dokumenter = dokumenter,
+                            dokumenter = dokumenter?.map { dok ->
+                                if (dok.tittel.isNullOrBlank()) {
+                                    dok.copy(
+                                        tittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
+                                    )
+                                } else {
+                                    dok
+                                }
+                            },
                             tittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn",
                         ),
                     )
