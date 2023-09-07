@@ -295,7 +295,7 @@ class JournalpostService(
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                if (journalpostId in listOf("625586713") && journalpost.tittel == null) {
+                if (journalpostId in listOf("625586713")) {
                     log.info("Patch tittel på journalposter uten tittel 625586713")
                     dokarkivClient.oppdaterJournalpost(
                         journalpostId = journalpostId,
