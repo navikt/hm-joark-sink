@@ -296,7 +296,8 @@ class JournalpostService(
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
                 if (journalpostId in listOf("625586713")) {
-                    log.info("Patch tittel på journalposter uten tittel 625586713")
+                    log.info("Patch tittel på journalposter uten tittel $journalpostId")
+                    val overskrivTittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
                     dokarkivClient.oppdaterJournalpost(
                         journalpostId = journalpostId,
                         oppdaterJournalpostRequest = OppdaterJournalpostRequest(
@@ -307,13 +308,13 @@ class JournalpostService(
                             dokumenter = dokumenter?.map { dok ->
                                 if (dok.tittel.isNullOrBlank()) {
                                     dok.copy(
-                                        tittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
+                                        tittel = overskrivTittel
                                     )
                                 } else {
                                     dok
                                 }
                             },
-                            tittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn",
+                            tittel = overskrivTittel,
                         ),
                     )
                 } else {
