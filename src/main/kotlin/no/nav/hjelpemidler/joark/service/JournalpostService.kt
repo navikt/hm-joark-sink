@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
@@ -295,7 +296,7 @@ class JournalpostService(
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                if (journalpostId in listOf("625586713", "453842477")) {
+                if (journalpost.tittel == null && journalpostId in listOf("625586713", "453842477")) {
                     log.info("Patch tittel på journalposter uten tittel $journalpostId")
                     val overskrivTittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
                     dokarkivClient.oppdaterJournalpost(
