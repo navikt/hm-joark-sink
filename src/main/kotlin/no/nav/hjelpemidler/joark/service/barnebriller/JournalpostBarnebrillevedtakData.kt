@@ -28,13 +28,14 @@ data class JournalpostBarnebrillevedtakData(
     val dokumenttype: Dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER,
 ) {
     @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
+    fun toJson(journalpostId: String, dokumentIder: List<String>, eventName: String): String {
         return JsonMessage("{}", MessageProblems("")).also {
             it["fnr"] = this.fnr
             it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()
             it["orgnr"] = this.orgnr
             it["joarkRef"] = journalpostId
+            it["dokumentIder"] = dokumentIder
             it["sakId"] = this.sakId
             it["dokumentTittel"] = this.dokumenttype.tittel
             it["eventId"] = UUID.randomUUID()

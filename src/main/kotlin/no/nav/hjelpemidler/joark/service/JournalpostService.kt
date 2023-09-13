@@ -87,7 +87,7 @@ class JournalpostService(
         dokumenttype: Dokumenttype,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
-    ): String = withCorrelationId {
+    ) = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
             fnrAvsenderMottaker = fnrAvsender,
@@ -111,7 +111,7 @@ class JournalpostService(
 
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
 
-        journalpostId
+        journalpost
     }
 
     suspend fun opprettUtgåendeJournalpost(
@@ -176,7 +176,7 @@ class JournalpostService(
             this.eksternReferanseId = eksternReferanseId
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null
-        }
+        }.journalpostId
 
         log.info {
             "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"

@@ -75,7 +75,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     )
                     hotsak(data.sakId)
                     eksternReferanseId = data.soknadId.toString() + "HOTSAK"
-                }
+                }.journalpostId
                 forward(journalpostId, data, context)
             }
         }

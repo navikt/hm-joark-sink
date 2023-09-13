@@ -13,8 +13,10 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
@@ -88,7 +90,7 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                 )
                 log.info { "Sak til journalføring barnebriller mottatt, sakId: ${data.sakId}" }
                 val fysiskDokument = journalpostService.genererPdf(data)
-                val journalpostId = journalpostService.opprettInngåendeJournalpost(
+                val journalpost = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnr,
                     dokumenttype = data.dokumenttype,
                     forsøkFerdigstill = true,
@@ -98,13 +100,13 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                     eksternReferanseId = "${data.sakId}BARNEBRILLEAPI"
                     datoMottatt = data.opprettet
                 }
-                forward(journalpostId, data, context)
+                forward(journalpost, data, context)
             }
         }
     }
 
     private fun CoroutineScope.forward(
-        journalpostId: String,
+        journalpost: OpprettJournalpostResponse,
         data: JournalpostBarnebrillevedtakData,
         context: MessageContext,
     ) {
@@ -112,7 +114,11 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
         launch(Dispatchers.IO + SupervisorJob()) {
             context.publish(
                 fnr,
-                data.toJson(journalpostId, "hm-opprettetOgFerdigstiltBarnebrillerJournalpost")
+                data.toJson(
+                    journalpost.journalpostId,
+                    journalpost.dokumenter?.mapNotNull { it.dokumentInfoId } ?: listOf(),
+                    "hm-opprettetOgFerdigstiltBarnebrillerJournalpost",
+                )
             )
         }.invokeOnCompletion {
             val sakId = data.sakId
