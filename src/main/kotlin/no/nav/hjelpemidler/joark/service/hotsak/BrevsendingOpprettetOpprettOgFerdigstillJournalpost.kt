@@ -33,6 +33,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "dokumenttype",
                         "språkkode",
                     )
+                    it.interestedIn("brevsendingId")
                 }
             }
             .register(this)
@@ -59,14 +60,18 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.språkkode: Språkkode
         get() = this["språkkode"].textValue().let(Språkkode::valueOf)
 
+    private val JsonMessage.brevsendingId: String?
+        get() = this["brevsendingId"].textValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
+        val brevsendingId = packet.brevsendingId
 
-        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype" }
+        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId" }
 
         val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
             null -> packet.fysiskDokument
@@ -94,6 +99,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
+            val brevsendingId: String?,
         )
 
         context.publish(
@@ -105,6 +111,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,
+                brevsendingId = brevsendingId,
             )
         )
     }
