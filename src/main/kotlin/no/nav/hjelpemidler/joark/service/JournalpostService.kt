@@ -28,6 +28,7 @@ import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
+import no.nav.hjelpemidler.saf.HentDokumentoversiktSak
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
@@ -269,6 +270,18 @@ class JournalpostService(
         oppdaterJournalpostResponse.journalpostId
     }
 
+
+    suspend fun hentJournalposterSak(
+        sakId: String,
+    ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId("sakId" to sakId) {
+        log.info {
+            "Henter journalposter for sak: $sakId"
+        }
+
+        safClient.hentJournalposterSak(sakId)
+    }
+
+
     suspend fun ferdigstillJournalpost(
         journalpostId: String,
         journalførendeEnhet: String,
@@ -343,9 +356,10 @@ class JournalpostService(
 
             Journalstatus.FEILREGISTRERT,
             Journalstatus.JOURNALFOERT,
+            Journalstatus.FERDIGSTILT
             -> {
                 log.info {
-                    "Journalpost er allerede journalført eller feilregistrert, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
+                    "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
                 }
 
                 val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(

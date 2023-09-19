@@ -1,0 +1,13 @@
+query HentDokumentoversiktSak($fagsakId: String!) {
+  dokumentoversiktFagsak(
+    fagsak: { fagsakId: $fagsakId, fagsaksystem: "HJELPEMIDLER" },
+    tema: HJE,
+    journalstatuser: [JOURNALFOERT, FERDIGSTILT, EKSPEDERT]
+    foerste: 100
+  ) {
+    journalposter {
+      journalpostId,
+      journalstatus
+    }
+  }
+}
