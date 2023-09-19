@@ -55,7 +55,7 @@ class KnyttJournalposterTilNySak(
 
         val journalposter = journalpostService.hentJournalposterSak(fraSakId)
 
-        log.info { "${journalposter.map { it.journalpostId }} knyttes til sakId: $tilSakId" }
+        log.info { "Journalposter med id: ${journalposter.map { it.journalpostId }} knyttes til sakId: $tilSakId" }
 
         val nyeJournalposter = journalposter.map {
             it.journalpostId to journalpostService.ferdigstillJournalpost(
@@ -70,7 +70,7 @@ class KnyttJournalposterTilNySak(
 
         val nyJournalpostIdByJournalpostId = nyeJournalposter.toMap()
 
-        log.info { "$nyJournalpostIdByJournalpostId, sakId: $tilSakId" }
+        log.info { "Journalposter med opprinneligId/nyId: $nyJournalpostIdByJournalpostId, sakId: $tilSakId" }
 
         context.publish(
             key = fnrBruker,
