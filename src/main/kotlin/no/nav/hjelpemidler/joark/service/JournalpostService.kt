@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.joark.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
-import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
@@ -28,7 +27,6 @@ import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
-import no.nav.hjelpemidler.saf.HentDokumentoversiktSak
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
@@ -275,12 +273,11 @@ class JournalpostService(
         sakId: String,
     ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId("sakId" to sakId) {
         log.info {
-            "Henter journalposter for sak: $sakId"
+            "Henter journalposter for sakId: $sakId"
         }
 
         safClient.hentJournalposterSak(sakId)
     }
-
 
     suspend fun ferdigstillJournalpost(
         journalpostId: String,
@@ -356,7 +353,7 @@ class JournalpostService(
 
             Journalstatus.FEILREGISTRERT,
             Journalstatus.JOURNALFOERT,
-            Journalstatus.FERDIGSTILT
+            Journalstatus.FERDIGSTILT,
             -> {
                 log.info {
                     "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"

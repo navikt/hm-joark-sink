@@ -50,10 +50,12 @@ class KnyttJournalposterTilNySak(
         val journalførendeEnhet = packet.journalførendeEnhet
 
         log.info {
-            "Knytter journalposter for sak $fraSakId til sak $tilSakId"
+            "Knytter journalposter for sakId: $fraSakId til sakId: $tilSakId"
         }
 
         val journalposter = journalpostService.hentJournalposterSak(fraSakId)
+
+        log.info { "${journalposter.map { it.journalpostId }} knyttes til sakId: $tilSakId" }
 
         val nyeJournalposter = journalposter.map {
             it.journalpostId to journalpostService.ferdigstillJournalpost(
@@ -66,6 +68,10 @@ class KnyttJournalposterTilNySak(
             )
         }
 
+        val nyJournalpostIdByJournalpostId = nyeJournalposter.toMap()
+
+        log.info { "$nyJournalpostIdByJournalpostId, sakId: $tilSakId" }
+
         context.publish(
             key = fnrBruker,
             message = JournalposterTilknyttetSak(
@@ -73,7 +79,7 @@ class KnyttJournalposterTilNySak(
                 tilSakId = tilSakId,
                 fnrBruker = fnrBruker,
                 journalførendeEnhet = journalførendeEnhet,
-                journalposter = nyeJournalposter.toMap()
+                journalposter = nyJournalpostIdByJournalpostId
             )
         )
     }
