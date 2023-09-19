@@ -19,7 +19,6 @@ import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.saf.enums.Variantformat
-import no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Dokumentoversikt
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.net.URL
 
@@ -63,7 +62,7 @@ class SafClient(
         return result.journalpost
     }
 
-    suspend fun hentJournalposterSak(sakId: String): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> {
+    suspend fun hentJournalposterForSak(sakId: String): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> {
         val tokenSet = azureADClient.grant(scope)
         val response =
             clientGraphQL.execute(HentDokumentoversiktSak(HentDokumentoversiktSak.Variables(fagsakId = sakId))) {

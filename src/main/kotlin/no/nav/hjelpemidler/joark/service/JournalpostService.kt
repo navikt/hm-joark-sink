@@ -269,14 +269,13 @@ class JournalpostService(
     }
 
 
-    suspend fun hentJournalposterSak(
+    suspend fun hentJournalposterForSak(
         sakId: String,
     ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId("sakId" to sakId) {
         log.info {
             "Henter journalposter for sakId: $sakId"
         }
-
-        safClient.hentJournalposterSak(sakId)
+        safClient.hentJournalposterForSak(sakId)
     }
 
     suspend fun ferdigstillJournalpost(
@@ -352,8 +351,8 @@ class JournalpostService(
             }
 
             Journalstatus.FEILREGISTRERT,
-            Journalstatus.JOURNALFOERT,
             Journalstatus.FERDIGSTILT,
+            Journalstatus.JOURNALFOERT,
             -> {
                 log.info {
                     "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
