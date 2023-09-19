@@ -58,6 +58,8 @@ class KnyttJournalposterTilNySak(
         log.info { "Journalposter med id: ${journalposter.map { it.journalpostId }} knyttes til sakId: $tilSakId" }
 
         val nyeJournalposter = journalposter.map {
+            journalpostService.feilregistrerSakstilknytning(it.journalpostId)
+
             it.journalpostId to journalpostService.ferdigstillJournalpost(
                 journalpostId = it.journalpostId,
                 journalførendeEnhet = journalførendeEnhet,
