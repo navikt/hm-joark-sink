@@ -309,7 +309,8 @@ class JournalpostService(
                         "626556692",
                         "626442819",
                         "626419519",
-                        "627280086"
+                        "627280086",
+                        "627777403",
                     )
                 ) {
                     log.info("Patch tittel på journalposter uten tittel $journalpostId")
