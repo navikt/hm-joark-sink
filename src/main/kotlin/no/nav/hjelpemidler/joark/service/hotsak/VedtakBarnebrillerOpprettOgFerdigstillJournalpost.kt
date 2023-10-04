@@ -13,8 +13,8 @@ import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.time.LocalDateTime
 import java.util.UUID
@@ -42,7 +42,8 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "pdf"
                 )
                 it.interestedIn(
-                    "vedtaksstatus"
+                    "vedtaksstatus",
+                    "opprettetAv"
                 )
             }
         }.register(this)
@@ -55,6 +56,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
     private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue()?.let(Vedtaksstatus::valueOf)
+    private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         coroutineScope {
@@ -84,6 +86,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     dokument(fysiskDokument = data.pdf)
                     hotsak(sakId)
                     eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
+                    opprettetAv = packet.opprettetAv
                 }
                 forward(journalpostId, data, context)
             }
