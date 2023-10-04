@@ -131,6 +131,7 @@ class JournalpostService(
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill,
+            opprettetAv = lagOpprettJournalpostRequest.opprettetAv
         )
 
         val journalpostId = journalpost.journalpostId
