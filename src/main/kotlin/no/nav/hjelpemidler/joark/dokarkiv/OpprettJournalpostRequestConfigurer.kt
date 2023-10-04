@@ -22,6 +22,8 @@ class OpprettJournalpostRequestConfigurer(
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"
 
+    var opprettetAv: String? = null
+
     var dokumenter = mutableListOf<Dokument>()
         private set
 

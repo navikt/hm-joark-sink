@@ -37,7 +37,7 @@ class FeilregistrerJournalpostBarnebriller(
     private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val eventId = packet.eventId
+        val eventId = checkNotNull(packet.eventId)
         val sakId = packet.sakId
         val journalpostId = packet.journalpostId
         val opprettet = packet.opprettet

@@ -37,6 +37,7 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.ktor.navUserId
 
 private val log = KotlinLogging.logger {}
 private val secureLog = KotlinLogging.logger("tjenestekall")
@@ -74,6 +75,7 @@ class DokarkivClient(
     suspend fun opprettJournalpost(
         opprettJournalpostRequest: OpprettJournalpostRequest,
         forsøkFerdigstill: Boolean = false,
+        opprettetAv: String? = null,
     ): OpprettJournalpostResponse {
         val url = "journalpost"
         val eksternReferanseId = opprettJournalpostRequest.eksternReferanseId
@@ -82,6 +84,7 @@ class DokarkivClient(
         }
         val response = client.post(url) {
             parameter("forsoekFerdigstill", forsøkFerdigstill)
+            navUserId(opprettetAv)
             setBody(opprettJournalpostRequest)
         }
         val journalpost: OpprettJournalpostResponse = when (response.status) {

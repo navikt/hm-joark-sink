@@ -33,7 +33,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "dokumenttype",
                         "språkkode",
                     )
-                    it.interestedIn("brevsendingId")
+                    it.interestedIn("brevsendingId", "opprettetAv")
                 }
             }
             .register(this)
@@ -63,6 +63,9 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.brevsendingId: String?
         get() = this["brevsendingId"].textValue()
 
+    private val JsonMessage.opprettetAv: String?
+        get() = this["opprettetAv"].textValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
@@ -70,6 +73,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
         val brevsendingId = packet.brevsendingId
+        val opprettetAv = packet.opprettetAv
 
         log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId" }
 
@@ -89,6 +93,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         ) {
             dokument(fysiskDokument)
             hotsak(sakId)
+            this.opprettetAv = opprettetAv
         }
 
         @Hendelse("hm-brevsending-journalført")
@@ -100,6 +105,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
             val brevsendingId: String?,
+            val opprettetAv: String?,
         )
 
         context.publish(
@@ -107,11 +113,12 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             message = BrevsendingJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
-                fnrMottaker = packet.fnrMottaker,
+                fnrMottaker = fnrMottaker,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,
                 brevsendingId = brevsendingId,
+                opprettetAv = opprettetAv,
             )
         )
     }
