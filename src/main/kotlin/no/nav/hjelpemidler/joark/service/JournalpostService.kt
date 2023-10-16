@@ -215,8 +215,8 @@ class JournalpostService(
                 "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}, type: $journalposttype, status: ${journalpost.journalstatus}, kanal: ${journalpost.kanal}"
             }
 
-            if (journalposttype != Journalposttype.I) {
-                error("Kun støtte for å kopiere inngående journalposter, journalpostId: $journalpostId har type: $journalposttype")
+            require(journalposttype == Journalposttype.I) {
+                "Kun støtte for å kopiere inngående journalposter, journalpostId: $journalpostId har type: $journalposttype"
             }
 
             val dokumenter = journalpost.dokumenter?.filterNotNull()
