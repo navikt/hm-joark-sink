@@ -34,6 +34,18 @@ dependencies {
     testImplementation(libs.bundles.test)
 }
 
+val jdkVersion = 17
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+    }
+}
+
+kotlin {
+    jvmToolchain(jdkVersion)
+}
+
 tasks.test {
     useJUnitPlatform()
     testLogging {
@@ -45,7 +57,6 @@ tasks.test {
 }
 
 tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "17"
     dependsOn(tasks.openApiGenerate, førstesidegenerator)
 }
 

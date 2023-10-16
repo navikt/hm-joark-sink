@@ -206,7 +206,7 @@ class JournalpostService(
             val journalpost = hentJournalpost(journalpostId)
 
             log.info {
-                "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}"
+                "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}, type: ${journalpost.journalposttype}, status: ${journalpost.journalstatus}, kanal: ${journalpost.kanal}"
             }
 
             val dokumenter = journalpost.dokumenter?.filterNotNull()
