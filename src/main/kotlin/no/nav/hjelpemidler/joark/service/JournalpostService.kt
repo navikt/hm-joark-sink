@@ -197,6 +197,10 @@ class JournalpostService(
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
         }
 
+    /**
+     * Kopier journalpost ved å hente den fra SAF og lage [OpprettJournalpostRequest] basert på svaret.
+     * Brukes når vi vil at videre behandling av journalpost skal skje i  Gosys / Infotrygd.
+     */
     suspend fun kopierJournalpost(
         journalpostId: String,
         nyEksternReferanseId: String,
@@ -204,9 +208,14 @@ class JournalpostService(
     ): String =
         withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
             val journalpost = hentJournalpost(journalpostId)
+            val journalposttype = journalpost.journalposttype
 
             log.info {
-                "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}, type: ${journalpost.journalposttype}, status: ${journalpost.journalstatus}, kanal: ${journalpost.kanal}"
+                "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}, type: $journalposttype, status: ${journalpost.journalstatus}, kanal: ${journalpost.kanal}"
+            }
+
+            if (journalposttype != Journalposttype.I) {
+                error("Kun støtte for å kopiere inngående journalposter, journalpostId: $journalpostId har type: $journalposttype")
             }
 
             val dokumenter = journalpost.dokumenter?.filterNotNull()
@@ -229,7 +238,7 @@ class JournalpostService(
 
             val opprettJournalpostRequest = OpprettJournalpostRequest(
                 dokumenter = dokumenter,
-                journalposttype = journalpost.journalposttype.toDokarkiv(),
+                journalposttype = journalposttype.toDokarkiv(),
                 avsenderMottaker = journalpost.avsenderMottaker.toDokarkiv(),
                 behandlingstema = journalpost.behandlingstema,
                 bruker = journalpost.bruker.toDokarkiv(),
