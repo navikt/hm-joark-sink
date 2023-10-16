@@ -32,6 +32,7 @@ import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
 import no.nav.hjelpemidler.saf.enums.BrukerIdType
 import no.nav.hjelpemidler.saf.enums.Journalposttype
 import no.nav.hjelpemidler.saf.enums.Journalstatus
+import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
@@ -245,7 +246,7 @@ class JournalpostService(
                 datoDokument = journalpost.datoOpprettet,
                 eksternReferanseId = nyEksternReferanseId,
                 journalfoerendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
-                kanal = journalpost.kanal.toString(),
+                kanal = journalpost.kanal.toDokarkiv(),
                 tema = journalpost.tema.toString(),
                 tittel = journalpost.tittel.toString(),
             )
@@ -452,5 +453,13 @@ class JournalpostService(
             id == null -> null
             type == null -> null
             else -> Bruker(id, type.toDokarkiv())
+        }
+
+    private fun Kanal?.toDokarkiv(): String? =
+        when (this) {
+            null -> null
+            Kanal.LOKAL_UTSKRIFT -> "L"
+            Kanal.SENTRAL_UTSKRIFT -> "S"
+            else -> name
         }
 }
