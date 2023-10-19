@@ -26,6 +26,11 @@ enum class Dokumenttype(
         tittel = "Vedtaksbrev barnebriller",
         dokumenttittel = "Tilskudd ved kjøp av briller til barn via optiker"
     ),
+    VEDTAKSBREV_BARNEBRILLER_OPTIKER_AVVISNING(
+        brevkode = "vedtaksbrev_barnebriller_optiker_avvisning",
+        tittel = "Avvisning barnebriller",
+        dokumenttittel = "Avvisning av tilskudd til kjøp av briller til barn via optiker",
+    ),
     VEDTAKSBREV_BARNEBRILLER_HOTSAK(
         brevkode = "vedtaksbrev_barnebriller_hotsak",
         tittel = "Vedtaksbrev barnebriller",

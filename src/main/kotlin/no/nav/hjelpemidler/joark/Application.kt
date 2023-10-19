@@ -6,6 +6,8 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.openid.azureADClient
+import no.nav.hjelpemidler.joark.brev.BrevClient
+import no.nav.hjelpemidler.joark.brev.BrevService
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
@@ -14,6 +16,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebrillerAvvisning
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
@@ -58,6 +61,7 @@ fun main() {
         azureADClient = azureADClient,
         engine = engine,
     )
+    val brevClient = BrevClient()
 
     // Services
     val journalpostService = JournalpostService(
@@ -66,6 +70,9 @@ fun main() {
         dokarkivClient = dokarkivClient,
         safClient = safClient,
         førstesidegeneratorClient = førstesidegeneratorClient,
+    )
+    val brevService = BrevService(
+        brevClient = brevClient,
     )
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
@@ -85,6 +92,7 @@ fun main() {
             // Barnebriller
             FeilregistrerJournalpostBarnebriller(this, journalpostService)
             OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
+            OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
             ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }

@@ -212,3 +212,8 @@ fun fagsakBarnebriller(sakId: String): Sak =
         fagsaksystem = Sak.Fagsaksystem.BARNEBRILLER,
         sakstype = Sak.Sakstype.FAGSAK,
     )
+
+fun generellSak(): Sak =
+    Sak(
+        sakstype = Sak.Sakstype.GENERELL_SAK,
+    )

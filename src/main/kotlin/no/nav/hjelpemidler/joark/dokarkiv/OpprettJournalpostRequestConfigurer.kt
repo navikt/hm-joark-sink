@@ -55,6 +55,10 @@ class OpprettJournalpostRequestConfigurer(
         sak = fagsakBarnebriller(sakId)
     }
 
+    fun optikerGenerellSak() {
+        sak = generellSak()
+    }
+
     operator fun invoke(): OpprettJournalpostRequest {
         check(dokumenter.isNotEmpty()) {
             "Ingen dokumenter er lagt til!"
