@@ -114,45 +114,9 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                 log.info("DEBUG: avvisning: journalpostId: $journalpostId")
 
                 // TODO: Svar tilbake til kafka med avvisningsbrevets journalpostId og dokumentId?
-                // forward(journalpost, data, context)
             }
         }
     }
-
-    /*private fun CoroutineScope.forward(
-        journalpost: OpprettJournalpostResponse,
-        data: JournalpostBarnebrillevedtakData,
-        context: MessageContext,
-    ) {
-        val fnr = data.fnr
-        launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(
-                fnr,
-                data.toJson(
-                    journalpost.journalpostId,
-                    journalpost.dokumenter?.mapNotNull { it.dokumentInfoId } ?: listOf(),
-                    "hm-opprettetOgFerdigstiltBarnebrillerJournalpost",
-                )
-            )
-        }.invokeOnCompletion {
-            val sakId = data.sakId
-            when (it) {
-                null -> {
-                    log.info {
-                        "Opprettet og ferdigstilte journalpost for barnebriller i joark for sakId: $sakId"
-                    }
-                    secureLog.info {
-                        "Opprettet og ferdigstilte journalpost for barnebriller for sakId: $sakId, fnr: $fnr"
-                    }
-                }
-
-                is CancellationException -> log.warn(it) { "Cancelled" }
-                else -> log.error(it) {
-                    "Kunne ikke opprette og ferdigstille journalpost for barnebriller, sakId: $sakId"
-                }
-            }
-        }
-    }*/
 
     companion object {
         data class Brilleseddel(
