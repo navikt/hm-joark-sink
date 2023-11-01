@@ -6,12 +6,12 @@ import mu.KotlinLogging
 private val log = KotlinLogging.logger {}
 
 class BrevService(val brevClient: BrevClient) {
-    suspend fun lagAvvisningsBrev(flettefelter: FlettefelterAvvisning, begrunnelser: List<String>, målform: Målform = Målform.BOKMÅL, viseNavAdresse: Boolean = true): ByteArray {
+    suspend fun lagAvvisningsBrev(flettefelter: FlettefelterAvvisning, begrunnelser: List<String>, målform: Målform = Målform.BOKMÅL): ByteArray {
         log.info("Lager avvisningsbrev for optiker")
         val reqData = HentAvvisningsbrevRequest(
             flettefelter = flettefelter,
-            begrunnelser = begrunnelser, // Felt: Årsaker
-            betingelser = Betingelser(viseNavAdresse = viseNavAdresse),
+            begrunnelser = begrunnelser,
+            betingelser = Betingelser(viseNavAdresse = false, viseNavAdresseHoT = true),
         )
 
         val req = HentBrevRequest(
@@ -57,6 +57,7 @@ data class FlettefelterAvvisning(
 
 data class Betingelser(
     val viseNavAdresse: Boolean,
+    val viseNavAdresseHoT: Boolean,
 )
 
 data class HentAvvisningsbrevRequest(
