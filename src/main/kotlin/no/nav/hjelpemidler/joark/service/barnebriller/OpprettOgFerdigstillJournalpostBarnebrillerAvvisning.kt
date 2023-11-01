@@ -18,6 +18,8 @@ import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.uuidValue
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -64,21 +66,24 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         log.info("Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId=${packet.eventId})")
 
+        val locale = Locale.forLanguageTag("nb-NO")
+        val f = DateTimeFormatter.ofPattern("dd. MMMM yyyy").withLocale(locale)
+
         coroutineScope {
             launch {
                 // Generer fysisk dokument
                 val flettefelter = FlettefelterAvvisning(
-                    brevOpprettetDato = packet.opprettet.toLocalDate().toString(),
+                    brevOpprettetDato = packet.opprettet.toLocalDate().format(f),
                     barnetsFulleNavn = packet.navnBarn,
                     barnetsFodselsnummer = packet.fnrBarn,
-                    mottattDato = packet.opprettet.toLocalDate().toString(),
-                    bestillingsDato = packet.bestillingsdato.toString(),
+                    mottattDato = packet.opprettet.toLocalDate().format(f),
+                    bestillingsDato = packet.bestillingsdato.format(f),
                     optikerForretning = "${packet.orgNavn} (${packet.orgnr})",
                     sfæriskStyrkeHøyre = packet.brilleseddel.høyreSfære.toString(),
                     sfæriskStyrkeVenstre = packet.brilleseddel.venstreSfære.toString(),
                     cylinderstyrkeHøyre = packet.brilleseddel.høyreSylinder.toString(),
                     cylinderstyrkeVenstre = packet.brilleseddel.venstreSylinder.toString(),
-                    forrigeBrilleDato = packet.eksisterendeVedtakDato?.toString() ?: "",
+                    forrigeBrilleDato = packet.eksisterendeVedtakDato?.format(f) ?: "",
                 )
 
                 val årsaker = packet.årsaker.map {
