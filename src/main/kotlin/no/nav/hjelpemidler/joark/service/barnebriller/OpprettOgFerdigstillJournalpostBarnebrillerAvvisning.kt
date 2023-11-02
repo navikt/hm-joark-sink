@@ -61,7 +61,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
     private val JsonMessage.brilleseddel get() = this["brilleseddel"].let { jsonMapper.readValue<Brilleseddel>(it.toString()) }
     private val JsonMessage.bestillingsdato get() = this["bestillingsdato"].asLocalDate()
     private val JsonMessage.eksisterendeVedtakDato get() = this["eksisterendeVedtakDato"].asOptionalLocalDate()
-    private val JsonMessage.årsaker get() = this["årsaker"].let { it.toList().map { it.textValue() } }
+    private val JsonMessage.årsaker get() = this["årsaker"].let { it.toList().mapNotNull { it.textValue() } }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         log.info("Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId=${packet.eventId})")
@@ -87,19 +87,17 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                 )
 
                 val årsaker = packet.årsaker.map {
-                    when (it!!) {
+                    when (it) {
                         "HarIkkeVedtakIKalenderåret" -> "avslagEksisterendeVedtak"
                         "Under18ÅrPåBestillingsdato" -> "avslagOver18"
                         "MedlemAvFolketrygden" -> "avslagIkkeMedlem"
                         "Brillestyrke" -> "avslagForLavBrillestyrke"
                         "Bestillingsdato" -> "avslagBestillingsdatoEldreEnn6Mnd"
                         else -> {
-                            throw RuntimeException("Ukjent identifikator fra brille-api mottatt, kan ikke opprette avvisningsbrev (årsak=${it!!})")
+                            throw RuntimeException("Ukjent identifikator fra brille-api mottatt, kan ikke opprette avvisningsbrev (årsak=${it})")
                         }
                     }
                 }
-
-                log.info("DEBUG: avvisning: flettefelter: ${jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flettefelter)}, årsaker: ${jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(årsaker)}")
 
                 val fysiskDokument = brevService.lagAvvisningsBrev(flettefelter, årsaker)
 
@@ -116,9 +114,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                     datoMottatt = packet.opprettet
                 }
 
-                log.info("DEBUG: avvisning: journalpostId: $journalpostId")
-
-                // TODO: Svar tilbake til kafka med avvisningsbrevets journalpostId og dokumentId?
+                log.info("Avvisning fra direkteoppgjørsløsningen: journalpostId: $journalpostId")
             }
         }
     }
