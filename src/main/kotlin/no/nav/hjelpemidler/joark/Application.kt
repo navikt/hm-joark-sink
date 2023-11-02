@@ -92,10 +92,7 @@ fun main() {
             // Barnebriller
             FeilregistrerJournalpostBarnebriller(this, journalpostService)
             OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
-            if (Environment.current.tier.isDev) {
-                // TODO: Make avail. in prod. when ready
-                OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
-            }
+            OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
             ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }
