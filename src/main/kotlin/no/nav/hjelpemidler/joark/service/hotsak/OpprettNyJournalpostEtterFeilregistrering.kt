@@ -88,6 +88,8 @@ class OpprettNyJournalpostEtterFeilregistrering(
                         journalpostId = packet.journalpostId,
                         nyEksternReferanseId = eksternReferanseId
                     )
+
+                    Sakstype.BYTTE -> throw IllegalArgumentException("Uventet sakstype BYTTE")
                 }
                 forward(nyJournalpostId, data, context)
             }

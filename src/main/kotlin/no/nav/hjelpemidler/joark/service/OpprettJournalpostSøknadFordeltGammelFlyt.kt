@@ -12,9 +12,9 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
@@ -50,6 +50,8 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
 
+    private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         coroutineScope {
             launch {
@@ -71,7 +73,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                     fnrBruker = data.fnrBruker,
                     søknadId = data.soknadId,
                     søknadJson = packet.søknadJson,
-                    sakstype = Sakstype.SØKNAD,
+                    sakstype = packet.sakstype,
                     dokumenttittel = data.soknadGjelder,
                     eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
                 )

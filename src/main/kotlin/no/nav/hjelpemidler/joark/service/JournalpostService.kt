@@ -168,7 +168,7 @@ class JournalpostService(
         val fysiskDokument = genererPdf(søknadJson)
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
-            dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER,
+            dokumenttype = sakstype.dokumenttype,
             forsøkFerdigstill = false,
         ) {
             dokument(
