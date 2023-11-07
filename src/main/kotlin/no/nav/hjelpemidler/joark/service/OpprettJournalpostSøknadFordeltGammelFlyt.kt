@@ -61,6 +61,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                     soknadJson = jsonMapper.writeValueAsString(packet.søknadJson),
                     soknadId = packet.søknadId,
                     soknadGjelder = packet.søknadGjelder,
+                    sakstype = packet.sakstype
                 )
                 if (skip(data.soknadId)) {
                     log.warn { "Hopper over søknad med søknadId: ${data.soknadId}" }
@@ -73,7 +74,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                     fnrBruker = data.fnrBruker,
                     søknadId = data.soknadId,
                     søknadJson = packet.søknadJson,
-                    sakstype = packet.sakstype,
+                    sakstype = data.sakstype,
                     dokumenttittel = data.soknadGjelder,
                     eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
                 )
@@ -115,6 +116,7 @@ private data class SoknadData(
     val soknadId: UUID,
     val soknadJson: String,
     val soknadGjelder: String,
+    val sakstype: Sakstype
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(journalpostId: String, eventName: String): String {
@@ -127,6 +129,7 @@ private data class SoknadData(
             it["joarkRef"] = journalpostId
             it["eventId"] = UUID.randomUUID()
             it["soknadGjelder"] = soknadGjelder
+            it["sakstype"] = sakstype.name
         }.toJson()
     }
 }
