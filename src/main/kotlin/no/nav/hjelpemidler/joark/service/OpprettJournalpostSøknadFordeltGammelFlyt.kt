@@ -85,7 +85,9 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
 
     private fun CoroutineScope.forward(søknadData: SoknadData, journalpostId: String, context: MessageContext) {
         launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(journalpostId, eventName))
+            val event = søknadData.toJson(journalpostId, eventName)
+            log.info { "DEBUG: publiserer event <$event>" }
+            context.publish(søknadData.fnrBruker, event)
         }.invokeOnCompletion {
             when (it) {
                 null -> {
