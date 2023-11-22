@@ -36,6 +36,10 @@ fun main() {
         "Gjeldende miljø: ${Environment.current}"
     }
 
+    log.info {
+        "Gjeldende event name: ${Configuration.EVENT_NAME}"
+    }
+
     // Clients
     val engine = CIO.create()
     val azureADClient = azureADClient(engine) {
