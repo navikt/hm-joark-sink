@@ -34,17 +34,9 @@ dependencies {
     testImplementation(libs.bundles.test)
 }
 
-val jdkVersion = 17
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
-    }
-}
-
-kotlin {
-    jvmToolchain(jdkVersion)
-}
+val javaLanguageVersion = JavaLanguageVersion.of(17)
+java { toolchain { languageVersion.set(javaLanguageVersion) } }
+kotlin { jvmToolchain { languageVersion.set(javaLanguageVersion) } }
 
 tasks.test {
     useJUnitPlatform()

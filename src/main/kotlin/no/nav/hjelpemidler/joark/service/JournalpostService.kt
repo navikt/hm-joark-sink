@@ -316,7 +316,7 @@ class JournalpostService(
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                if (journalpost.tittel == null && journalpostId in listOf(
+                if (journalpost.tittel == null && journalpostId in setOf(
                         "626556692",
                         "626442819",
                         "626419519",
@@ -325,8 +325,8 @@ class JournalpostService(
                         "627911450",
                     )
                 ) {
-                    log.info("Patch tittel på journalposter uten tittel $journalpostId")
-                    val overskrivTittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
+                    log.info { "Patcher tittel på journalposter uten tittel, journalpostId: $journalpostId" }
+                    val nyTittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
                     dokarkivClient.oppdaterJournalpost(
                         journalpostId = journalpostId,
                         oppdaterJournalpostRequest = OppdaterJournalpostRequest(
@@ -334,16 +334,13 @@ class JournalpostService(
                             bruker = brukerMedFnr(fnrBruker),
                             sak = fagsakHjelpemidler(sakId),
                             tema = Tema.HJE.toString(),
-                            dokumenter = dokumenter?.map { dok ->
-                                if (dok.tittel.isNullOrBlank()) {
-                                    dok.copy(
-                                        tittel = overskrivTittel
-                                    )
-                                } else {
-                                    dok
+                            dokumenter = dokumenter?.map { dokument ->
+                                when {
+                                    dokument.tittel.isNullOrBlank() -> dokument.copy(tittel = nyTittel)
+                                    else -> dokument
                                 }
                             },
-                            tittel = overskrivTittel,
+                            tittel = nyTittel,
                         ),
                     )
                 } else {
@@ -405,7 +402,7 @@ class JournalpostService(
                 nyJournalpostId
             }
 
-            else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus")
+            else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
         }
     }
 
