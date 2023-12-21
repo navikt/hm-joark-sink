@@ -21,20 +21,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           cache: gradle
 
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - uses: gradle/gradle-build-action@v2.7.0
-        env: # Eksluder test dependencies
+      - uses: gradle/gradle-build-action@v2.11.1
+        env: # Ekskluderer test dependencies
           DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: compileClasspath|runtimeClasspath
         with:
           dependency-graph: generate-and-submit
