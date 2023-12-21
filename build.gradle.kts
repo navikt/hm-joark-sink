@@ -34,7 +34,7 @@ dependencies {
     testImplementation(libs.bundles.test)
 }
 
-val javaLanguageVersion = JavaLanguageVersion.of(17)
+val javaLanguageVersion = JavaLanguageVersion.of(21)
 java { toolchain { languageVersion.set(javaLanguageVersion) } }
 kotlin { jvmToolchain { languageVersion.set(javaLanguageVersion) } }
 
