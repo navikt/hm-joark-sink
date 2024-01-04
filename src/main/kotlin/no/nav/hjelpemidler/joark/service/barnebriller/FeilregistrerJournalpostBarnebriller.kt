@@ -38,6 +38,12 @@ class FeilregistrerJournalpostBarnebriller(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val eventId = checkNotNull(packet.eventId)
+        if (eventId.toString() == "78980925-7da0-4ddc-8d4d-8db40c70f499") {
+            log.warn {
+                "Skipping event $eventId"
+            }
+            return
+        }
         val sakId = packet.sakId
         val journalpostId = packet.journalpostId
         val opprettet = packet.opprettet
