@@ -1,5 +1,10 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -7,10 +12,13 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import kotlin.coroutines.cancellation.CancellationException
 
 private val log = KotlinLogging.logger {}
+private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class ResendJournalpostBarnebriller(
     rapidsConnection: RapidsConnection,
@@ -57,34 +65,74 @@ class ResendJournalpostBarnebriller(
     private val JsonMessage.beløp get() = this["beløp"].decimalValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val data = JournalpostBarnebrillevedtakData(
-            fnr = packet.fnr,
-            brukersNavn = packet.brukersNavn,
-            orgnr = packet.orgnr,
-            orgNavn = packet.orgNavn,
-            orgAdresse = packet.orgAdresse,
-            sakId = packet.sakId,
-            navnAvsender = packet.navnAvsender,
-            brilleseddel = packet.brilleseddel,
-            opprettet = packet.opprettet,
-            bestillingsdato = packet.bestillingsdato,
-            bestillingsår = packet.bestillingsdato.year,
-            bestillingsreferanse = packet.bestillingsreferanse,
-            satsBeskrivelse = packet.satsBeskrivelse,
-            satsBeløp = packet.satsBeløp,
-            beløp = packet.beløp
-        )
-        log.info { "Sak til rejournalføring barnebriller mottatt, sakId: ${data.sakId}" }
-        val fysiskDokument = journalpostService.genererPdf(data)
-        journalpostService.opprettInngåendeJournalpost(
-            fnrAvsender = data.fnr,
-            dokumenttype = data.dokumenttype,
-            forsøkFerdigstill = true,
-        ) {
-            dokument(fysiskDokument = fysiskDokument)
-            optiker(data.sakId)
-            eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI"
-            datoMottatt = packet.opprettet
+        coroutineScope {
+            launch {
+                val data = JournalpostBarnebrillevedtakData(
+                    fnr = packet.fnr,
+                    brukersNavn = packet.brukersNavn,
+                    orgnr = packet.orgnr,
+                    orgNavn = packet.orgNavn,
+                    orgAdresse = packet.orgAdresse,
+                    sakId = packet.sakId,
+                    navnAvsender = packet.navnAvsender,
+                    brilleseddel = packet.brilleseddel,
+                    opprettet = packet.opprettet,
+                    bestillingsdato = packet.bestillingsdato,
+                    bestillingsår = packet.bestillingsdato.year,
+                    bestillingsreferanse = packet.bestillingsreferanse,
+                    satsBeskrivelse = packet.satsBeskrivelse,
+                    satsBeløp = packet.satsBeløp,
+                    beløp = packet.beløp
+                )
+                log.info { "Sak til rejournalføring barnebriller mottatt, sakId: ${data.sakId}" }
+                val fysiskDokument = journalpostService.genererPdf(data)
+                val journalpost = journalpostService.opprettInngåendeJournalpost(
+                    fnrAvsender = data.fnr,
+                    dokumenttype = data.dokumenttype,
+                    forsøkFerdigstill = true,
+                ) {
+                    dokument(fysiskDokument = fysiskDokument)
+                    optiker(data.sakId)
+                    eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI"
+                    datoMottatt = packet.opprettet
+                }
+                forward(journalpost, data, context)
+            }
+        }
+    }
+
+    private fun CoroutineScope.forward(
+        journalpost: OpprettJournalpostResponse,
+        data: JournalpostBarnebrillevedtakData,
+        context: MessageContext,
+    ) {
+        val fnr = data.fnr
+        launch(Dispatchers.IO + SupervisorJob()) {
+            context.publish(
+                fnr,
+                data.toJson(
+                    journalpost.journalpostId,
+                    journalpost.dokumenter?.mapNotNull { it.dokumentInfoId } ?: listOf(),
+                    "hm-opprettetOgFerdigstiltBarnebrillerJournalpost",
+                )
+            )
+        }.invokeOnCompletion {
+            val sakId = data.sakId
+            when (it) {
+                null -> {
+                    log.info {
+                        "Opprettet og ferdigstilte journalpost for barnebriller i joark for sakId: $sakId"
+                    }
+                    secureLog.info {
+                        "Opprettet og ferdigstilte journalpost for barnebriller for sakId: $sakId, fnr: $fnr"
+                    }
+                }
+
+                is CancellationException -> log.warn(it) { "Cancelled" }
+                else -> log.error(it) {
+                    "Kunne ikke opprette og ferdigstille journalpost for barnebriller, sakId: $sakId"
+                }
+            }
         }
     }
 }
