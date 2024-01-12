@@ -35,7 +35,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 validate { it.demandValue("eventName", "hm-journalpost-journalført") }
                 validate {
                     it.requireKey("journalpostId", "journalførendeEnhet", "fnrBruker", "sakId")
-                    it.interestedIn("dokumentId", "dokumenttittel")
+                    it.interestedIn("dokumentId", "dokumenttittel", "oppgaveId")
                 }
             }
             .register(this)
@@ -59,6 +59,9 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     private val JsonMessage.dokumenttittel: String?
         get() = get("dokumenttittel").textValue()
 
+    private val JsonMessage.oppgaveId: String?
+        get() = get("oppgaveId").textValue()
+
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
         if (journalpostId in skip) {
@@ -70,9 +73,10 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val sakId = packet.sakId
         val dokumentId = packet.dokumentId
         val dokumenttittel = packet.dokumenttittel
+        val oppgaveId = packet.oppgaveId
 
         log.info {
-            "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId"
+            "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId, oppgaveId: $oppgaveId"
         }
 
         val nyJournalpostId = journalpostService.ferdigstillJournalpost(
@@ -92,6 +96,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 nyJournalpostId = nyJournalpostId,
                 fnrBruker = fnrBruker,
                 sakId = sakId,
+                oppgaveId = oppgaveId,
             )
         )
     }
@@ -106,4 +111,5 @@ data class JournalpostOppdatertOgFerdigstilt(
     val nyJournalpostId: String,
     val fnrBruker: String,
     val sakId: String,
+    val oppgaveId: String?,
 )
