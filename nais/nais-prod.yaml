@@ -7,7 +7,6 @@ metadata:
     team: teamdigihot
 spec:
   image: {{ image }}
-  team: teamdigihot
   liveness:
     path: /isalive
   readiness:
