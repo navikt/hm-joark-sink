@@ -31,7 +31,15 @@ class OpprettNyJournalpostEtterFeilregistrering(
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
             validate {
-                it.interestedIn("dokumentBeskrivelse", "sakstype", "nyJournalpostId", "navIdent", "valgteÅrsaker", "enhet", "begrunnelse")
+                it.interestedIn(
+                    "dokumentBeskrivelse",
+                    "sakstype",
+                    "nyJournalpostId",
+                    "navIdent",
+                    "valgteÅrsaker",
+                    "enhet",
+                    "begrunnelse"
+                )
             }
         }.register(this)
     }
@@ -72,8 +80,8 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     valgteÅrsaker = packet.valgteÅrsaker,
                     begrunnelse = packet.begrunnelse,
                 )
-                log.info { "Sak til journalføring etter feilregistrering mottatt, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
-                val eksternReferanseId = "${data.soknadId}HOTSAK_TIL_GOSYS"
+                log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
+                val eksternReferanseId = "${data.soknadId}_${packet.journalpostId}_HOTSAK_TIL_GOSYS"
                 val nyJournalpostId = when (data.sakstype) {
                     Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
                         fnrBruker = data.fnrBruker,
@@ -110,10 +118,10 @@ class OpprettNyJournalpostEtterFeilregistrering(
             when (it) {
                 null -> {
                     log.info {
-                        "Opprettet journalpost med status mottatt i joark for søknadId: ${data.soknadId}"
+                        "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}"
                     }
                     secureLog.info {
-                        "Opprettet journalpost med status mottatt i joark for søknadId: ${data.soknadId}, fnr: ${data.fnrBruker}"
+                        "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}, fnr: ${data.fnrBruker}"
                     }
                 }
 
@@ -122,7 +130,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
                 }
 
                 else -> log.error(it) {
-                    "Klarte ikke å opprette journalpost med status mottatt i joark for søknadId: ${data.soknadId}"
+                    "Klarte ikke å opprette journalpost med status mottatt i Joark for søknadId: ${data.soknadId}"
                 }
             }
         }

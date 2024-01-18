@@ -91,7 +91,7 @@ class SakTilbakeførtFeilregistrerJournalpost(
                     begrunnelse = packet.begrunnelse,
                 )
                 log.info {
-                    "Journalpost til feilregistrering av sak mottatt (${data.sakstype}), sakId: ${data.sakId}, journalpostId: $journalpostId"
+                    "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${data.sakId}, sakstype: ${data.sakstype}, journalpostId: $journalpostId"
                 }
                 journalpostService.feilregistrerSakstilknytning(journalpostId)
                 forward(journalpostId, data, context)
