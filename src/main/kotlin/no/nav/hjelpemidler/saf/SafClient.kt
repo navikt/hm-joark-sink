@@ -6,6 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
@@ -38,6 +39,10 @@ class SafClient(
             install(HttpRequestRetry) {
                 retryOnExceptionOrServerErrors(maxRetries = 5)
                 exponentialDelay()
+            }
+            // Setter høy timeout for å se om det hjelper for overføring av stort dokument fra SAF
+            install(HttpTimeout) {
+                requestTimeoutMillis = 120000
             }
             defaultRequest {
                 correlationId()

@@ -39,6 +39,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
+private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class JournalpostService(
     private val pdfGeneratorClient: PdfGeneratorClient,
@@ -237,6 +238,13 @@ class JournalpostService(
                     )
                 } ?: emptyList()
 
+            log.info { "Hentet dokumenter fra SAF" }
+            dokumenter.forEach { dokument ->
+                dokument.dokumentvarianter?.forEach { dv ->
+                    log.info { "Dokument ${dokument.brevkode} ${dokument.tittel} ${dv.variantformat} ${dv.filtype} " }
+                }
+            }
+
             val opprettJournalpostRequest = OpprettJournalpostRequest(
                 dokumenter = dokumenter,
                 journalposttype = journalposttype.toDokarkiv(),
@@ -250,6 +258,9 @@ class JournalpostService(
                 tema = journalpost.tema.toString(),
                 tittel = journalpost.tittel.toString(),
             )
+
+            secureLog.info { "Kopierer journalpostRequest for gammel journalpost $journalpostId ${opprettJournalpostRequest}" }
+
 
             val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(
                 opprettJournalpostRequest = opprettJournalpostRequest,
