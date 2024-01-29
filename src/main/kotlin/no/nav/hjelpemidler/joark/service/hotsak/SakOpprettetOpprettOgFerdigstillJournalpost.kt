@@ -64,6 +64,14 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                 }
                 val fysiskDokument = journalpostService.genererPdf(data.soknadJson)
                 val dokumenttype = sakstype.dokumenttype
+
+                if (packet.søknadId == "43c7cdce-bd11-4c0d-afdf-b328434f644e") {
+                    log.info {
+                        "Skipper ${packet.søknadId}. PDF generert OK."
+                    }
+                    return@launch
+                }
+
                 val journalpostId = journalpostService.opprettInngåendeJournalpost(
                     fnrAvsender = data.fnrBruker,
                     dokumenttype = dokumenttype,
