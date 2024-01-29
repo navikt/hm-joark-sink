@@ -240,8 +240,8 @@ class JournalpostService(
 
             log.info { "Hentet dokumenter fra SAF" }
             dokumenter.forEach { dokument ->
-                dokument.dokumentvarianter?.forEach { dv ->
-                    log.info { "Dokument ${dokument.brevkode} ${dokument.tittel} ${dv.variantformat} ${dv.filtype} " }
+                dokument.dokumentvarianter?.forEach { variant ->
+                    log.info { "Dokument ${dokument.brevkode} ${dokument.tittel} ${variant.variantformat} ${variant.filtype}" }
                 }
             }
 
