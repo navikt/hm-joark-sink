@@ -1,12 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -20,7 +14,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 /**
  * Automatisk journalføring av saker fra Hotsak.
@@ -45,67 +38,39 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        coroutineScope {
-            launch {
-                val data = JournalpostData(
-                    fnrBruker = packet.fnrBruker,
-                    navnBruker = packet.navnBruker,
-                    soknadJson = packet.søknadJson,
-                    soknadId = UUID.fromString(packet.søknadId),
-                    sakId = packet.sakId,
-                    dokumentTittel = packet.søknadGjelder
-                )
-                val sakstype = Sakstype.valueOf(
-                    packet.søknadJson.at("/behovsmeldingType").textValue()
-                        .let { if (it.isNullOrEmpty()) "SØKNAD" else it }
-                )
-                log.info {
-                    "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, sakstype: $sakstype, dokumenttittel: '${data.dokumentTittel}'"
-                }
-                val fysiskDokument = journalpostService.genererPdf(data.soknadJson)
-                val dokumenttype = sakstype.dokumenttype
-                val journalpostId = journalpostService.opprettInngåendeJournalpost(
-                    fnrAvsender = data.fnrBruker,
-                    dokumenttype = dokumenttype,
-                    forsøkFerdigstill = true,
-                ) {
-                    dokument(
-                        fysiskDokument = fysiskDokument,
-                        dokumenttittel = data.dokumentTittel
-                    )
-                    hotsak(data.sakId)
-                    eksternReferanseId = data.soknadId.toString() + "HOTSAK"
-                }.journalpostId
-                forward(journalpostId, data, context)
-            }
+        val data = JournalpostData(
+            fnrBruker = packet.fnrBruker,
+            navnBruker = packet.navnBruker,
+            soknadJson = packet.søknadJson,
+            soknadId = UUID.fromString(packet.søknadId),
+            sakId = packet.sakId,
+            dokumentTittel = packet.søknadGjelder
+        )
+        val dokumenttype = Sakstype.valueOf(packet.søknadJson.at("/behovsmeldingType").textValue()).dokumenttype
+        log.info {
+            "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}'"
         }
-    }
 
-    private fun CoroutineScope.forward(
-        journalpostId: String,
-        data: JournalpostData,
-        context: MessageContext,
-    ) {
-        launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(
-                data.fnrBruker,
-                data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost")
-            )
-        }.invokeOnCompletion {
-            when (it) {
-                null -> {
-                    log.info("Opprettet og ferdigstilte journalpost i joark for søknadId: ${data.soknadId}")
-                    secureLog.info("Opprettet og ferdigstilte journalpost for søknadId: ${data.soknadId}, fnr: ${data.fnrBruker}")
-                }
+        try {
+            val fysiskDokument = journalpostService.genererPdf(data.soknadJson)
+            val journalpostId = journalpostService.opprettInngåendeJournalpost(
+                fnrAvsender = data.fnrBruker,
+                dokumenttype = dokumenttype,
+                forsøkFerdigstill = true,
+            ) {
+                dokument(
+                    fysiskDokument = fysiskDokument,
+                    dokumenttittel = data.dokumentTittel
+                )
+                hotsak(data.sakId)
+                eksternReferanseId = data.soknadId.toString() + "HOTSAK"
+            }.journalpostId
 
-                is CancellationException -> log.warn(it) {
-                    "Cancelled"
-                }
-
-                else -> log.error(it) {
-                    "Klarte ikke å opprettet og ferdigstille journalpost i joark for søknadId: ${data.soknadId}"
-                }
-            }
+            context.publish(data.fnrBruker, data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost"))
+            log.info("Opprettet og ferdigstilte journalpost i joark for søknadId: ${data.soknadId}")
+        } catch (e: Throwable) {
+            log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost i joark for søknadId: ${data.soknadId}" }
+            throw e
         }
     }
 }

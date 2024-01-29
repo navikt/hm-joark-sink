@@ -1,11 +1,5 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -20,7 +14,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 /**
  * Vedtak for barnebrillesak er fattet i Hotsak, journalfør utgående vedtaksbrev
@@ -59,46 +52,36 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        coroutineScope {
-            launch {
-                val sakId = packet.sakId
-                val data = JournalpostBarnebrillevedtakData(
-                    fnr = packet.fnrBruker,
-                    brukersNavn = packet.navnBruker,
-                    sakId = sakId,
-                    navnAvsender = packet.navnAvsender,
-                    dokumentTittel = "Journalføring barnebrillevedtak",
-                    opprettet = packet.opprettet,
-                    pdf = packet.fysiskDokument
-                )
-                log.info { "Manuelt barnebrillevedtak til journalføring mottatt, sakId: ${data.sakId}" }
-                val dokumenttype =
-                    when (packet.vedtaksstatus) {
-                        Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
-                        Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
-                        null -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
-                    }
-                val journalpostId = journalpostService.opprettUtgåendeJournalpost(
-                    fnrMottaker = data.fnr,
-                    dokumenttype = dokumenttype,
-                    forsøkFerdigstill = true
-                ) {
-                    dokument(fysiskDokument = data.pdf)
-                    hotsak(sakId)
-                    eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
-                    opprettetAv = packet.opprettetAv
-                }
-                forward(journalpostId, data, context)
+        val sakId = packet.sakId
+        val data = JournalpostBarnebrillevedtakData(
+            fnr = packet.fnrBruker,
+            brukersNavn = packet.navnBruker,
+            sakId = sakId,
+            navnAvsender = packet.navnAvsender,
+            dokumentTittel = "Journalføring barnebrillevedtak",
+            opprettet = packet.opprettet,
+            pdf = packet.fysiskDokument
+        )
+        log.info { "Manuelt barnebrillevedtak til journalføring mottatt, sakId: ${data.sakId}" }
+        val dokumenttype =
+            when (packet.vedtaksstatus) {
+                Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
+                Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
+                null -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
             }
-        }
-    }
 
-    private fun CoroutineScope.forward(
-        journalpostId: String,
-        data: JournalpostBarnebrillevedtakData,
-        context: MessageContext,
-    ) {
-        launch(Dispatchers.IO + SupervisorJob()) {
+        try {
+            val journalpostId = journalpostService.opprettUtgåendeJournalpost(
+                fnrMottaker = data.fnr,
+                dokumenttype = dokumenttype,
+                forsøkFerdigstill = true
+            ) {
+                dokument(fysiskDokument = data.pdf)
+                hotsak(sakId)
+                eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
+                opprettetAv = packet.opprettetAv
+            }
+
             context.publish(
                 data.fnr,
                 data.toJson(
@@ -106,21 +89,10 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost"
                 )
             )
-        }.invokeOnCompletion {
-            when (it) {
-                null -> {
-                    log.info("Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}")
-                    secureLog.info("Opprettet og ferdigstilte journalpost for barnebrillevedtak for sakId: ${data.sakId}, fnr: ${data.fnr}")
-                }
-
-                is CancellationException -> log.warn(it) {
-                    "Cancelled"
-                }
-
-                else -> log.error(it) {
-                    "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}"
-                }
-            }
+            log.info("Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}")
+        } catch (e: Throwable){
+            log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
+            throw e
         }
     }
 }
