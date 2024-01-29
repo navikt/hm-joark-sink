@@ -11,7 +11,7 @@ class BrevService(val brevClient: BrevClient) {
         val reqData = HentAvvisningsbrevRequest(
             flettefelter = flettefelter,
             begrunnelser = begrunnelser,
-            betingelser = Betingelser(viseNavAdresse = false, viseNavAdresseHoT = true),
+            betingelser = Betingelser(viseNavAdresse = true, viseNavAdresseHoT = false),
         )
 
         val req = HentBrevRequest(

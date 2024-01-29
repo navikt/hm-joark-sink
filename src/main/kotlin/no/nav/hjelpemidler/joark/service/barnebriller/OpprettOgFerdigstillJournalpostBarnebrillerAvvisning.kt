@@ -88,11 +88,11 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
 
                 val årsaker = packet.årsaker.map {
                     when (it) {
-                        "HarIkkeVedtakIKalenderåret" -> "avslagEksisterendeVedtak"
-                        "Under18ÅrPåBestillingsdato" -> "avslagOver18"
-                        "MedlemAvFolketrygden" -> "avslagIkkeMedlem"
-                        "Brillestyrke" -> "avslagForLavBrillestyrke"
-                        "Bestillingsdato" -> "avslagBestillingsdatoEldreEnn6Mnd"
+                        "HarIkkeVedtakIKalenderåret" -> "stansetEksisterendeVedtak"
+                        "Under18ÅrPåBestillingsdato" -> "stansetOver18"
+                        "MedlemAvFolketrygden" -> "stansetIkkeMedlem"
+                        "Brillestyrke" -> "stansetForLavBrillestyrke"
+                        "Bestillingsdato" -> "stansetBestillingsdatoEldreEnn6Mnd"
                         else -> {
                             throw RuntimeException("Ukjent identifikator fra brille-api mottatt, kan ikke opprette avvisningsbrev (årsak=${it})")
                         }
@@ -114,7 +114,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                     datoMottatt = packet.opprettet
                 }
 
-                log.info("Avvisning fra direkteoppgjørsløsningen: journalpostId: $journalpostId")
+                log.info("Stanset fra direkteoppgjørsløsningen: journalpostId: $journalpostId")
             }
         }
     }
