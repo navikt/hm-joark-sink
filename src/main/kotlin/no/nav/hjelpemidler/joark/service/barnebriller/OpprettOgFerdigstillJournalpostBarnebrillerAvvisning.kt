@@ -99,7 +99,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                     }
                 }
 
-                val fysiskDokument = brevService.lagAvvisningsBrev(flettefelter, årsaker)
+                val fysiskDokument = brevService.lagStansetBrev(flettefelter, årsaker)
 
                 // Opprett og ferdigstill journalpost
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(

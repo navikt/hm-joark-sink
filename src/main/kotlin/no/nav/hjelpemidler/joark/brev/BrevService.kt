@@ -6,8 +6,8 @@ import mu.KotlinLogging
 private val log = KotlinLogging.logger {}
 
 class BrevService(val brevClient: BrevClient) {
-    suspend fun lagAvvisningsBrev(flettefelter: FlettefelterAvvisning, begrunnelser: List<String>, målform: Målform = Målform.BOKMÅL): ByteArray {
-        log.info("Lager avvisningsbrev for optiker")
+    suspend fun lagStansetBrev(flettefelter: FlettefelterAvvisning, begrunnelser: List<String>, målform: Målform = Målform.BOKMÅL): ByteArray {
+        log.info("Lager stansetbrev for optiker")
         val reqData = HentAvvisningsbrevRequest(
             flettefelter = flettefelter,
             begrunnelser = begrunnelser,
