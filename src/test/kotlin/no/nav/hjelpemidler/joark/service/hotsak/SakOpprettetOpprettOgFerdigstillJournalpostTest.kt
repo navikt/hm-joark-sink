@@ -40,7 +40,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpostTest : TestSupport() {
         sendTestMessage(
             "eventName" to "hm-sakOpprettet",
             "soknadId" to UUID.randomUUID(),
-            "soknadJson" to jsonMapper.createObjectNode(),
+            "soknadJson" to jsonMapper.createObjectNode().also { it.put("behovsmeldingType", "SØKNAD") },
             "soknadGjelder" to "test",
             "sakId" to sakId,
             "fnrBruker" to fnrBruker,

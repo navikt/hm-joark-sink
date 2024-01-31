@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - bytte
+      - fjern-coroutines
 
 jobs:
   build:

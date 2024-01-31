@@ -1,11 +1,5 @@
 package no.nav.hjelpemidler.joark.service
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -20,7 +14,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 /**
  * Journalføring av søknader som behandles i Gosys/Infotrygd
@@ -53,51 +46,37 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        coroutineScope {
-            launch {
-                val data = SoknadData(
-                    fnrBruker = packet.fnrBruker,
-                    navnBruker = packet.navnBruker,
-                    soknadJson = jsonMapper.writeValueAsString(packet.søknadJson),
-                    soknadId = packet.søknadId,
-                    soknadGjelder = packet.søknadGjelder,
-                    sakstype = packet.sakstype
-                )
-                if (skip(data.soknadId)) {
-                    log.warn { "Hopper over søknad med søknadId: ${data.soknadId}" }
-                    return@launch
-                }
-                log.info {
-                    "Søknad til arkivering mottatt, søknadId: ${data.soknadId}, dokumenttittel: ${data.soknadGjelder}"
-                }
-                val journalpostId = journalpostService.arkiverSøknad(
-                    fnrBruker = data.fnrBruker,
-                    søknadId = data.soknadId,
-                    søknadJson = packet.søknadJson,
-                    sakstype = data.sakstype,
-                    dokumenttittel = data.soknadGjelder,
-                    eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
-                )
-                forward(data, journalpostId, context)
-            }
+        val data = SoknadData(
+            fnrBruker = packet.fnrBruker,
+            navnBruker = packet.navnBruker,
+            soknadJson = jsonMapper.writeValueAsString(packet.søknadJson),
+            soknadId = packet.søknadId,
+            soknadGjelder = packet.søknadGjelder,
+            sakstype = packet.sakstype
+        )
+        if (skip(data.soknadId)) {
+            log.warn { "Hopper over søknad med søknadId: ${data.soknadId}" }
+            return
         }
-    }
+        log.info {
+            "Søknad til arkivering mottatt, søknadId: ${data.soknadId}, dokumenttittel: ${data.soknadGjelder}"
+        }
 
-    private fun CoroutineScope.forward(søknadData: SoknadData, journalpostId: String, context: MessageContext) {
-        launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(søknadData.fnrBruker, søknadData.toJson(journalpostId, eventName))
-        }.invokeOnCompletion {
-            when (it) {
-                null -> {
-                    log.info("Søknad arkivert i joark, søknadId: ${søknadData.soknadId}")
-                    secureLog.info("Søknad arkivert med søknadId: ${søknadData.soknadId}, fnr: ${søknadData.fnrBruker}")
-                }
+        try {
+            val journalpostId = journalpostService.arkiverSøknad(
+                fnrBruker = data.fnrBruker,
+                søknadId = data.soknadId,
+                søknadJson = packet.søknadJson,
+                sakstype = data.sakstype,
+                dokumenttittel = data.soknadGjelder,
+                eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
+            )
 
-                is CancellationException -> log.warn(it) { "Cancelled" }
-                else -> log.error(it) {
-                    "Søknad ble ikke arkivert i joark, søknadId: ${søknadData.soknadId}"
-                }
-            }
+            context.publish(data.fnrBruker, data.toJson(journalpostId, eventName))
+            log.info("Søknad arkivert i joark, søknadId: ${data.soknadId}")
+        } catch (e: Throwable) {
+            log.error(e) { "Søknad ble ikke arkivert i joark, søknadId: ${data.soknadId}" }
+            throw e
         }
     }
 }

@@ -1,12 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -73,57 +67,36 @@ class SakTilbakeførtFeilregistrerJournalpost(
             }
             return
         }
-        coroutineScope {
-            launch {
-                val data = FeilregistrerJournalpostData(
-                    sakId = packet.sakId,
-                    sakstype = packet.sakstype,
-                    journalpostId = journalpostId,
-                    fnrBruker = packet.fnrBruker,
-                    navnBruker = packet.navnBruker,
-                    dokumentBeskrivelse = packet.dokumentBeskrivelse,
-                    enhet = packet.enhet,
-                    soknadId = packet.søknadId,
-                    soknadJson = packet.søknadJson,
-                    mottattDato = packet.mottattDato,
-                    navIdent = packet.navIdent,
-                    valgteÅrsaker = packet.valgteÅrsaker,
-                    begrunnelse = packet.begrunnelse,
-                )
-                log.info {
-                    "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${data.sakId}, sakstype: ${data.sakstype}, journalpostId: $journalpostId"
-                }
-                journalpostService.feilregistrerSakstilknytning(journalpostId)
-                forward(journalpostId, data, context)
-            }
+        val data = FeilregistrerJournalpostData(
+            sakId = packet.sakId,
+            sakstype = packet.sakstype,
+            journalpostId = journalpostId,
+            fnrBruker = packet.fnrBruker,
+            navnBruker = packet.navnBruker,
+            dokumentBeskrivelse = packet.dokumentBeskrivelse,
+            enhet = packet.enhet,
+            soknadId = packet.søknadId,
+            soknadJson = packet.søknadJson,
+            mottattDato = packet.mottattDato,
+            navIdent = packet.navIdent,
+            valgteÅrsaker = packet.valgteÅrsaker,
+            begrunnelse = packet.begrunnelse,
+        )
+        log.info {
+            "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${data.sakId}, sakstype: ${data.sakstype}, journalpostId: $journalpostId"
         }
-    }
 
-    private fun CoroutineScope.forward(
-        journalpostId: String,
-        data: FeilregistrerJournalpostData,
-        context: MessageContext,
-    ) {
-        launch(Dispatchers.IO + SupervisorJob()) {
+        try {
+            journalpostService.feilregistrerSakstilknytning(journalpostId)
+
             context.publish(
                 data.fnrBruker,
                 data.toJson(journalpostId, "hm-feilregistrerteSakstilknytningForJournalpost")
             )
-        }.invokeOnCompletion {
-            val sakId = data.sakId
-            when (it) {
-                null -> log.info {
-                    "Feilregistrerte sakstilknytning for sakId: $sakId, journalpostId: $journalpostId"
-                }
-
-                is CancellationException -> log.warn(it) {
-                    "Cancelled"
-                }
-
-                else -> log.error(it) {
-                    "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: $sakId"
-                }
-            }
+            log.info { "Feilregistrerte sakstilknytning for sakId: ${data.sakId}, journalpostId: $journalpostId" }
+        } catch (e: Throwable) {
+            log.error(e) { "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: ${data.sakId}" }
+            throw e
         }
     }
 }

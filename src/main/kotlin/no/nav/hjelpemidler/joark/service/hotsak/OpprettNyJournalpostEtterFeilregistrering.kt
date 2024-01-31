@@ -1,12 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -20,7 +14,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class OpprettNyJournalpostEtterFeilregistrering(
     rapidsConnection: RapidsConnection,
@@ -65,74 +58,46 @@ class OpprettNyJournalpostEtterFeilregistrering(
             }
             return
         }
-        coroutineScope {
-            launch {
-                val data = MottattJournalpostData(
-                    fnrBruker = packet.fnrBruker,
-                    navnBruker = packet.navnBruker,
-                    soknadJson = packet.søknadJson,
-                    soknadId = packet.søknadId,
-                    sakId = sakId,
-                    sakstype = packet.sakstype,
-                    dokumentBeskrivelse = packet.dokumentBeskrivelse,
-                    enhet = packet.enhet,
-                    navIdent = packet.navIdent,
-                    valgteÅrsaker = packet.valgteÅrsaker,
-                    begrunnelse = packet.begrunnelse,
+        val data = MottattJournalpostData(
+            fnrBruker = packet.fnrBruker,
+            navnBruker = packet.navnBruker,
+            soknadJson = packet.søknadJson,
+            soknadId = packet.søknadId,
+            sakId = sakId,
+            sakstype = packet.sakstype,
+            dokumentBeskrivelse = packet.dokumentBeskrivelse,
+            enhet = packet.enhet,
+            navIdent = packet.navIdent,
+            valgteÅrsaker = packet.valgteÅrsaker,
+            begrunnelse = packet.begrunnelse,
+        )
+        log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
+        val eksternReferanseId = "${data.soknadId}_${packet.journalpostId}_HOTSAK_TIL_GOSYS"
+
+        try {
+            val nyJournalpostId = when (data.sakstype) {
+                Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
+                    fnrBruker = data.fnrBruker,
+                    søknadId = data.soknadId,
+                    søknadJson = packet.søknadJson,
+                    sakstype = data.sakstype,
+                    dokumenttittel = data.dokumentBeskrivelse,
+                    eksternReferanseId = eksternReferanseId,
                 )
-                log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
-                val eksternReferanseId = "${data.soknadId}_${packet.journalpostId}_HOTSAK_TIL_GOSYS"
-                val nyJournalpostId = when (data.sakstype) {
-                    Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
-                        fnrBruker = data.fnrBruker,
-                        søknadId = data.soknadId,
-                        søknadJson = packet.søknadJson,
-                        sakstype = data.sakstype,
-                        dokumenttittel = data.dokumentBeskrivelse,
-                        eksternReferanseId = eksternReferanseId,
-                    )
 
-                    Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
-                        journalpostId = packet.journalpostId,
-                        nyEksternReferanseId = eksternReferanseId
-                    )
+                Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
+                    journalpostId = packet.journalpostId,
+                    nyEksternReferanseId = eksternReferanseId
+                )
 
-                    Sakstype.BYTTE -> throw IllegalArgumentException("Uventet sakstype BYTTE")
-                }
-                forward(nyJournalpostId, data, context)
+                Sakstype.BYTTE -> throw IllegalArgumentException("Uventet sakstype BYTTE")
             }
-        }
-    }
 
-    private fun CoroutineScope.forward(
-        journalpostId: String,
-        data: MottattJournalpostData,
-        context: MessageContext,
-    ) {
-        launch(Dispatchers.IO + SupervisorJob()) {
-            context.publish(
-                data.fnrBruker,
-                data.toJson(journalpostId, "hm-opprettetMottattJournalpost")
-            )
-        }.invokeOnCompletion {
-            when (it) {
-                null -> {
-                    log.info {
-                        "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}"
-                    }
-                    secureLog.info {
-                        "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}, fnr: ${data.fnrBruker}"
-                    }
-                }
-
-                is CancellationException -> log.warn(it) {
-                    "Cancelled"
-                }
-
-                else -> log.error(it) {
-                    "Klarte ikke å opprette journalpost med status mottatt i Joark for søknadId: ${data.soknadId}"
-                }
-            }
+            context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
+            log.info { "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}" }
+        } catch (e: Throwable) {
+            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i Joark for søknadId: ${data.soknadId}" }
+            throw e
         }
     }
 }
