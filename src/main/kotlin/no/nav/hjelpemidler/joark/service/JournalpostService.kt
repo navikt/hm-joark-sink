@@ -58,6 +58,16 @@ class JournalpostService(
         return fysiskDokument
     }
 
+    suspend fun genererBrukerpassbyttePdf(data: JsonNode): ByteArray {
+        val fysiskDokument = søknadPdfGeneratorClient.genererPdfSøknad(
+            jsonMapper.writeValueAsString(data),
+        )
+
+        Prometheus.pdfGenerertCounter.inc()
+
+        return fysiskDokument
+    }
+
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
         val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
             jsonMapper.writeValueAsString(data),
@@ -133,7 +143,7 @@ class JournalpostService(
         val journalpost = dokarkivClient.opprettJournalpost(
             opprettJournalpostRequest = lagOpprettJournalpostRequest(),
             forsøkFerdigstill = forsøkFerdigstill,
-            opprettetAv = lagOpprettJournalpostRequest.opprettetAv
+            opprettetAv = lagOpprettJournalpostRequest.opprettetAv,
         )
 
         val journalpostId = journalpost.journalpostId
@@ -149,24 +159,28 @@ class JournalpostService(
         journalpostId
     }
 
-    suspend fun arkiverSøknad(
+    suspend fun arkiverBehovsmelding(
         fnrBruker: String,
-        søknadId: UUID,
-        søknadJson: JsonNode,
+        behovsmeldingId: UUID,
+        behovsmeldingJson: JsonNode,
         sakstype: Sakstype,
         dokumenttittel: String,
         eksternReferanseId: String,
         datoMottatt: LocalDateTime? = null,
     ): String = withCorrelationId(
-        "søknadId" to søknadId.toString(),
+        "søknadId" to behovsmeldingId.toString(),
         "sakstype" to sakstype.name,
         "eksternReferanseId" to eksternReferanseId,
         "datoMottatt" to datoMottatt?.toString(),
     ) {
         log.info {
-            "Arkiverer søknad, søknadId: $søknadId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
+            "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
-        val fysiskDokument = genererPdf(søknadJson)
+        // TODO: kan vi løse dette på en bedre måte?
+        val fysiskDokument = when (sakstype) {
+            Sakstype.BRUKERPASS_BYTTE -> genererBrukerpassbyttePdf(behovsmeldingJson)
+            else -> genererPdf(behovsmeldingJson)
+        }
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
             dokumenttype = sakstype.dokumenttype,
@@ -182,7 +196,7 @@ class JournalpostService(
         }.journalpostId
 
         log.info {
-            "Søknad ble arkivert, søknadId: $søknadId, sakstype: $sakstype, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
+            "${sakstype.name} ble arkivert, id: $behovsmeldingId, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
         }
 
         Prometheus.søknadArkivertCounter.inc()
@@ -259,8 +273,7 @@ class JournalpostService(
                 tittel = journalpost.tittel.toString(),
             )
 
-            secureLog.info { "Kopierer journalpostRequest for gammel journalpost $journalpostId ${opprettJournalpostRequest}" }
-
+            secureLog.info { "Kopierer journalpostRequest for gammel journalpost $journalpostId $opprettJournalpostRequest" }
 
             val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(
                 opprettJournalpostRequest = opprettJournalpostRequest,
@@ -289,7 +302,6 @@ class JournalpostService(
 
         oppdaterJournalpostResponse.journalpostId
     }
-
 
     suspend fun hentJournalposterForSak(
         sakId: String,

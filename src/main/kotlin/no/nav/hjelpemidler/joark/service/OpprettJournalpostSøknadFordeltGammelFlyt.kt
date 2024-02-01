@@ -3,14 +3,12 @@ package no.nav.hjelpemidler.joark.service
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMapper
-import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -46,36 +44,36 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val data = SoknadData(
+        val data = BehovsmeldingData(
             fnrBruker = packet.fnrBruker,
             navnBruker = packet.navnBruker,
-            soknadJson = jsonMapper.writeValueAsString(packet.søknadJson),
-            soknadId = packet.søknadId,
-            soknadGjelder = packet.søknadGjelder,
+            behovsmeldingJson = jsonMapper.writeValueAsString(packet.søknadJson),
+            behovsmeldingId = packet.søknadId,
+            behovsmeldingGjelder = packet.søknadGjelder,
             sakstype = packet.sakstype
         )
-        if (skip(data.soknadId)) {
-            log.warn { "Hopper over søknad med søknadId: ${data.soknadId}" }
+        if (skip(data.behovsmeldingId)) {
+            log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
             return
         }
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.soknadId}, dokumenttittel: ${data.soknadGjelder}"
+            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, dokumenttittel: ${data.behovsmeldingGjelder}"
         }
 
         try {
-            val journalpostId = journalpostService.arkiverSøknad(
+            val journalpostId = journalpostService.arkiverBehovsmelding(
                 fnrBruker = data.fnrBruker,
-                søknadId = data.soknadId,
-                søknadJson = packet.søknadJson,
+                behovsmeldingId = data.behovsmeldingId,
+                behovsmeldingJson = packet.søknadJson,
                 sakstype = data.sakstype,
-                dokumenttittel = data.soknadGjelder,
-                eksternReferanseId = "${data.soknadId}HJE-DIGITAL-SOKNAD"
+                dokumenttittel = data.behovsmeldingGjelder,
+                eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD"
             )
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, eventName))
-            log.info("Søknad arkivert i joark, søknadId: ${data.soknadId}")
+            log.info("Søknad arkivert i joark, søknadId: ${data.behovsmeldingId}")
         } catch (e: Throwable) {
-            log.error(e) { "Søknad ble ikke arkivert i joark, søknadId: ${data.soknadId}" }
+            log.error(e) { "Søknad ble ikke arkivert i joark, søknadId: ${data.behovsmeldingId}" }
             throw e
         }
     }
@@ -89,26 +87,3 @@ private fun skip(søknadId: UUID): Boolean =
         UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3")
     )
 
-private data class SoknadData(
-    val fnrBruker: String,
-    val navnBruker: String,
-    val soknadId: UUID,
-    val soknadJson: String,
-    val soknadGjelder: String,
-    val sakstype: Sakstype
-) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
-        return JsonMessage("{}", MessageProblems("")).also {
-            it["soknadId"] = this.soknadId
-            it["eventName"] = eventName
-            it["opprettet"] = LocalDateTime.now()
-            it["fodselNrBruker"] = this.fnrBruker // @deprecated
-            it["fnrBruker"] = this.fnrBruker
-            it["joarkRef"] = journalpostId
-            it["eventId"] = UUID.randomUUID()
-            it["soknadGjelder"] = soknadGjelder
-            it["sakstype"] = sakstype.name
-        }.toJson()
-    }
-}
