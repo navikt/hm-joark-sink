@@ -59,7 +59,7 @@ class JournalpostService(
     }
 
     suspend fun genererBrukerpassbyttePdf(data: JsonNode): ByteArray {
-        val fysiskDokument = søknadPdfGeneratorClient.genererPdfSøknad(
+        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBrukerpassbytte(
             jsonMapper.writeValueAsString(data),
         )
 
