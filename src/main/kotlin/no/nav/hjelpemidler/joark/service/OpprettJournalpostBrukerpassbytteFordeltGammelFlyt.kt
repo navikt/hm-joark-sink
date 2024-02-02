@@ -29,8 +29,7 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
                     "hm-brukerpassbytteFordeltGammelFlyt",
                 )
             }
-            validate { it.requireKey("id", "fnr", "brukerpassbytte") }
-            validate { it.interestedIn("soknadGjelder") }
+            validate { it.requireKey("id", "fnr", "brukerpassbytte", "soknadGjelder") }
         }.register(this)
     }
 
@@ -42,9 +41,7 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
 
     private val JsonMessage.brukersNavn get() = this["brukerpassbytte"]["brukersNavn"].textValue()
 
-    // TODO: send med soknadGjelder fra hm-soknadbehandling og bruk den her
-    private val JsonMessage.søknadGjelder
-        get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
+    private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         if (packet.bytteId == "e224ea03-08d2-4b27-bd52-73a3b7845b0c") {
