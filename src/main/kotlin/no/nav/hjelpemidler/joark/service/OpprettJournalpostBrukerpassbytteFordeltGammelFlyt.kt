@@ -30,6 +30,7 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
                 )
             }
             validate { it.requireKey("id", "fnr", "brukerpassbytte") }
+            validate { it.interestedIn("soknadGjelder") }
         }.register(this)
     }
 
