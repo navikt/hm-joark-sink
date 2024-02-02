@@ -47,6 +47,10 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
+        if (packet.bytteId == "e224ea03-08d2-4b27-bd52-73a3b7845b0c") {
+            return
+        }
+
         val data = BehovsmeldingData(
             behovsmeldingId = UUID.fromString(packet.bytteId),
             fnrBruker = packet.fnr,
