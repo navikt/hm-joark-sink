@@ -178,7 +178,7 @@ class JournalpostService(
         }
         // TODO: kan vi løse dette på en bedre måte?
         val fysiskDokument = when (sakstype) {
-            Sakstype.BRUKERPASS_BYTTE -> genererBrukerpassbyttePdf(behovsmeldingJson)
+            Sakstype.BRUKERPASSBYTTE -> genererBrukerpassbyttePdf(behovsmeldingJson)
             else -> genererPdf(behovsmeldingJson)
         }
         val journalpostId = opprettInngåendeJournalpost(

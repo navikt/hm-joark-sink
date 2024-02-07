@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMapper
 import java.util.UUID
@@ -54,7 +53,7 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
             behovsmeldingJson = jsonMapper.writeValueAsString(packet.brukerpassbytte),
             behovsmeldingGjelder = packet.søknadGjelder,
             navnBruker = packet.brukersNavn,
-            sakstype = Sakstype.BRUKERPASS_BYTTE,
+            sakstype = Sakstype.BRUKERPASSBYTTE,
         )
 
         log.info {
@@ -66,7 +65,7 @@ class OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(
                 fnrBruker = data.fnrBruker,
                 behovsmeldingId = data.behovsmeldingId,
                 behovsmeldingJson = packet.brukerpassbytte,
-                sakstype = Sakstype.BRUKERPASS_BYTTE,
+                sakstype = Sakstype.BRUKERPASSBYTTE,
                 dokumenttittel = data.behovsmeldingGjelder,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
             )

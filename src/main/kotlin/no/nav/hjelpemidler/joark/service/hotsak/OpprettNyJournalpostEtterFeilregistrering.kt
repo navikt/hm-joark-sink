@@ -90,7 +90,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     nyEksternReferanseId = eksternReferanseId
                 )
 
-                Sakstype.BYTTE, Sakstype.BRUKERPASS_BYTTE -> throw IllegalArgumentException("Uventet sakstype ${data.sakstype}")
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype ${data.sakstype}")
             }
 
             context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
