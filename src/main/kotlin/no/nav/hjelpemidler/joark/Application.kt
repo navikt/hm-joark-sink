@@ -13,7 +13,6 @@ import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.joark.service.OpprettJournalpostBrukerpassbytteFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
@@ -85,7 +84,6 @@ fun main() {
         .apply {
             register(statusListener)
             OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
-            OpprettJournalpostBrukerpassbytteFordeltGammelFlyt(this, journalpostService)
 
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)

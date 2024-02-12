@@ -46,7 +46,6 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
             fnrBruker = packet.fnrBruker,
-            navnBruker = packet.navnBruker,
             behovsmeldingJson = jsonMapper.writeValueAsString(packet.søknadJson),
             behovsmeldingId = packet.søknadId,
             behovsmeldingGjelder = packet.søknadGjelder,
