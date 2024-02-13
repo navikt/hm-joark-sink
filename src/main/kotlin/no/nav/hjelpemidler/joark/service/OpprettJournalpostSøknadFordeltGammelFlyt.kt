@@ -43,6 +43,9 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
+        log.info { "skipper alt i dev" }
+        return
+
         val data = BehovsmeldingData(
             fnrBruker = packet.fnrBruker,
             behovsmeldingJson = jsonMapper.writeValueAsString(packet.søknadJson),
