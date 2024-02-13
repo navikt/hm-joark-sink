@@ -29,13 +29,12 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                     listOf("hm-Søknad", "hm-SøknadGodkjentAvBruker", "hm-søknadFordeltGammelFlyt")
                 )
             }
-            validate { it.requireKey("fodselNrBruker", "navnBruker", "soknad", "soknadId") }
+            validate { it.requireKey("fodselNrBruker", "soknad", "soknadId") }
             validate { it.interestedIn("soknadGjelder") }
         }.register(this)
     }
 
     private val JsonMessage.fnrBruker get() = this["fodselNrBruker"].textValue()
-    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
     private val JsonMessage.søknadJson get() = this["soknad"]
     private val JsonMessage.søknadGjelder
