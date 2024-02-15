@@ -61,7 +61,7 @@ class JournalpostService(
     suspend fun genererBrukerpassbyttePdf(data: JsonNode): ByteArray {
         log.info { "DEBUG brukerpass data: $data" }
         val fysiskDokument = søknadPdfGeneratorClient.genererPdfBrukerpassbytte(
-            jsonMapper.writeValueAsString(data),
+            jsonMapper.writeValueAsString(data["brukerpassbytte"]),
         )
 
         Prometheus.pdfGenerertCounter.inc()
