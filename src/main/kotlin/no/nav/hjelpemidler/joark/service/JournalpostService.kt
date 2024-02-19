@@ -176,7 +176,7 @@ class JournalpostService(
         log.info {
             "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
-        // TODO: kan vi løse dette på en bedre måte?
+
         val fysiskDokument = when (sakstype) {
             Sakstype.BRUKERPASSBYTTE -> genererBrukerpassbyttePdf(behovsmeldingJson)
             else -> genererPdf(behovsmeldingJson)
