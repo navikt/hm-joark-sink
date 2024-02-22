@@ -17,6 +17,10 @@ enum class Dokumenttype(
         brevkode = "NAV 10-07.31",
         tittel = "Bytte av hjelpemiddel"
     ),
+    BRUKERPASSBYTTE_AV_HJELPEMIDLER(
+        brevkode = "NAV 10-07.31",
+        tittel = "Brukerpassbytte av hjelpemiddel"
+    ),
     TILSKUDD_VED_KJØP_AV_BRILLER_TIL_BARN(
         brevkode = "NAV 10-07.34",
         tittel = "Tilskudd ved kjøp av briller til barn"

@@ -76,10 +76,10 @@ class OpprettNyJournalpostEtterFeilregistrering(
 
         try {
             val nyJournalpostId = when (data.sakstype) {
-                Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverSøknad(
+                Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverBehovsmelding(
                     fnrBruker = data.fnrBruker,
-                    søknadId = data.soknadId,
-                    søknadJson = packet.søknadJson,
+                    behovsmeldingId = data.soknadId,
+                    behovsmeldingJson = packet.søknadJson,
                     sakstype = data.sakstype,
                     dokumenttittel = data.dokumentBeskrivelse,
                     eksternReferanseId = eksternReferanseId,
@@ -90,7 +90,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     nyEksternReferanseId = eksternReferanseId
                 )
 
-                Sakstype.BYTTE -> throw IllegalArgumentException("Uventet sakstype BYTTE")
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype ${data.sakstype}")
             }
 
             context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))

@@ -34,6 +34,9 @@ class SøknadPdfGeneratorClient(
     suspend fun genererPdfSøknad(@Language("JSON") søknadJson: String): ByteArray =
         genererPdf(søknadJson, "hmb/hmb")
 
+    suspend fun genererPdfBrukerpassbytte(@Language("JSON") brukerpassbytteJson: String): ByteArray =
+        genererPdf(brukerpassbytteJson, "hmb/brukerpassbytte")
+
     suspend fun genererPdfBarnebriller(@Language("JSON") søknadJson: String): ByteArray =
         genererPdf(søknadJson, "barnebrille/barnebrille")
 
