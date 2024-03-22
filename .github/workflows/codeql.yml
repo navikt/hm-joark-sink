@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - ghs
 
 jobs:
   codeql-analyze:
@@ -19,6 +18,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v2
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -26,15 +28,14 @@ jobs:
           languages: java
           queries: security-and-quality
 
-      - name: Set up JDK
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Build application
         run: ./gradlew build --no-daemon

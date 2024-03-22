@@ -1,4 +1,4 @@
-name: deploy-dev
+name: Bygg, deploy til dev-gcp og lag release
 
 on:
   push:
@@ -13,36 +13,37 @@ on:
 
 jobs:
   build:
-    name: Build app, docker image and push docker image
+    name: Bygg, deploy til dev-gcp og lag release
     permissions:
       contents: write
       id-token: write
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Sjekk ut koden
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Valider Gradle wrapper
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - uses: gradle/gradle-build-action@v2.11.1
-        with:
-          arguments: build
+      - name: Bygg app
+        run: ./gradlew build --no-daemon
 
-      - name: Pre-deploy
+      - name: Pre deploy
         uses: navikt/digihot-deploy/actions/pre-deploy@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push docker image
+      - name: Bygg og push Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
@@ -51,7 +52,7 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ env.VERSION_TAG }}
 
-      - name: Deploy to dev-gcp
+      - name: Deploy til dev-gcp
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
@@ -60,13 +61,13 @@ jobs:
           RESOURCE: nais/nais-dev.yaml
           VARS: nais/dev-q2.json
 
-      - name: post-deploy
+      - name: Post deploy
         if: github.ref == 'refs/heads/main'
         uses: navikt/digihot-deploy/actions/post-deploy@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: draft release
+      - name: Lag release
         if: github.ref == 'refs/heads/main'
         uses: actions/create-release@latest
         env:
