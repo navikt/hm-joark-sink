@@ -46,6 +46,7 @@ class SøknadPdfGeneratorClient(
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
             else -> {
+                log.error { "PdfGen feilet for json: $søknadJson" }
                 val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
                 throw PdfClientException("Uventet status: '${response.status}', body: '$body'")
             }
