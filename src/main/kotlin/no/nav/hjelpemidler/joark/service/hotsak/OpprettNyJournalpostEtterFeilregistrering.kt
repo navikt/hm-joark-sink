@@ -103,7 +103,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
 }
 
 private fun skip(sakId: String): Boolean =
-    sakId in setOf("2295", "158062")
+    sakId in setOf("2295", "158062", "2117")
 
 private data class MottattJournalpostData(
     val fnrBruker: String,
