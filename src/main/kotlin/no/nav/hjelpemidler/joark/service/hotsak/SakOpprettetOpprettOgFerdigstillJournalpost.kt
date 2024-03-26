@@ -52,7 +52,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
         }
 
         try {
-            val fysiskDokument = journalpostService.genererPdf(data.soknadJson)
+            val fysiskDokument = journalpostService.hentBehovsmeldingPdf(data.soknadId)
             val journalpostId = journalpostService.opprettInngåendeJournalpost(
                 fnrAvsender = data.fnrBruker,
                 dokumenttype = dokumenttype,

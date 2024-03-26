@@ -43,6 +43,7 @@ spec:
         - application: hm-soknad-pdfgen
         - application: hm-pdf-generator
         - application: hm-brev
+        - application: hm-soknad-api
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: foerstesidegenerator.prod-fss-pub.nais.io
