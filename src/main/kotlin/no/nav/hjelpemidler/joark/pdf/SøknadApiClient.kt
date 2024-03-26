@@ -36,7 +36,7 @@ class SøknadApiClient(
     suspend fun hentPdf(id: UUID): ByteArray {
         log.info { "Henter PDF fra hm-soknad-api for $id" }
         val tokenSet = azureADClient.grant(scope)
-        val response = client.get("/pdf/$id") {
+        val response = client.get("/hm/hm-joark-sink/pdf/$id") {
             bearerAuth(tokenSet)
         }
         return when (response.status) {
