@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.joark.brev.BrevService
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
@@ -67,6 +68,10 @@ fun main() {
         engine = engine,
     )
     val brevClient = BrevClient()
+    val søknadApiClient = SøknadApiClient(
+        azureADClient = azureADClient,
+        engine = engine,
+    )
 
     // Services
     val journalpostService = JournalpostService(
@@ -75,6 +80,7 @@ fun main() {
         dokarkivClient = dokarkivClient,
         safClient = safClient,
         førstesidegeneratorClient = førstesidegeneratorClient,
+        søknadApiClient = søknadApiClient,
     )
     val brevService = BrevService(
         brevClient = brevClient,

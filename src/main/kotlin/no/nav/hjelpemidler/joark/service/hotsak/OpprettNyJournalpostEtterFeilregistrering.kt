@@ -79,7 +79,6 @@ class OpprettNyJournalpostEtterFeilregistrering(
                 Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverBehovsmelding(
                     fnrBruker = data.fnrBruker,
                     behovsmeldingId = data.soknadId,
-                    behovsmeldingJson = packet.søknadJson,
                     sakstype = data.sakstype,
                     dokumenttittel = data.dokumentBeskrivelse,
                     eksternReferanseId = eksternReferanseId,

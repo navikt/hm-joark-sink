@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - brukerpassbytte
+      - hm-soknad-api-pdf
 
 jobs:
   build:
