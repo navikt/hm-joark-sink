@@ -40,7 +40,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
-    private val JsonMessage.erHast get() = this.søknadJson["erHast"]?.booleanValue() ?: false
+    private val JsonMessage.erHast get() = this.søknadJson["soknad"]["erHast"]?.booleanValue() ?: false
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
