@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.service
 
-import com.fasterxml.jackson.databind.JsonNode
 import mu.KotlinLogging
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
@@ -25,6 +24,7 @@ import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
@@ -47,26 +47,9 @@ class JournalpostService(
     private val dokarkivClient: DokarkivClient,
     private val safClient: SafClient,
     private val førstesidegeneratorClient: FørstesidegeneratorClient,
+    private val søknadApiClient: SøknadApiClient,
 ) {
-    suspend fun genererPdf(søknadJson: JsonNode): ByteArray {
-        val fysiskDokument = søknadPdfGeneratorClient.genererPdfSøknad(
-            jsonMapper.writeValueAsString(søknadJson),
-        )
-
-        Prometheus.pdfGenerertCounter.inc()
-
-        return fysiskDokument
-    }
-
-    suspend fun genererBrukerpassbyttePdf(data: JsonNode): ByteArray {
-        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBrukerpassbytte(
-            jsonMapper.writeValueAsString(data["brukerpassbytte"]),
-        )
-
-        Prometheus.pdfGenerertCounter.inc()
-
-        return fysiskDokument
-    }
+    suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentPdf(id)
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
         val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
@@ -162,7 +145,6 @@ class JournalpostService(
     suspend fun arkiverBehovsmelding(
         fnrBruker: String,
         behovsmeldingId: UUID,
-        behovsmeldingJson: JsonNode,
         sakstype: Sakstype,
         dokumenttittel: String,
         eksternReferanseId: String,
@@ -177,10 +159,7 @@ class JournalpostService(
             "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
 
-        val fysiskDokument = when (sakstype) {
-            Sakstype.BRUKERPASSBYTTE -> genererBrukerpassbyttePdf(behovsmeldingJson)
-            else -> genererPdf(behovsmeldingJson)
-        }
+        val fysiskDokument = hentBehovsmeldingPdf(behovsmeldingId)
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
             dokumenttype = sakstype.dokumenttype,

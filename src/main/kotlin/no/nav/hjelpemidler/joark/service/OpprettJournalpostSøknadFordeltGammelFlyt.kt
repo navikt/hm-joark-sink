@@ -62,7 +62,6 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             val journalpostId = journalpostService.arkiverBehovsmelding(
                 fnrBruker = data.fnrBruker,
                 behovsmeldingId = data.behovsmeldingId,
-                behovsmeldingJson = packet.søknadJson,
                 sakstype = data.sakstype,
                 dokumenttittel = data.behovsmeldingGjelder,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD"
