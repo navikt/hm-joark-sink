@@ -39,8 +39,8 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.søknadJson get() = this["soknad"]
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
-
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
+    private val JsonMessage.erHast get() = this.søknadJson["erHast"]?.booleanValue() ?: false
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
@@ -48,7 +48,8 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             behovsmeldingJson = jsonMapper.writeValueAsString(packet.søknadJson),
             behovsmeldingId = packet.søknadId,
             behovsmeldingGjelder = packet.søknadGjelder,
-            sakstype = packet.sakstype
+            sakstype = packet.sakstype,
+            erHast = packet.erHast,
         )
         if (skip(data.behovsmeldingId)) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }

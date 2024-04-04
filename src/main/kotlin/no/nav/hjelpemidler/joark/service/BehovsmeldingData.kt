@@ -11,7 +11,8 @@ data class BehovsmeldingData(
     val behovsmeldingId: UUID,
     val behovsmeldingJson: String,
     val behovsmeldingGjelder: String,
-    val sakstype: Sakstype
+    val sakstype: Sakstype,
+    val erHast: Boolean,
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(journalpostId: String, eventName: String): String {
@@ -25,6 +26,7 @@ data class BehovsmeldingData(
             it["eventId"] = UUID.randomUUID()
             it["soknadGjelder"] = behovsmeldingGjelder
             it["sakstype"] = sakstype.name
+            it["erHast"] = erHast
         }.toJson()
     }
 }
