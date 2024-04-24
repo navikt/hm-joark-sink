@@ -10,12 +10,6 @@ import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
-import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
-import no.nav.hjelpemidler.saf.enums.BrukerIdType
-import no.nav.hjelpemidler.saf.enums.Journalposttype
-import no.nav.hjelpemidler.saf.hentjournalpost.AvsenderMottaker
-import no.nav.hjelpemidler.saf.hentjournalpost.Bruker
-import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest
@@ -67,33 +61,11 @@ class OpprettNyJournalpostEtterFeilregistreringTest : TestSupport() {
 
     @Test
     fun `Kopierer journalpost hvis sakstype er BARNEBRILLER`() {
-        val journalpost = Journalpost(
-            journalpostId = journalpostId,
-            journalposttype = Journalposttype.I,
-            datoOpprettet = nå,
-            bruker = Bruker(
-                id = fnrBruker,
-                type = BrukerIdType.FNR,
-            ),
-            avsenderMottaker = AvsenderMottaker(
-                id = fnrBruker,
-                type = AvsenderMottakerIdType.FNR,
-                erLikBruker = true,
-            )
-        )
         coEvery {
-            safClientMock.hentJournalpost(journalpostId)
-        } returns journalpost
+            dokarkivClientMock.kopierJournalpost(journalpostId)
+        } returns journalpostId.reversed()
 
         sendTestMessage(sakstype = Sakstype.BARNEBRILLER)
-
-        opprettJournalpostRequestSlot.assertSoftly {
-            journalposttype shouldBe OpprettJournalpostRequest.Journalposttype.INNGAAENDE
-            datoDokument shouldBe nå
-            bruker?.id shouldBe fnrBruker
-            avsenderMottaker?.id shouldBe fnrBruker
-        }
-        forsøkFerdigstillSlot shouldHaveCaptured false
     }
 
     private fun sendTestMessage(sakstype: Sakstype) =
