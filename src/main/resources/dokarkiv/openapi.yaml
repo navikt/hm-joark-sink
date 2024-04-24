@@ -8,7 +8,7 @@ info:
 
     Hvis disse tjenestene blir kalt direkte fra en annen applikasjon hvor saksbehandlertoken ikke er tilgjengjelig er det mulig å autentisere seg med ett OIDC token. Da skal `Authorization` header inneholde applikasjonsbrukeren sitt token og `Nav-Consumer-Token` header ikke settes
   title: Dokarkiv APIer
-  version: repo.adeo.no:5443/dok/dokarkiv:16.16.4
+  version: europe-north1-docker.pkg.dev/nais-management-233d/teamdokumenthandtering/dokarkiv:2024.04.24-10.40-739c2cb
 servers:
 - description: Generated server url
   url: https://dokarkiv-q2.dev-fss-pub.nais.io
@@ -56,6 +56,7 @@ paths:
                 $ref: '#/components/schemas/FinnMottatteJournalposterResponse'
           description: OK
         "400":
+          content: {}
           description: Kall mangler enn eller flere påkrevde headere
         "401":
           description: Konsument har ikke tilgang til å kalle tjenesten.
@@ -84,6 +85,7 @@ paths:
                 $ref: '#/components/schemas/BulkOppdaterDistribusjonsinfoResponse'
           description: OK - Journalposten fikk status ekspedert
         "400":
+          content: {}
           description: "\tKan bare sette status ekspedert, når:\n\t* Journalpost er\
             \ UTGÅENDE\n\t* Journalpost har status FS eller FL\n\t* Journalpost har\
             \ en saksrelasjon som ikke er feilregistrert\n"
@@ -118,6 +120,7 @@ paths:
         "204":
           description: No Content - Ressursen oppdateres. Ingen respons i body.
         "400":
+          content: {}
           description: "Bad Request - Input feilet validering. Eksempler: dokumentInfoId\
             \ er ikke et tall eller tittel er lengre enn 550 tegn."
         "401":
@@ -156,6 +159,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/LeggTilLogiskVedleggResponse'
           description: OK
+        "400":
+          content:
+            '*/*':
+              schema:
+                type: object
+          description: Bad Request
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
             riktig format eller er utgått.
@@ -185,6 +194,12 @@ paths:
               schema:
                 type: string
           description: OK
+        "400":
+          content:
+            '*/*':
+              schema:
+                type: object
+          description: Bad Request
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
             riktig format eller er utgått.
@@ -221,6 +236,12 @@ paths:
               schema:
                 type: string
           description: OK
+        "400":
+          content:
+            '*/*':
+              schema:
+                type: object
+          description: Bad Request
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
             riktig format eller er utgått.
@@ -273,6 +294,7 @@ paths:
                 $ref: '#/components/schemas/OpprettJournalpostResponse'
           description: Journalpost opprettet
         "400":
+          content: {}
           description: Kan ikke opprette journalpost
         "401":
           description: Mangler tilgang til å opprette ny journalpost. Ugyldig OIDC
@@ -290,6 +312,37 @@ paths:
         "500":
           description: Internal server error
       summary: "Oppretter en journalpost i fagarkivet, med eller uten dokumenter"
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/kopierJournalpost:
+    post:
+      operationId: kopierJournalpost
+      parameters:
+      - description: Angir kildeJournalpostId som skal kopieres
+        example: 467011764
+        in: query
+        name: kildeJournalpostId
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/KopierJournalpostResponse'
+          description: Journalpost kopiert
+        "400":
+          content: {}
+          description: Kan ikke kopiere journalpost
+        "401":
+          description: Mangler tilgang til å kopiere ny journalpost. Ugyldig access
+            token
+        "404":
+          description: Journalpost finnes ikke eller er utilgjengelig
+        "500":
+          description: Internal server error
+      summary: Kopierer en journalpost i fagarkivet
       tags:
       - journalpostapi
   /rest/journalpostapi/v1/journalpost/{journalpostId}:
@@ -317,6 +370,7 @@ paths:
                 $ref: '#/components/schemas/OppdaterJournalpostResponse'
           description: OK
         "400":
+          content: {}
           description: Kan ikke oppdatere. Feil i aksjonslogg. Data kan ikke endres
             for statusen journalposten er på
         "401":
@@ -348,6 +402,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Feil i aksjonslogg
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -378,6 +433,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Feil i aksjonslogg
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -408,6 +464,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Feil i aksjonslogg
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -438,6 +495,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Feil i aksjonslogg
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -468,6 +526,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Feil i aksjonslogg
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -505,6 +564,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Kan ikke ferdigstille
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -541,6 +601,7 @@ paths:
                 type: string
           description: OK
         "400":
+          content: {}
           description: Kan ikke fjerne vedlegg som er knyttet til journalpost
         "401":
           description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
@@ -550,6 +611,44 @@ paths:
         "500":
           description: Internal server error
       summary: Fjerner vedlegg knyttet til journalpost som har journalpost- og dokumentinforelasjon
+      tags:
+      - journalpostapi
+  /rest/journalpostapi/v1/journalpost/{journalpostId}/lastOppVedlegg:
+    patch:
+      operationId: lastOppVedlegg
+      parameters:
+      - description: Angir JournalpostId for journalpost vedlegget skal legges til
+        example: 467011764
+        in: path
+        name: journalpostId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LastOppVedleggRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LastOppVedleggResponse'
+          description: Dokument lagt til som vedlegg.
+        "400":
+          content: {}
+          description: Validering av input feilet.
+        "401":
+          description: Ugyldig OIDC token. Denne feilen gis dersom tokenet ikke har
+            riktig format eller er utgått.
+        "409":
+          description: "Journalposten ikke er under arbeid (status=D), mangler hoveddokument,\
+            \ eller et dokument med samme filnavn eksisterer allerede som vedlegg."
+        "500":
+          description: Internal server error.
+      summary: Laster opp et dokument som vedlegg til en journalpost
       tags:
       - journalpostapi
   /rest/journalpostapi/v1/journalpost/{journalpostId}/oppdaterDistribusjonsinfo:
@@ -577,6 +676,7 @@ paths:
                 type: string
           description: OK - Journalposten fikk status ekspedert
         "400":
+          content: {}
           description: "\tKan bare sette status ekspedert, når:\n\t* Journalpost er\
             \ UTGÅENDE\n\t* Journalpost har status FS eller FL\n\t* Journalpost har\
             \ en saksrelasjon som ikke er feilregistrert\n"
@@ -618,6 +718,12 @@ paths:
           description: "Delvis ok (Multi-Status). Dokumentene som ikke lot seg knytte\
             \ til journalpost som vedlegg returneres som en feiledeDokumenter-liste,\
             \ med årsakskode."
+        "400":
+          content:
+            '*/*':
+              schema:
+                type: object
+          description: Bad Request
         "401":
           description: Konsument har ikke tilgang til å kalle tjenesten.
         "403":
@@ -638,12 +744,6 @@ paths:
         in: header
         name: Nav-Consumer-Token
         required: false
-        schema:
-          type: string
-      - description: Nav-Consumer-Id - brukes for sporingsinfo i joark
-        in: header
-        name: Nav-Consumer-Id
-        required: true
         schema:
           type: string
       - description: Nav-CallId - teknisk sporingsid
@@ -672,6 +772,7 @@ paths:
                 $ref: '#/components/schemas/KnyttTilAnnenSakResponse'
           description: OK - alle dokumenter ble knyttet til ny journalpost.
         "400":
+          content: {}
           description: Feil - kopierjournalpostintern eller oppdaterjournalpost feilet.
         "403":
           description: Feil - bruker har ikke tilgang til journalpost.
@@ -856,7 +957,7 @@ components:
           format: byte
           description: "Selve dokumentet. Hvis filtype er PDF/XML, ved fysisk dokument\
             \ brukes bytearray."
-          example: U8O4a25hZCBvbSBkYWdwZW5nZXIgdmVkIHBlcm1pdHRlcmluZw==
+          example: JVBERi0xLgoxIDAgb2JqPDwvUGFnZXMgMiAwIFI+PmVuZG9iagoyIDAgb2JqPDwvS2lkc1szIDAgUl0vQ291bnQgMT4+ZW5kb2JqCjMgMCBvYmo8PC9QYXJlbnQgMiAwIFI+PmVuZG9iagp0cmFpbGVyIDw8L1Jvb3QgMSAwIFI+Pgo=
         variantformat:
           type: string
           description: |
@@ -1071,6 +1172,28 @@ components:
         nyJournalpostId:
           type: integer
           format: int64
+    KopierJournalpostResponse:
+      type: object
+      properties:
+        kopierJournalpostId:
+          type: string
+          description: journalpostId som har blitt kopiert
+          example: "453865158"
+    LastOppVedleggRequest:
+      type: object
+      properties:
+        dokument:
+          $ref: '#/components/schemas/Dokument'
+      required:
+      - dokument
+    LastOppVedleggResponse:
+      type: object
+      properties:
+        dokumentInfoId:
+          type: string
+          description: Id til et dokumentInfo-objekt som peker på det arkiverte dokumentet.
+      required:
+      - dokumentInfoId
     LeggTilLogiskVedleggRequest:
       type: object
       properties:
@@ -1102,6 +1225,11 @@ components:
           type: boolean
           description: Setter status 'ekspedert' på journalposten. Dvs. at journalposten
             har blitt distribuert til bruker
+        tilbakestillJournalpost:
+          type: boolean
+          description: Settes til true hvis en tidligere ekspedert journalpost skal
+            tilbakestilles i forbindelse med distribusjon i ny kanal (ny kanal angitt
+            i utsendingskanal)
         utsendingsKanal:
           type: string
           description: Kanalen som dokumentene på journalpost ble sendt via. Se https://confluence.adeo.no/display/BOA/Utsendingskanal
@@ -1267,10 +1395,11 @@ components:
           example: "467010363"
         journalpostferdigstilt:
           type: boolean
-          description: True eller False for om journalpost ble ferdigstilt
+          description: true eller false for om journalpost ble ferdigstilt
           example: true
       required:
       - journalpostId
+      - journalpostferdigstilt
     Postadresse:
       type: object
       description: "Påkrevd hvis utsendingsKanal = \"S\" (sentral print), settes ellers\
@@ -1337,6 +1466,14 @@ components:
             * HJELPEMIDLER
             * BARNEBRILLER
             * EY (Etterlatteytelser)
+            * KELVIN
+            * DAGPENGER
+            * KOMPYS
+            * ARGUS
+            * NEESSI
+            * TILLEGGSSTONADER
+            * ARBEIDSOPPFOLGING
+            * TILTAKSPENGER
 
             Skal kun settes dersom sakstype = FAGSAK.
           enum:
@@ -1359,6 +1496,14 @@ components:
           - HJELPEMIDLER
           - BARNEBRILLER
           - EY
+          - KELVIN
+          - DAGPENGER
+          - KOMPYS
+          - ARGUS
+          - NEESSI
+          - TILLEGGSSTONADER
+          - ARBEIDSOPPFOLGING
+          - TILTAKSPENGER
           example: AO01
         sakstype:
           type: string
