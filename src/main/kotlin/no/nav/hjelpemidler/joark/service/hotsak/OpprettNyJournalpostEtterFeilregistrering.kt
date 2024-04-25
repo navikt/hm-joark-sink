@@ -93,9 +93,9 @@ class OpprettNyJournalpostEtterFeilregistrering(
             }
 
             context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
-            log.info { "Opprettet journalpost med status mottatt i Joark for søknadId: ${data.soknadId}" }
+            log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, journalpostId: $nyJournalpostId, sakstype: ${data.sakstype}" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i Joark for søknadId: ${data.soknadId}" }
+            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, sakstype: ${data.sakstype}" }
             throw e
         }
     }
