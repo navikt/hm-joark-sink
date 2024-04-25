@@ -32,7 +32,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakResponse
-import no.nav.hjelpemidler.joark.dokarkiv.models.KopierJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
@@ -179,23 +178,6 @@ class DokarkivClient(
         }
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
-            else -> response.feilmelding()
-        }
-    }
-
-    suspend fun kopierJournalpost(journalpostId: String): String {
-        val url = "journalpost/kopierJournalpost"
-        log.info {
-            "Kopierer journalpost med url: '$url', journalpostId: $journalpostId"
-        }
-        val response = client.post(url) {
-            parameter("kildeJournalpostId", journalpostId)
-        }
-        return when (response.status) {
-            HttpStatusCode.Created -> checkNotNull(response.body<KopierJournalpostResponse>().kopierJournalpostId) {
-                "Mangler ny journalpostId i svar fra dokarkiv"
-            }
-
             else -> response.feilmelding()
         }
     }

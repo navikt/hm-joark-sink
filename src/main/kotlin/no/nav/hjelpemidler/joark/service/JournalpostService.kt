@@ -7,7 +7,11 @@ import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
+import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
+import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
+import no.nav.hjelpemidler.joark.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
+import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostRequest
@@ -24,7 +28,11 @@ import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
+import no.nav.hjelpemidler.saf.enums.AvsenderMottakerIdType
+import no.nav.hjelpemidler.saf.enums.BrukerIdType
+import no.nav.hjelpemidler.saf.enums.Journalposttype
 import no.nav.hjelpemidler.saf.enums.Journalstatus
+import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.time.LocalDateTime
@@ -185,15 +193,79 @@ class JournalpostService(
         }
 
     /**
+     * Kopier journalpost ved å hente den fra SAF og lage [OpprettJournalpostRequest] basert på svaret.
      * Brukes når vi vil at videre behandling av journalpost skal skje i  Gosys / Infotrygd.
      */
     suspend fun kopierJournalpost(
         journalpostId: String,
         nyEksternReferanseId: String,
-    ): String = withCorrelationId(
-        "journalpostId" to journalpostId,
-        "nyEksternReferanseId" to nyEksternReferanseId,
-    ) { dokarkivClient.kopierJournalpost(journalpostId) }
+        journalførendeEnhet: String? = null,
+    ): String =
+        withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
+            val journalpost = hentJournalpost(journalpostId)
+            val journalposttype = journalpost.journalposttype
+
+            log.info {
+                "Kopierer journalpost med journalpostId: $journalpostId, eksternReferanseId: ${journalpost.eksternReferanseId}, type: $journalposttype, status: ${journalpost.journalstatus}, kanal: ${journalpost.kanal}"
+            }
+
+            require(journalposttype == Journalposttype.I) {
+                "Kun støtte for å kopiere inngående journalposter, journalpostId: $journalpostId har type: $journalposttype"
+            }
+
+            val dokumenter = journalpost.dokumenter?.filterNotNull()
+                ?.map { dokument ->
+                    val dokumentInfoId = dokument.dokumentInfoId
+                    val dokumentvarianter = dokument.dokumentvarianter.filterNotNull().map {
+                        val fysiskDokument = safClient.hentDokument(journalpostId, dokumentInfoId, it.variantformat)
+                        DokumentVariant(
+                            filtype = it.filtype ?: "PDFA",
+                            fysiskDokument = fysiskDokument,
+                            variantformat = it.variantformat.toString(),
+                        )
+                    }
+                    Dokument(
+                        brevkode = dokument.brevkode,
+                        dokumentvarianter = dokumentvarianter,
+                        tittel = dokument.tittel,
+                    )
+                } ?: emptyList()
+
+            log.info { "Hentet dokumenter fra SAF" }
+            dokumenter.forEach { dokument ->
+                dokument.dokumentvarianter?.forEach { variant ->
+                    log.info { "Dokument ${dokument.brevkode} ${dokument.tittel} ${variant.variantformat} ${variant.filtype}" }
+                }
+            }
+
+            val opprettJournalpostRequest = OpprettJournalpostRequest(
+                dokumenter = dokumenter,
+                journalposttype = journalposttype.toDokarkiv(),
+                avsenderMottaker = journalpost.avsenderMottaker.toDokarkiv(),
+                behandlingstema = journalpost.behandlingstema,
+                bruker = journalpost.bruker.toDokarkiv(),
+                datoDokument = journalpost.datoOpprettet,
+                eksternReferanseId = nyEksternReferanseId,
+                journalfoerendeEnhet = journalførendeEnhet ?: journalpost.journalfoerendeEnhet,
+                kanal = journalpost.kanal.toDokarkiv(),
+                tema = journalpost.tema.toString(),
+                tittel = journalpost.tittel.toString(),
+            )
+
+            secureLog.info { "Kopierer journalpostRequest for gammel journalpost $journalpostId $opprettJournalpostRequest" }
+
+            val opprettJournalpostResponse = dokarkivClient.opprettJournalpost(
+                opprettJournalpostRequest = opprettJournalpostRequest,
+                forsøkFerdigstill = false,
+            )
+            val nyJournalpostId = opprettJournalpostResponse.journalpostId
+
+            log.info {
+                "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+            }
+
+            nyJournalpostId
+        }
 
     suspend fun endreTittel(
         journalpostId: String,
@@ -339,5 +411,54 @@ class JournalpostService(
     suspend fun hentJournalpost(journalpostId: String): Journalpost =
         checkNotNull(safClient.hentJournalpost(journalpostId)) {
             "Fant ikke journalpost med journalpostId: $journalpostId"
+        }
+
+    private fun Journalposttype?.toDokarkiv(): OpprettJournalpostRequest.Journalposttype =
+        when (this) {
+            Journalposttype.I -> OpprettJournalpostRequest.Journalposttype.INNGAAENDE
+            Journalposttype.U -> OpprettJournalpostRequest.Journalposttype.UTGAAENDE
+            Journalposttype.N -> OpprettJournalpostRequest.Journalposttype.NOTAT
+            else -> error("Ukjent journalposttype: '$this'")
+        }
+
+    private fun AvsenderMottakerIdType?.toDokarkiv(): AvsenderMottaker.IdType =
+        when (this) {
+            AvsenderMottakerIdType.FNR -> AvsenderMottaker.IdType.FNR
+            AvsenderMottakerIdType.ORGNR -> AvsenderMottaker.IdType.ORGNR
+            AvsenderMottakerIdType.HPRNR -> AvsenderMottaker.IdType.HPRNR
+            AvsenderMottakerIdType.UTL_ORG -> AvsenderMottaker.IdType.UTL_ORG
+            else -> error("Ukjent avsenderMottakerIdType: '$this'")
+        }
+
+    private fun BrukerIdType?.toDokarkiv(): Bruker.IdType =
+        when (this) {
+            BrukerIdType.FNR -> Bruker.IdType.FNR
+            BrukerIdType.ORGNR -> Bruker.IdType.ORGNR
+            BrukerIdType.AKTOERID -> Bruker.IdType.AKTOERID
+            else -> error("Ukjent brukerIdType: '$this'")
+        }
+
+    private fun no.nav.hjelpemidler.saf.hentjournalpost.AvsenderMottaker?.toDokarkiv(): AvsenderMottaker? =
+        when {
+            this == null -> null
+            id == null -> null
+            type == null -> null
+            else -> AvsenderMottaker(id, type.toDokarkiv())
+        }
+
+    private fun no.nav.hjelpemidler.saf.hentjournalpost.Bruker?.toDokarkiv(): Bruker? =
+        when {
+            this == null -> null
+            id == null -> null
+            type == null -> null
+            else -> Bruker(id, type.toDokarkiv())
+        }
+
+    private fun Kanal?.toDokarkiv(): String? =
+        when (this) {
+            null -> null
+            Kanal.LOKAL_UTSKRIFT -> "L"
+            Kanal.SENTRAL_UTSKRIFT -> "S"
+            else -> name
         }
 }
