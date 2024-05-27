@@ -26,7 +26,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest : TestSupport() {
                 capture(opprettJournalpostRequestSlot),
                 capture(forsøkFerdigstillSlot)
             )
-        } returns OpprettJournalpostResponse("1")
+        } returns OpprettJournalpostResponse("1", true)
     }
 
     @Test

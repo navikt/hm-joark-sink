@@ -29,7 +29,7 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : TestSupport() {
                 capture(opprettJournalpostRequestSlot),
                 capture(forsøkFerdigstillSlot)
             )
-        } returns OpprettJournalpostResponse("1")
+        } returns OpprettJournalpostResponse("1", false)
     }
 
 
@@ -42,9 +42,11 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : TestSupport() {
             "fodselNrBruker" to "fodselNrBruker",
             "navnBruker" to "test",
             "soknadId" to søknadId,
-            "soknad" to jsonMapper.readTree("""
+            "soknad" to jsonMapper.readTree(
+                """
                 {"behovsmeldingType": "SØKNAD"}
-            """.trimIndent()),
+            """.trimIndent()
+            ),
             "soknadGjelder" to søknadGjelder
         )
         val dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER

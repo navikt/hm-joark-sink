@@ -79,6 +79,6 @@ class BestillingAvvistOppdaterJournalpost(
 }
 
 private fun skip(eventId: UUID): Boolean {
-    val skip = setOf<UUID>()
+    val skip = setOf("8f406d64-9eb2-4a04-ad41-ccce503e1f27").map(UUID::fromString)
     return eventId in skip
 }

@@ -24,19 +24,17 @@ dependencies {
     implementation(libs.hm.http)
 
     // GraphQL
-    implementation(libs.graphql.kotlin.ktor.client) {
+    implementation(libs.graphql.ktor.client) {
         exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
         exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
     }
-    implementation(libs.graphql.kotlin.client.jackson)
+    implementation(libs.graphql.client.jackson)
 
     // Testing
     testImplementation(libs.bundles.test)
 }
 
-val javaLanguageVersion = JavaLanguageVersion.of(21)
-java { toolchain { languageVersion.set(javaLanguageVersion) } }
-kotlin { jvmToolchain { languageVersion.set(javaLanguageVersion) } }
+kotlin { jvmToolchain(21) }
 
 tasks.test {
     useJUnitPlatform()
@@ -44,7 +42,7 @@ tasks.test {
         showExceptions = true
         showStackTraces = true
         exceptionFormat = TestExceptionFormat.SHORT
-        events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+        events = setOf(TestLogEvent.SKIPPED, TestLogEvent.FAILED)
     }
 }
 

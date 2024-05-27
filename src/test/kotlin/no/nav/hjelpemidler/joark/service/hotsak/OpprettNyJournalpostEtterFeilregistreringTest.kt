@@ -40,7 +40,7 @@ class OpprettNyJournalpostEtterFeilregistreringTest : TestSupport() {
                 capture(opprettJournalpostRequestSlot),
                 capture(forsøkFerdigstillSlot)
             )
-        } returns OpprettJournalpostResponse("3")
+        } returns OpprettJournalpostResponse("3", false)
     }
 
     @Test
