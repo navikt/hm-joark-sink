@@ -26,7 +26,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             validate {
                 it.demandAny(
                     "eventName",
-                    listOf("hm-Søknad", "hm-SøknadGodkjentAvBruker", "hm-søknadFordeltGammelFlyt")
+                    listOf("hm-Søknad", "hm-SøknadGodkjentAvBruker", "hm-søknadFordeltGammelFlyt"),
                 )
             }
             validate { it.requireKey("fodselNrBruker", "soknad", "soknadId") }
@@ -40,7 +40,10 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
-    private val JsonMessage.erHast get() = this.søknadJson["soknad"]?.get("erHast")?.booleanValue() ?: false
+    private val JsonMessage.erHast get() = when (this.søknadJson["soknad"]?.get("hast")) {
+        null -> false
+        else -> true
+    }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
@@ -56,7 +59,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             return
         }
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, dokumenttittel: ${data.behovsmeldingGjelder}"
+            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}"
         }
 
         try {
@@ -65,7 +68,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 behovsmeldingId = data.behovsmeldingId,
                 sakstype = data.sakstype,
                 dokumenttittel = data.behovsmeldingGjelder,
-                eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD"
+                eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
             )
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, eventName))
@@ -82,6 +85,5 @@ private fun skip(søknadId: UUID): Boolean =
         UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6"),
         UUID.fromString("16565b25-1d9a-4dbb-b62e-8c68cc6a64c8"),
         UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0"),
-        UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3")
+        UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3"),
     )
-
