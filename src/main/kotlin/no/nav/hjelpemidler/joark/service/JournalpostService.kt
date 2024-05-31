@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer

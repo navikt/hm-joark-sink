@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.brev
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
@@ -9,7 +10,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.Configuration
 

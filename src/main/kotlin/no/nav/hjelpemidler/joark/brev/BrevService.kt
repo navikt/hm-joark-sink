@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.joark.brev
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
-import mu.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 

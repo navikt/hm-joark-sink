@@ -26,6 +26,5 @@ object Configuration {
 
     // SAF
     val SAF_GRAPHQL_URL by EnvironmentVariable
-    val SAF_REST_URL by EnvironmentVariable
     val SAF_SCOPE by EnvironmentVariable
 }

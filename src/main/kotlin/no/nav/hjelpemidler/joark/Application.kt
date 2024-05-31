@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.joark
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
-import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Environment

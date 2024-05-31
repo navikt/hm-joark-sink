@@ -1,9 +1,9 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection

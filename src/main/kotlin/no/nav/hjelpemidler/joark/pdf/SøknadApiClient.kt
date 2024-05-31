@@ -1,16 +1,15 @@
 package no.nav.hjelpemidler.joark.pdf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.OpenIDClient
 import no.nav.hjelpemidler.http.openid.bearerAuth
