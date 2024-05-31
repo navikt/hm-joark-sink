@@ -74,11 +74,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             val journalpostId = journalpostService.opprettUtgåendeJournalpost(
                 fnrMottaker = data.fnr,
                 dokumenttype = dokumenttype,
+                eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK",
                 forsøkFerdigstill = true
             ) {
                 dokument(fysiskDokument = data.pdf)
                 hotsak(sakId)
-                eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK"
                 opprettetAv = packet.opprettetAv
             }
 
@@ -90,7 +90,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 )
             )
             log.info("Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}")
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
             throw e
         }

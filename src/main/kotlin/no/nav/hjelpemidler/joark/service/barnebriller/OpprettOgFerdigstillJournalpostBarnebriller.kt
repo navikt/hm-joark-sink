@@ -84,11 +84,11 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
             val journalpost = journalpostService.opprettInngåendeJournalpost(
                 fnrAvsender = data.fnr,
                 dokumenttype = data.dokumenttype,
+                eksternReferanseId = "${data.sakId}BARNEBRILLEAPI",
                 forsøkFerdigstill = true,
             ) {
                 dokument(fysiskDokument = fysiskDokument)
                 optiker(data.sakId)
-                eksternReferanseId = "${data.sakId}BARNEBRILLEAPI"
                 datoMottatt = data.opprettet
             }
 

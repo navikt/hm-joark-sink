@@ -56,6 +56,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
             val journalpostId = journalpostService.opprettInngåendeJournalpost(
                 fnrAvsender = data.fnrBruker,
                 dokumenttype = dokumenttype,
+                eksternReferanseId = "${data.soknadId}HOTSAK",
                 forsøkFerdigstill = true,
             ) {
                 dokument(
@@ -63,7 +64,6 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     dokumenttittel = data.dokumentTittel
                 )
                 hotsak(data.sakId)
-                eksternReferanseId = data.soknadId.toString() + "HOTSAK"
             }.journalpostId
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost"))

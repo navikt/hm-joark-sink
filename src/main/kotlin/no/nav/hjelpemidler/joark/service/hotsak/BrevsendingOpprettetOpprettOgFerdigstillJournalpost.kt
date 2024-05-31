@@ -89,6 +89,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
+            eksternReferanseId = "${sakId}_${brevsendingId}",
             forsøkFerdigstill = true,
         ) {
             dokument(fysiskDokument)

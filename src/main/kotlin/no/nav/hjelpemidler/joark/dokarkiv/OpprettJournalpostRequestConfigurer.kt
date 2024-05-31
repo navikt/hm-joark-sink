@@ -15,9 +15,9 @@ class OpprettJournalpostRequestConfigurer(
     val fnrAvsenderMottaker: String = fnrBruker,
     val dokumenttype: Dokumenttype,
     val journalposttype: OpprettJournalpostRequest.Journalposttype,
+    val eksternReferanseId: String,
 ) {
     var tittel: String? = null
-    var eksternReferanseId: String? = null
     var datoDokument: LocalDateTime? = null
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"

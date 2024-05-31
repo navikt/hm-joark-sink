@@ -31,10 +31,11 @@ class DokarkivClientTest {
         })
 
         val lagRequest = OpprettJournalpostRequestConfigurer(
-            "",
-            "",
+            "12345678910",
+            "12345678910",
             Dokumenttype.INNHENTE_OPPLYSNINGER_BARNEBRILLER,
             OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
+            "test",
         ).apply {
             dokument(ByteArray(0))
         }

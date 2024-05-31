@@ -72,6 +72,7 @@ class JournalpostService(
         fnrAvsender: String,
         fnrBruker: String = fnrAvsender,
         dokumenttype: Dokumenttype,
+        eksternReferanseId: String,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ) = withCorrelationId {
@@ -80,6 +81,7 @@ class JournalpostService(
             fnrAvsenderMottaker = fnrAvsender,
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
+            eksternReferanseId = eksternReferanseId
         ).apply(block)
 
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -88,7 +90,6 @@ class JournalpostService(
         )
 
         val journalpostId = journalpost.journalpostId
-        val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
         val ferdigstilt = journalpost.journalpostferdigstilt
         val datoMottatt = lagOpprettJournalpostRequest.datoMottatt
 
@@ -105,6 +106,7 @@ class JournalpostService(
         fnrMottaker: String,
         fnrBruker: String = fnrMottaker,
         dokumenttype: Dokumenttype,
+        eksternReferanseId: String,
         forsøkFerdigstill: Boolean = false,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
@@ -113,6 +115,7 @@ class JournalpostService(
             fnrAvsenderMottaker = fnrMottaker,
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
+            eksternReferanseId = eksternReferanseId,
         ).apply(block)
 
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -122,7 +125,6 @@ class JournalpostService(
         )
 
         val journalpostId = journalpost.journalpostId
-        val eksternReferanseId = lagOpprettJournalpostRequest.eksternReferanseId
         val ferdigstilt = journalpost.journalpostferdigstilt
 
         log.info {
@@ -155,13 +157,13 @@ class JournalpostService(
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
             dokumenttype = sakstype.dokumenttype,
+            eksternReferanseId = eksternReferanseId,
             forsøkFerdigstill = false,
         ) {
             dokument(
                 fysiskDokument = fysiskDokument,
                 dokumenttittel = dokumenttittel,
             )
-            this.eksternReferanseId = eksternReferanseId
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null
         }.journalpostId
