@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - hm-soknad-api-pdf
+      - hast
 
 jobs:
   build:
