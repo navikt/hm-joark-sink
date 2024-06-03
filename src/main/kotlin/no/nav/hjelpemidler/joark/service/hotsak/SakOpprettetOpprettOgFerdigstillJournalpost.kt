@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.MessageProblems
@@ -56,6 +56,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
             val journalpostId = journalpostService.opprettInngåendeJournalpost(
                 fnrAvsender = data.fnrBruker,
                 dokumenttype = dokumenttype,
+                eksternReferanseId = "${data.soknadId}HOTSAK",
                 forsøkFerdigstill = true,
             ) {
                 dokument(
@@ -63,7 +64,6 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     dokumenttittel = data.dokumentTittel
                 )
                 hotsak(data.sakId)
-                eksternReferanseId = data.soknadId.toString() + "HOTSAK"
             }.journalpostId
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost"))

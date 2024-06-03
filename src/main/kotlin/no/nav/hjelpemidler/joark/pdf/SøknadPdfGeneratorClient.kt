@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.pdf
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
@@ -11,7 +12,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import mu.KotlinLogging
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.Configuration
 import org.intellij.lang.annotations.Language

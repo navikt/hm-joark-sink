@@ -1,9 +1,9 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -64,7 +64,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
     private val JsonMessage.årsaker get() = this["årsaker"].let { it.toList().mapNotNull { it.textValue() } }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        log.info("Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId=${packet.eventId})")
+        log.info { "Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId: ${packet.eventId})" }
 
         val locale = Locale.forLanguageTag("nb-NO")
         val f = DateTimeFormatter.ofPattern("dd. MMMM yyyy").withLocale(locale)
@@ -106,15 +106,15 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                     fnrMottaker = packet.fnrBarn,
                     fnrBruker = packet.fnrBarn,
                     dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER_AVVISNING,
+                    eksternReferanseId = UUID.randomUUID().toString(),
                     forsøkFerdigstill = true,
                 ) {
                     dokument(fysiskDokument = fysiskDokument)
                     optikerGenerellSak()
-                    eksternReferanseId = UUID.randomUUID().toString()
                     datoMottatt = packet.opprettet
                 }
 
-                log.info("Stanset fra direkteoppgjørsløsningen: journalpostId: $journalpostId")
+                log.info { "Stanset fra direkteoppgjørsløsningen: journalpostId: $journalpostId" }
             }
         }
     }

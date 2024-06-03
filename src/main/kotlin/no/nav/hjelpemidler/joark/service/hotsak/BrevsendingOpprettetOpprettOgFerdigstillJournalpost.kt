@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -89,6 +89,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
+            eksternReferanseId = "${sakId}_${brevsendingId}",
             forsøkFerdigstill = true,
         ) {
             dokument(fysiskDokument)

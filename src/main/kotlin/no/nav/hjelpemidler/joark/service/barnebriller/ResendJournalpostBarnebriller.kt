@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -81,11 +81,11 @@ class ResendJournalpostBarnebriller(
             val journalpost = journalpostService.opprettInngåendeJournalpost(
                 fnrAvsender = data.fnr,
                 dokumenttype = data.dokumenttype,
+                eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI",
                 forsøkFerdigstill = true,
             ) {
                 dokument(fysiskDokument = fysiskDokument)
                 optiker(data.sakId)
-                eksternReferanseId = "RE_${data.sakId}BARNEBRILLEAPI"
                 datoMottatt = packet.opprettet
             }
 

@@ -14,7 +14,6 @@
   "FORSTESIDEGENERATOR_BASE_URL": "https://foerstesidegenerator-q1.dev-fss-pub.nais.io/api/foerstesidegenerator/v1/",
   "FORSTESIDEGENERATOR_SCOPE": "api://dev-fss.teamdokumenthandtering.foerstesidegenerator-q1/.default",
   "SAF_GRAPHQL_URL": "https://saf.dev-fss-pub.nais.io/graphql",
-  "SAF_REST_URL": "https://saf.dev-fss-pub.nais.io/rest/",
   "SAF_SCOPE": "api://dev-fss.teamdokumenthandtering.saf-q1/.default",
   "EVENT_NAME": "hm-SøknadArkivert-q1"
 }
