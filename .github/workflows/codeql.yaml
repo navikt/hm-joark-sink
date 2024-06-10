@@ -1,0 +1,14 @@
+name: Gjør CodeQL-analyse
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  codeql-analyze:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: navikt/hm-workflows/.github/workflows/codeql.yaml@main

@@ -4,9 +4,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    alias(libs.plugins.graphql)
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.graphql)
     alias(libs.plugins.openapi)
     alias(libs.plugins.spotless)
 }
@@ -17,7 +17,7 @@ application {
 }
 
 dependencies {
-    implementation(enforcedPlatform(libs.ktor.bom))
+    implementation(platform(libs.ktor.bom))
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.logging)
     implementation(libs.rapidsAndRivers)

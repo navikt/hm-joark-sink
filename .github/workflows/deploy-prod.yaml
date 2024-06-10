@@ -1,0 +1,18 @@
+name: Deploy til prod-gcp
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  deploy:
+    name: Deploy til prod-gcp
+    permissions:
+      contents: read
+      id-token: write
+    uses: navikt/hm-workflows/.github/workflows/deploy-prod.yaml@main
+    with:
+      manifest: .nais/nais-prod.yaml
+      vars: .nais/prod.json
+    secrets: inherit
