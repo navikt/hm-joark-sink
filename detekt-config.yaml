@@ -1,6 +1,6 @@
 # https://raw.githubusercontent.com/detekt/detekt/main/detekt-core/src/main/resources/default-detekt-config.yml
 
-# Har satt disse til false fordi de skaper mye støy som drukner sikkerhetsvarslene.
+# Disse er satt til false fordi de skaper for mye støy i sikkerhetsvarslene.
 
 complexity:
   active: false
