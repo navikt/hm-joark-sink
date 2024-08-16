@@ -143,12 +143,7 @@ class JournalpostService(
         dokumenttittel: String,
         eksternReferanseId: String,
         datoMottatt: LocalDateTime? = null,
-    ): String = withCorrelationId(
-        "søknadId" to behovsmeldingId.toString(),
-        "sakstype" to sakstype.name,
-        "eksternReferanseId" to eksternReferanseId,
-        "datoMottatt" to datoMottatt?.toString(),
-    ) {
+    ): String = withCorrelationId {
         log.info {
             "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
@@ -178,7 +173,7 @@ class JournalpostService(
     }
 
     suspend fun feilregistrerSakstilknytning(journalpostId: String) =
-        withCorrelationId("journalpostId" to journalpostId) {
+        withCorrelationId {
             log.info {
                 "Feilregistrerer journalpost med journalpostId: $journalpostId"
             }
@@ -192,7 +187,7 @@ class JournalpostService(
     suspend fun kopierJournalpost(
         journalpostId: String,
         nyEksternReferanseId: String,
-    ): String = withCorrelationId("journalpostId" to journalpostId, "nyEksternReferanseId" to nyEksternReferanseId) {
+    ): String = withCorrelationId {
         val nyJournalpostId = dokarkivClient.kopierJournalpost(journalpostId, nyEksternReferanseId)
         log.info {
             "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
@@ -204,7 +199,7 @@ class JournalpostService(
         journalpostId: String,
         tittel: String,
         dokumenter: List<DokumentInfo>,
-    ): String = withCorrelationId("journalpostId" to journalpostId) {
+    ): String = withCorrelationId {
         log.info {
             "Endrer tittel på journalpost med journalpostId: $journalpostId"
         }
@@ -217,7 +212,7 @@ class JournalpostService(
 
     suspend fun hentJournalposterForSak(
         sakId: String,
-    ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId("sakId" to sakId) {
+    ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId {
         log.info {
             "Henter journalposter for sakId: $sakId"
         }
@@ -304,7 +299,7 @@ class JournalpostService(
             Journalstatus.FEILREGISTRERT,
             Journalstatus.FERDIGSTILT,
             Journalstatus.JOURNALFOERT,
-            -> {
+                -> {
                 log.info {
                     "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
                 }

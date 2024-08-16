@@ -40,10 +40,11 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
     private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
-    private val JsonMessage.erHast get() = when (this.søknadJson["soknad"]?.get("hast")) {
-        null -> false
-        else -> true
-    }
+    private val JsonMessage.erHast
+        get() = when (this.søknadJson["soknad"]?.get("hast")) {
+            null -> false
+            else -> true
+        }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
@@ -54,12 +55,14 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             sakstype = packet.sakstype,
             erHast = packet.erHast,
         )
+
         if (skip(data.behovsmeldingId)) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
             return
         }
+
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}"
+            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}"
         }
 
         try {
@@ -72,18 +75,18 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             )
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, eventName))
-            log.info("Søknad arkivert i joark, søknadId: ${data.behovsmeldingId}")
+            log.info { "Søknad ble arkivert i Joark, søknadId: ${data.behovsmeldingId}, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
-            log.error(e) { "Søknad ble ikke arkivert i joark, søknadId: ${data.behovsmeldingId}" }
+            log.error(e) { "Søknad ble ikke arkivert i Joark, søknadId: ${data.behovsmeldingId}" }
             throw e
         }
     }
 }
 
 private fun skip(søknadId: UUID): Boolean =
-    søknadId in setOf<UUID>(
-        UUID.fromString("7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6"),
-        UUID.fromString("16565b25-1d9a-4dbb-b62e-8c68cc6a64c8"),
-        UUID.fromString("ddfd0e1e-a493-4395-9a63-783a9c1fadf0"),
-        UUID.fromString("99103106-dd24-4368-bf97-672f0b590ee3"),
-    )
+    søknadId in setOf(
+        "7c020fe0-cbe3-4bd2-81c6-ab62dadf44f6",
+        "16565b25-1d9a-4dbb-b62e-8c68cc6a64c8",
+        "ddfd0e1e-a493-4395-9a63-783a9c1fadf0",
+        "99103106-dd24-4368-bf97-672f0b590ee3",
+    ).mapTo(mutableSetOf<UUID>(), UUID::fromString).toSet()
