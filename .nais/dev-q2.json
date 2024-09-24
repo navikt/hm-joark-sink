@@ -3,7 +3,7 @@
   "RAPID_APP_NAME": "hm-joark-sink",
   "KAFKA_RAPID_TOPIC": "teamdigihot.hm-soknadsbehandling-v1",
   "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-v2",
-  "KAFKA_RESET_POLICY": "latest",
+  "KAFKA_RESET_POLICY": "LATEST",
   "SOKNAD_PDFGEN_BASE_URL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local/api/v1/genpdf/",
   "PDF_GENERATOR_BASE_URL": "http://hm-pdf-generator.teamdigihot.svc.cluster.local/api/",
   "BREV_API_URL": "http://hm-brev.teamdigihot/api/hotsak-brev-prod/dokument",
