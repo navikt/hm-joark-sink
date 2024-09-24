@@ -1,8 +1,8 @@
 package no.nav.hjelpemidler.joark.test
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.jsonMapper

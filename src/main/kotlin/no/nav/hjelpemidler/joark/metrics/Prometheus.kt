@@ -1,39 +1,24 @@
 package no.nav.hjelpemidler.joark.metrics
 
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.Counter
+import io.micrometer.core.instrument.Counter
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 
 object Prometheus {
-    private val collectorRegistry: CollectorRegistry =
-        CollectorRegistry.defaultRegistry
+    val registry: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
-    val søknadArkivertCounter: Counter = Counter
-        .build()
-        .name("hm_soknad_lagret_joark")
-        .help("Antall soknader lagret i joark")
-        .register(collectorRegistry)
+    val søknadArkivertCounter: Counter =
+        registry.counter("hm_soknad_lagret_joark")
 
-    val pdfGenerertCounter: Counter = Counter
-        .build()
-        .name("hm_soknad_pdf_generert")
-        .help("Antall pdf'er generert for lagring joark")
-        .register(collectorRegistry)
+    val pdfGenerertCounter: Counter =
+        registry.counter("hm_soknad_pdf_generert")
 
-    val opprettetOgFerdigstiltJournalpostCounter: Counter = Counter
-        .build()
-        .name("hm_ferdigstilt_journalpost_opprettet")
-        .help("Antall opprettete+ferdigstilte journalposter i joark")
-        .register(collectorRegistry)
+    val opprettetOgFerdigstiltJournalpostCounter: Counter =
+        registry.counter("hm_ferdigstilt_journalpost_opprettet")
 
-    val opprettetJournalpostMedStatusMottattCounter: Counter = Counter
-        .build()
-        .name("hm_mottatt_journalpost_opprettet")
-        .help("Antall opprettede + ferdigstilte journalposter i joark")
-        .register(collectorRegistry)
+    val opprettetJournalpostMedStatusMottattCounter: Counter =
+        registry.counter("hm_mottatt_journalpost_opprettet")
 
-    val feilregistrerteSakstilknytningForJournalpostCounter: Counter = Counter
-        .build()
-        .name("hm_feilregistrert_sakstilknytning_journalpost")
-        .help("Antall feilregistrerte sakstilknytninger for journalposter i joark")
-        .register(collectorRegistry)
+    val feilregistrerteSakstilknytningForJournalpostCounter: Counter =
+        registry.counter("hm_feilregistrert_sakstilknytning_journalpost")
 }

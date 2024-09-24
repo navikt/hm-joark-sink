@@ -1,8 +1,7 @@
 package no.nav.hjelpemidler.joark.service
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.joark.jsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -16,7 +15,7 @@ data class BehovsmeldingData(
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(journalpostId: String, eventName: String): String {
-        return JsonMessage("{}", MessageProblems("")).also {
+        return jsonMessage {
             it["soknadId"] = this.behovsmeldingId
             it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()

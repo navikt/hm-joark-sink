@@ -21,7 +21,7 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.logging)
     implementation(libs.rapidsAndRivers)
-    implementation(libs.hm.http)
+    implementation(libs.hotlibs.http)
 
     // GraphQL
     implementation(libs.graphql.ktor.client) {
@@ -32,9 +32,10 @@ dependencies {
 
     // Testing
     testImplementation(libs.bundles.test)
+    testImplementation(libs.tbdLibs.rapidsAndRivers.test)
 }
 
-kotlin { jvmToolchain(21) }
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
 tasks.test {
     useJUnitPlatform()

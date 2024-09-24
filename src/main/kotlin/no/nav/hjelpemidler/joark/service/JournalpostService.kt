@@ -48,7 +48,7 @@ class JournalpostService(
             jsonMapper.writeValueAsString(data),
         )
 
-        Prometheus.pdfGenerertCounter.inc()
+        Prometheus.pdfGenerertCounter.increment()
 
         return fysiskDokument
     }
@@ -97,7 +97,7 @@ class JournalpostService(
             "Inngående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt, datoMottatt: $datoMottatt"
         }
 
-        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
 
         journalpost
     }
@@ -131,7 +131,7 @@ class JournalpostService(
             "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
         }
 
-        Prometheus.opprettetOgFerdigstiltJournalpostCounter.inc()
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
 
         journalpostId
     }
@@ -167,7 +167,7 @@ class JournalpostService(
             "${sakstype.name} ble arkivert, id: $behovsmeldingId, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
         }
 
-        Prometheus.søknadArkivertCounter.inc()
+        Prometheus.søknadArkivertCounter.increment()
 
         journalpostId
     }
@@ -178,7 +178,7 @@ class JournalpostService(
                 "Feilregistrerer journalpost med journalpostId: $journalpostId"
             }
             dokarkivClient.feilregistrerSakstilknytning(journalpostId)
-            Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.inc()
+            Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.increment()
         }
 
     /**

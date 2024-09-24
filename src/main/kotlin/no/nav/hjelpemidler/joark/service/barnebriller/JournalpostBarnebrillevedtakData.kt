@@ -1,9 +1,8 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.jsonMessage
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -29,7 +28,7 @@ data class JournalpostBarnebrillevedtakData(
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(journalpostId: String, dokumentIder: List<String>, eventName: String): String {
-        return JsonMessage("{}", MessageProblems("")).also {
+        return jsonMessage {
             it["fnr"] = this.fnr
             it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()

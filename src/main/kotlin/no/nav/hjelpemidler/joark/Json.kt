@@ -7,7 +7,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
-import no.nav.helse.rapids_rivers.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import no.nav.hjelpemidler.joark.metrics.Prometheus
 import java.util.UUID
 import kotlin.reflect.full.findAnnotation
 
@@ -32,3 +34,7 @@ inline fun <reified T : Any> MessageContext.publish(key: String, message: T) =
 
 fun JsonNode.uuidValue(): UUID? =
     textValue()?.let(UUID::fromString)
+
+@Deprecated("Serialiser til JSON med Jackson", ReplaceWith("MessageContext.publish(key, message)"))
+fun jsonMessage(block: (JsonMessage) -> Unit): JsonMessage =
+    JsonMessage.newMessage(emptyMap(), Prometheus.registry).also(block)
