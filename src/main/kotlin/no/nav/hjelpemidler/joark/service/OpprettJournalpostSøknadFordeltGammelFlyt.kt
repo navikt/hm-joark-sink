@@ -26,7 +26,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             validate {
                 it.demandAny(
                     "eventName",
-                    listOf("hm-Søknad", "hm-SøknadGodkjentAvBruker", "hm-søknadFordeltGammelFlyt"),
+                    listOf("hm-søknadFordeltGammelFlyt"),
                 )
             }
             validate { it.requireKey("fodselNrBruker", "soknad", "soknadId") }
