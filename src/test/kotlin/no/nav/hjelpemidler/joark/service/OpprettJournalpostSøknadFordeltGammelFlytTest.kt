@@ -42,11 +42,8 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : TestSupport() {
             "fodselNrBruker" to "fodselNrBruker",
             "navnBruker" to "test",
             "soknadId" to søknadId,
-            "soknad" to jsonMapper.readTree(
-                """
-                {"behovsmeldingType": "SØKNAD"}
-            """.trimIndent()
-            ),
+            "behovsmeldingType" to "SØKNAD",
+            "erHast" to false,
             "soknadGjelder" to søknadGjelder
         )
         val dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER

@@ -29,27 +29,21 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                     listOf("hm-søknadFordeltGammelFlyt"),
                 )
             }
-            validate { it.requireKey("fodselNrBruker", "soknad", "soknadId") }
+            validate { it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType") }
             validate { it.interestedIn("soknadGjelder") }
         }.register(this)
     }
 
     private val JsonMessage.fnrBruker get() = this["fodselNrBruker"].textValue()
     private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
-    private val JsonMessage.søknadJson get() = this["soknad"]
     private val JsonMessage.søknadGjelder
         get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
-    private val JsonMessage.sakstype get() = this.søknadJson["behovsmeldingType"].textValue().let(Sakstype::valueOf)
-    private val JsonMessage.erHast
-        get() = when (this.søknadJson["soknad"]?.get("hast")) {
-            null -> false
-            else -> true
-        }
+    private val JsonMessage.sakstype get() = this["behovsmeldingType"].textValue().let(Sakstype::valueOf)
+    private val JsonMessage.erHast get() = this["erHast"].booleanValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = BehovsmeldingData(
             fnrBruker = packet.fnrBruker,
-            behovsmeldingJson = jsonMapper.writeValueAsString(packet.søknadJson),
             behovsmeldingId = packet.søknadId,
             behovsmeldingGjelder = packet.søknadGjelder,
             sakstype = packet.sakstype,

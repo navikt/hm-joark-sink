@@ -8,7 +8,6 @@ import java.util.UUID
 data class BehovsmeldingData(
     val fnrBruker: String,
     val behovsmeldingId: UUID,
-    val behovsmeldingJson: String,
     val behovsmeldingGjelder: String,
     val sakstype: Sakstype,
     val erHast: Boolean,
