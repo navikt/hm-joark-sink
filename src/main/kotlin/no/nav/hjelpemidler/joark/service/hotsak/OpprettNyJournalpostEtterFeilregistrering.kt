@@ -58,11 +58,13 @@ class OpprettNyJournalpostEtterFeilregistrering(
             }
             return
         }
+        val søknadId = packet.søknadId
+        val journalpostId = packet.journalpostId
         val data = MottattJournalpostData(
             fnrBruker = packet.fnrBruker,
             navnBruker = packet.navnBruker,
             soknadJson = packet.søknadJson,
-            soknadId = packet.søknadId,
+            soknadId = søknadId,
             sakId = sakId,
             sakstype = packet.sakstype,
             dokumentBeskrivelse = packet.dokumentBeskrivelse,
@@ -71,38 +73,38 @@ class OpprettNyJournalpostEtterFeilregistrering(
             valgteÅrsaker = packet.valgteÅrsaker,
             begrunnelse = packet.begrunnelse,
         )
-        log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}" }
-        val eksternReferanseId = "${data.soknadId}_${packet.journalpostId}_HOTSAK_TIL_GOSYS"
+        log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: $søknadId, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}, journalpostId: $journalpostId" }
+        val eksternReferanseId = "${søknadId}_${journalpostId}_HOTSAK_TIL_GOSYS"
 
         try {
             val nyJournalpostId = when (data.sakstype) {
                 Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverBehovsmelding(
                     fnrBruker = data.fnrBruker,
-                    behovsmeldingId = data.soknadId,
+                    behovsmeldingId = søknadId,
                     sakstype = data.sakstype,
                     dokumenttittel = data.dokumentBeskrivelse,
                     eksternReferanseId = eksternReferanseId,
                 )
 
                 Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
-                    journalpostId = packet.journalpostId,
+                    journalpostId = journalpostId,
                     nyEksternReferanseId = eksternReferanseId
                 )
 
-                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype ${data.sakstype}")
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype: ${data.sakstype}")
             }
 
             context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
-            log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, journalpostId: $nyJournalpostId, sakstype: ${data.sakstype}" }
+            log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: $søknadId, journalpostId: $nyJournalpostId, sakId: $sakId, sakstype: ${data.sakstype}" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, sakstype: ${data.sakstype}" }
+            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: $søknadId, sakstype: ${data.sakstype}" }
             throw e
         }
     }
 }
 
 private fun skip(sakId: String): Boolean =
-    sakId in setOf("2295", "158062", "2944")
+    sakId in setOf("2295", "158062", "2944", "258980")
 
 private data class MottattJournalpostData(
     val fnrBruker: String,
