@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -10,6 +9,7 @@ import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMessage
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.joark.uuidValue
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -25,28 +25,37 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-sakOpprettet") }
-            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "soknadGjelder") }
+            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadGjelder") }
+            validate {
+                it.interestedIn(
+                    "soknadJson", // fixme -> skal fjernes
+                    "behovsmeldingType",
+                )
+            }
         }.register(this)
     }
 
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
 
-    private val JsonMessage.søknadId get() = this["soknadId"].textValue()
+    private val JsonMessage.søknadId get() = this["soknadId"].uuidValue()
+
+    @Deprecated("Skal fjernes")
     private val JsonMessage.søknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
+    private val JsonMessage.behovsmeldingType: String? get() = this["behovsmeldingType"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = JournalpostData(
             fnrBruker = packet.fnrBruker,
             navnBruker = packet.navnBruker,
-            soknadJson = packet.søknadJson,
-            soknadId = UUID.fromString(packet.søknadId),
+            soknadId = packet.søknadId,
             sakId = packet.sakId,
             dokumentTittel = packet.søknadGjelder
         )
-        val dokumenttype = Sakstype.valueOf(packet.søknadJson.at("/behovsmeldingType").textValue()).dokumenttype
+        val behovsmeldingType = packet.behovsmeldingType ?: packet.søknadJson.at("/behovsmeldingType").textValue()
+        val dokumenttype = Sakstype.valueOf(behovsmeldingType).dokumenttype
         log.info {
             "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}'"
         }
@@ -79,7 +88,6 @@ private data class JournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
     val soknadId: UUID,
-    val soknadJson: JsonNode,
     val sakId: String,
     val dokumentTittel: String,
 ) {
