@@ -22,7 +22,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-feilregistrerteSakstilknytningForJournalpost") }
-            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadJson", "mottattDato") }
+            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "mottattDato") }
             validate {
                 it.interestedIn(
                     "dokumentBeskrivelse",
@@ -31,7 +31,9 @@ class OpprettNyJournalpostEtterFeilregistrering(
                     "navIdent",
                     "valgteÅrsaker",
                     "enhet",
-                    "begrunnelse"
+                    "begrunnelse",
+                    "soknadJson", // fixme -> slettes når vi ikke trenger dette feltet lenger
+                    "prioritet",
                 )
             }
         }.register(this)
@@ -40,6 +42,8 @@ class OpprettNyJournalpostEtterFeilregistrering(
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
+
+    @Deprecated("Vi skal slutte å sende dette feltet")
     private val JsonMessage.søknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
@@ -49,6 +53,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
     private val JsonMessage.valgteÅrsaker: Set<String> get() = this["valgteÅrsaker"].map { it.textValue() }.toSet()
     private val JsonMessage.enhet get() = this["enhet"].textValue()
     private val JsonMessage.begrunnelse get() = this["begrunnelse"].textValue()
+    private val JsonMessage.prioritet: String? get() = this["prioritet"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
@@ -72,6 +77,7 @@ class OpprettNyJournalpostEtterFeilregistrering(
             navIdent = packet.navIdent,
             valgteÅrsaker = packet.valgteÅrsaker,
             begrunnelse = packet.begrunnelse,
+            prioritet = packet.prioritet,
         )
         log.info { "Sak til journalføring etter feilregistrering mottatt, sakId: $sakId, søknadId: $søknadId, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}, journalpostId: $journalpostId" }
         val eksternReferanseId = "${søknadId}_${journalpostId}_HOTSAK_TIL_GOSYS"
@@ -118,6 +124,7 @@ private data class MottattJournalpostData(
     val navIdent: String?,
     val valgteÅrsaker: Set<String>,
     val begrunnelse: String?,
+    val prioritet: String?,
 ) {
     @Deprecated("Bruk Jackson direkte")
     fun toJson(journalpostId: String, eventName: String): String {
@@ -141,6 +148,9 @@ private data class MottattJournalpostData(
             it["valgteÅrsaker"] = this.valgteÅrsaker
             if (this.begrunnelse != null) {
                 it["begrunnelse"] = this.begrunnelse
+            }
+            if (this.prioritet != null) {
+                it["prioritet"] = this.prioritet
             }
         }.toJson()
     }
