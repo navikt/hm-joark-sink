@@ -54,7 +54,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
     private val JsonMessage.søknadId get() = this["soknadId"].textValue()
 
     @Deprecated("Vi skal slutte å sende dette feltet")
-    private val JsonMessage.søknadJson get() = this["soknadJson"]
+    private val JsonMessage.søknadJson get() = this["soknadJson"] // fixme -> slettes når vi ikke trenger dette feltet lenger
     private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue()
     private val JsonMessage.navIdent get() = this["navIdent"].textValue()
