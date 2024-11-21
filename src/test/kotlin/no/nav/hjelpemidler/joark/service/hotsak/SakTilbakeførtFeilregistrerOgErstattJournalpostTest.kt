@@ -16,17 +16,20 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class OpprettNyJournalpostEtterFeilregistreringTest : TestSupport() {
+class SakTilbakeførtFeilregistrerOgErstattJournalpostTest : TestSupport() {
     private val nå = LocalDateTime.now()
     private val fnrBruker = "10101012345"
     private val journalpostId = "2"
 
     override fun TestRapid.configure() {
-        OpprettNyJournalpostEtterFeilregistrering(this, journalpostService)
+        SakTilbakeførtFeilregistrerOgErstattJournalpost(this, journalpostService)
     }
 
     @BeforeTest
     fun setUp() {
+        coEvery {
+            journalpostService.feilregistrerSakstilknytning(any())
+        } returns Unit
         coEvery {
             søknadApiClientMock.hentPdf(any())
         } returns pdf
@@ -73,18 +76,18 @@ class OpprettNyJournalpostEtterFeilregistreringTest : TestSupport() {
 
     private fun sendTestMessage(sakstype: Sakstype) =
         sendTestMessage(
-            "eventName" to "hm-feilregistrerteSakstilknytningForJournalpost",
-            "soknadId" to UUID.randomUUID(),
-            "soknadJson" to jsonMapper.createObjectNode(),
-            "sakId" to "1",
-            "fnrBruker" to fnrBruker,
+            "eventName" to "hm-sakTilbakeførtGosys",
+            "saksnummer" to "1",
+            "joarkRef" to journalpostId,
             "navnBruker" to "test",
-            "mottattDato" to nå,
+            "fnrBruker" to fnrBruker,
             "dokumentBeskrivelse" to "test",
-            "enhet" to "1000",
+            "soknadId" to UUID.randomUUID(),
+            "mottattDato" to nå,
             "sakstype" to sakstype,
-            "nyJournalpostId" to journalpostId,
             "navIdent" to "X123456",
             "valgteÅrsaker" to jsonMapper.createArrayNode(),
+            "enhet" to "1000",
+            "soknadJson" to jsonMapper.createObjectNode(),
         )
 }

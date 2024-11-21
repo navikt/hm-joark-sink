@@ -7,16 +7,16 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMessage
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
-class SakTilbakeførtFeilregistrerJournalpost(
+class SakTilbakeførtFeilregistrerOgErstattJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {
@@ -71,36 +71,58 @@ class SakTilbakeførtFeilregistrerJournalpost(
             }
             return
         }
-        val data = FeilregistrerJournalpostData(
-            sakId = packet.sakId,
-            sakstype = packet.sakstype,
-            journalpostId = journalpostId,
+
+        val søknadId = packet.søknadId
+        val data = MottattJournalpostData(
             fnrBruker = packet.fnrBruker,
             navnBruker = packet.navnBruker,
+            soknadJson = packet.søknadJson,
+            soknadId = UUID.fromString(søknadId),
+            sakId = packet.sakId,
+            sakstype =  Sakstype.valueOf(packet.sakstype),
             dokumentBeskrivelse = packet.dokumentBeskrivelse,
             enhet = packet.enhet,
-            soknadId = packet.søknadId,
-            soknadJson = packet.søknadJson,
-            mottattDato = packet.mottattDato,
             navIdent = packet.navIdent,
             valgteÅrsaker = packet.valgteÅrsaker,
             begrunnelse = packet.begrunnelse,
             prioritet = packet.prioritet,
         )
-        log.info {
-            "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${data.sakId}, sakstype: ${data.sakstype}, journalpostId: $journalpostId"
-        }
 
+        log.info {
+            "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${packet.sakId}, sakstype: ${packet.sakstype}, journalpostId: $journalpostId"
+        }
         try {
             journalpostService.feilregistrerSakstilknytning(journalpostId)
-
-            context.publish(
-                data.fnrBruker,
-                data.toJson(journalpostId, "hm-feilregistrerteSakstilknytningForJournalpost")
-            )
-            log.info { "Feilregistrerte sakstilknytning for sakId: ${data.sakId}, journalpostId: $journalpostId" }
+            log.info { "Feilregistrerte sakstilknytning for sakId: ${packet.sakId}, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: ${data.sakId}" }
+            log.error(e) { "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: ${packet.sakId}" }
+            throw e
+        }
+
+        log.info { "Oppretter ny journalpost for feilregistrert sakstilknytning, sakId: ${data.sakId}, søknadId: $søknadId, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}, journalpostId: $journalpostId" }
+        val eksternReferanseId = "${søknadId}_${journalpostId}_HOTSAK_TIL_GOSYS"
+        try {
+            val nyJournalpostId = when (data.sakstype) {
+                Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverBehovsmelding(
+                    fnrBruker = data.fnrBruker,
+                    behovsmeldingId = data.soknadId,
+                    sakstype = data.sakstype,
+                    dokumenttittel = data.dokumentBeskrivelse,
+                    eksternReferanseId = eksternReferanseId,
+                )
+
+                Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
+                    journalpostId = journalpostId,
+                    nyEksternReferanseId = eksternReferanseId
+                )
+
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype: ${data.sakstype}")
+            }
+
+            context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
+            log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: $søknadId, journalpostId: $nyJournalpostId, sakId: ${data.sakId}, sakstype: ${data.sakstype}" }
+        } catch (e: Throwable) {
+            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: $søknadId, sakstype: ${data.sakstype}" }
             throw e
         }
     }
@@ -109,39 +131,36 @@ class SakTilbakeførtFeilregistrerJournalpost(
 private fun skip(journalpostId: String): Boolean =
     journalpostId in setOf("535250492")
 
-private data class FeilregistrerJournalpostData(
-    val sakId: String,
-    val sakstype: String,
-    val journalpostId: String,
+private data class MottattJournalpostData(
     val fnrBruker: String,
     val navnBruker: String,
+    val soknadId: UUID,
+    val soknadJson: JsonNode,
+    val sakId: String,
+    val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
     val enhet: String,
-    val soknadId: String,
-    val soknadJson: JsonNode,
-    val mottattDato: LocalDate,
     val navIdent: String?,
     val valgteÅrsaker: Set<String>,
     val begrunnelse: String?,
     val prioritet: String?,
 ) {
     @Deprecated("Bruk Jackson direkte")
-    fun toJson(nyJournalpostId: String, eventName: String): String {
+    fun toJson(journalpostId: String, eventName: String): String {
         return jsonMessage {
+            it["soknadId"] = this.soknadId
             it["eventName"] = eventName
             it["opprettet"] = LocalDateTime.now()
+            it["fodselNrBruker"] = this.fnrBruker // @deprecated
+            it["fnrBruker"] = this.fnrBruker
+            it["joarkRef"] = journalpostId // @deprecated
+            it["journalpostId"] = journalpostId
             it["sakId"] = sakId
             it["sakstype"] = this.sakstype
-            it["feilregistrertJournalpostId"] = journalpostId
-            it["nyJournalpostId"] = nyJournalpostId
-            it["eventId"] = UUID.randomUUID()
-            it["fnrBruker"] = this.fnrBruker
-            it["navnBruker"] = this.navnBruker
             it["dokumentBeskrivelse"] = this.dokumentBeskrivelse
             it["enhet"] = this.enhet
-            it["soknadId"] = this.soknadId
+            it["eventId"] = UUID.randomUUID()
             it["soknadJson"] = this.soknadJson
-            it["mottattDato"] = this.mottattDato
             if (this.navIdent != null) {
                 it["navIdent"] = this.navIdent
             }
