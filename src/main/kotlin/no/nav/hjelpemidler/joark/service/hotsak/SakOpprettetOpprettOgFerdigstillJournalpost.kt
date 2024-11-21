@@ -26,22 +26,13 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-sakOpprettet") }
             validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadGjelder") }
-            validate {
-                it.interestedIn(
-                    "soknadJson", // fixme -> skal fjernes
-                    "behovsmeldingType",
-                )
-            }
+            validate { it.interestedIn("behovsmeldingType") }
         }.register(this)
     }
 
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
-
     private val JsonMessage.søknadId get() = this["soknadId"].uuidValue()
-
-    @Deprecated("Skal fjernes")
-    private val JsonMessage.søknadJson get() = this["soknadJson"]
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
     private val JsonMessage.behovsmeldingType: String? get() = this["behovsmeldingType"].textValue()
@@ -54,7 +45,8 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
             sakId = packet.sakId,
             dokumentTittel = packet.søknadGjelder
         )
-        val behovsmeldingType = packet.behovsmeldingType ?: packet.søknadJson.at("/behovsmeldingType").textValue()
+        val behovsmeldingType =
+            packet.behovsmeldingType ?: error("Mangler behovsmeldingType for søknadId: ${data.soknadId}")
         val dokumenttype = Sakstype.valueOf(behovsmeldingType).dokumenttype
         log.info {
             "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}'"
@@ -76,9 +68,9 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
             }.journalpostId
 
             context.publish(data.fnrBruker, data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost"))
-            log.info("Opprettet og ferdigstilte journalpost i joark for søknadId: ${data.soknadId}")
+            log.info { "Opprettet og ferdigstilte journalpost i Joark for søknadId: ${data.soknadId}" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost i joark for søknadId: ${data.soknadId}" }
+            log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost i Joark for søknadId: ${data.soknadId}" }
             throw e
         }
     }
