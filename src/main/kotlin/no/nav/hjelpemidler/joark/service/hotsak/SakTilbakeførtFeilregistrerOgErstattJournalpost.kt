@@ -130,7 +130,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
 private fun skip(journalpostId: String): Boolean =
     journalpostId in setOf("535250492")
 
-internal data class MottattJournalpostData(
+private data class MottattJournalpostData(
     val fnrBruker: String,
     val soknadId: UUID,
     val soknadJson: JsonNode,
