@@ -8,7 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.jsonMessage
+import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.time.LocalDateTime
@@ -27,11 +27,9 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
                 it.requireKey(
                     "saksnummer",
                     "joarkRef",
-                    "navnBruker",
                     "fnrBruker",
                     "dokumentBeskrivelse",
                     "soknadId",
-                    "mottattDato"
                 )
                 it.interestedIn(
                     "sakstype",
@@ -49,19 +47,17 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.journalpostId get() = this["joarkRef"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
-    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.dokumentBeskrivelse get() = this["dokumentBeskrivelse"].textValue()
     private val JsonMessage.søknadId get() = this["soknadId"].textValue()
-
-    @Deprecated("Vi skal slutte å sende dette feltet")
-    private val JsonMessage.søknadJson get() = this["soknadJson"] // fixme -> slettes når vi ikke trenger dette feltet lenger
-    private val JsonMessage.mottattDato get() = this["mottattDato"].asLocalDate()
     private val JsonMessage.sakstype get() = this["sakstype"].textValue()
     private val JsonMessage.navIdent get() = this["navIdent"].textValue()
     private val JsonMessage.valgteÅrsaker: Set<String> get() = this["valgteÅrsaker"].map { it.textValue() }.toSet()
     private val JsonMessage.enhet get() = this["enhet"].textValue()
     private val JsonMessage.begrunnelse get() = this["begrunnelse"].textValue()
     private val JsonMessage.prioritet: String? get() = this["prioritet"].textValue()
+
+    @Deprecated("Vi skal slutte å sende dette feltet")
+    private val JsonMessage.søknadJson get() = this["soknadJson"] // fixme -> slettes når vi ikke trenger dette feltet lenger
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
@@ -75,9 +71,9 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
         val søknadId = packet.søknadId
         val data = MottattJournalpostData(
             fnrBruker = packet.fnrBruker,
-            navnBruker = packet.navnBruker,
             soknadJson = packet.søknadJson,
             soknadId = UUID.fromString(søknadId),
+            journalpostId = packet.journalpostId,
             sakId = packet.sakId,
             sakstype =  Sakstype.valueOf(packet.sakstype),
             dokumentBeskrivelse = packet.dokumentBeskrivelse,
@@ -119,7 +115,10 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
                 Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype: ${data.sakstype}")
             }
 
-            context.publish(data.fnrBruker, data.toJson(nyJournalpostId, "hm-opprettetMottattJournalpost"))
+            // Oppdater journalpostId etter feilregistrering og ny-oppretting
+            val data = data.copy(journalpostId = nyJournalpostId)
+
+            context.publish(data.fnrBruker, data)
             log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: $søknadId, journalpostId: $nyJournalpostId, sakId: ${data.sakId}, sakstype: ${data.sakstype}" }
         } catch (e: Throwable) {
             log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: $søknadId, sakstype: ${data.sakstype}" }
@@ -131,11 +130,11 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
 private fun skip(journalpostId: String): Boolean =
     journalpostId in setOf("535250492")
 
-private data class MottattJournalpostData(
+internal data class MottattJournalpostData(
     val fnrBruker: String,
-    val navnBruker: String,
     val soknadId: UUID,
     val soknadJson: JsonNode,
+    val journalpostId: String,
     val sakId: String,
     val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
@@ -145,32 +144,10 @@ private data class MottattJournalpostData(
     val begrunnelse: String?,
     val prioritet: String?,
 ) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
-        return jsonMessage {
-            it["soknadId"] = this.soknadId
-            it["eventName"] = eventName
-            it["opprettet"] = LocalDateTime.now()
-            it["fodselNrBruker"] = this.fnrBruker // @deprecated
-            it["fnrBruker"] = this.fnrBruker
-            it["joarkRef"] = journalpostId // @deprecated
-            it["journalpostId"] = journalpostId
-            it["sakId"] = sakId
-            it["sakstype"] = this.sakstype
-            it["dokumentBeskrivelse"] = this.dokumentBeskrivelse
-            it["enhet"] = this.enhet
-            it["eventId"] = UUID.randomUUID()
-            it["soknadJson"] = this.soknadJson
-            if (this.navIdent != null) {
-                it["navIdent"] = this.navIdent
-            }
-            it["valgteÅrsaker"] = this.valgteÅrsaker
-            if (this.begrunnelse != null) {
-                it["begrunnelse"] = this.begrunnelse
-            }
-            if (this.prioritet != null) {
-                it["prioritet"] = this.prioritet
-            }
-        }.toJson()
-    }
+    val eventId = UUID.randomUUID()
+    val eventName = "hm-opprettetMottattJournalpost"
+    val opprettet = LocalDateTime.now()
+
+    var fodselNrBruker = fnrBruker // @deprecated
+    val joarkRef = journalpostId // @deprecated
 }
