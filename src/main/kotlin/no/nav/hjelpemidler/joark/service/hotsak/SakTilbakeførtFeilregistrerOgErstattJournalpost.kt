@@ -1,9 +1,7 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -37,7 +35,6 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
                     "valgteÅrsaker",
                     "enhet",
                     "begrunnelse",
-                    "soknadJson",
                     "prioritet",
                 )
             }
@@ -56,9 +53,6 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
     private val JsonMessage.begrunnelse get() = this["begrunnelse"].textValue()
     private val JsonMessage.prioritet: String? get() = this["prioritet"].textValue()
 
-    @Deprecated("Vi skal slutte å sende dette feltet")
-    private val JsonMessage.søknadJson get() = this["soknadJson"] // fixme -> slettes når vi ikke trenger dette feltet lenger
-
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
         if (skip(journalpostId)) {
@@ -71,11 +65,10 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
         val søknadId = packet.søknadId
         val data = MottattJournalpostData(
             fnrBruker = packet.fnrBruker,
-            soknadJson = packet.søknadJson,
             soknadId = UUID.fromString(søknadId),
             journalpostId = packet.journalpostId,
             sakId = packet.sakId,
-            sakstype =  Sakstype.valueOf(packet.sakstype),
+            sakstype = Sakstype.valueOf(packet.sakstype),
             dokumentBeskrivelse = packet.dokumentBeskrivelse,
             enhet = packet.enhet,
             navIdent = packet.navIdent,
@@ -133,7 +126,6 @@ private fun skip(journalpostId: String): Boolean =
 private data class MottattJournalpostData(
     val fnrBruker: String,
     val soknadId: UUID,
-    val soknadJson: JsonNode,
     val journalpostId: String,
     val sakId: String,
     val sakstype: Sakstype,
