@@ -1,43 +1,53 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.jsonMessage
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class JournalpostBarnebrillevedtakData(
     val fnr: String,
-    val brukersNavn: String,
     val orgnr: String,
+    val sakId: String,
+    val brukersNavn: String,
     val orgNavn: String,
     val orgAdresse: String,
-    val sakId: String,
     val navnAvsender: String,
     val brilleseddel: JsonNode,
-    val opprettet: LocalDateTime,
     val bestillingsdato: LocalDate,
-    val bestillingsår: Int,
+    val bestillingsår: Int = bestillingsdato.year,
     val bestillingsreferanse: String,
     val satsBeskrivelse: String,
     val satsBeløp: BigDecimal,
     val beløp: BigDecimal,
     val dokumenttype: Dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER,
+    val dokumentTittel: String = dokumenttype.tittel,
+
+    @JsonAlias("opprettetDato")
+    val opprettet: LocalDateTime,
 ) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, dokumentIder: List<String>, eventName: String): String {
-        return jsonMessage {
-            it["fnr"] = this.fnr
-            it["eventName"] = eventName
-            it["opprettet"] = LocalDateTime.now()
-            it["orgnr"] = this.orgnr
-            it["joarkRef"] = journalpostId
-            it["dokumentIder"] = dokumentIder
-            it["sakId"] = this.sakId
-            it["dokumentTittel"] = this.dokumenttype.tittel
-            it["eventId"] = UUID.randomUUID()
-        }.toJson()
-    }
+    // Må ha egen klasse her fordi man serialiserer denne (JournalpostBarnebrillevedtakData) for to forskjellige formål
+    // formål (pdfgen, og event) med forskjellig innhold
+    @Hendelse("hm-opprettetOgFerdigstiltBarnebrillerJournalpost")
+    data class Utgående(
+        val fnr: String,
+        val orgnr: String,
+        val sakId: String,
+        val joarkRef: String,
+        val dokumentIder: List<String>,
+        val dokumentTittel: String,
+        val opprettet: LocalDateTime = LocalDateTime.now()
+    )
+
+    fun tilUtgående(journalpostId: String, dokumentIder: List<String>) = Utgående(
+        fnr = fnr,
+        orgnr = orgnr,
+        sakId = sakId,
+        joarkRef = journalpostId,
+        dokumentIder = dokumentIder,
+        dokumentTittel = dokumentTittel,
+    )
 }
