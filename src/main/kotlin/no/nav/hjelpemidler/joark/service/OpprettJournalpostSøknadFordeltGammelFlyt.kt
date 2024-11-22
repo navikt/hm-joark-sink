@@ -21,7 +21,6 @@ private val log = KotlinLogging.logger {}
 class OpprettJournalpostSøknadFordeltGammelFlyt(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
-    private val eventName: String = Configuration.EVENT_NAME,
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
