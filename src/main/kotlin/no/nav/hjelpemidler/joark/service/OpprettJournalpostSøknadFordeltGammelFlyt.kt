@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -9,6 +10,7 @@ import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMapper
+import no.nav.hjelpemidler.joark.publish
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -34,21 +36,8 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
         }.register(this)
     }
 
-    private val JsonMessage.fnrBruker get() = this["fodselNrBruker"].textValue()
-    private val JsonMessage.søknadId get() = this["soknadId"].textValue().let(UUID::fromString)
-    private val JsonMessage.søknadGjelder
-        get() = this["soknadGjelder"].textValue() ?: Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel
-    private val JsonMessage.sakstype get() = this["behovsmeldingType"].textValue().let(Sakstype::valueOf)
-    private val JsonMessage.erHast get() = this["erHast"].booleanValue()
-
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val data = BehovsmeldingData(
-            fnrBruker = packet.fnrBruker,
-            behovsmeldingId = packet.søknadId,
-            behovsmeldingGjelder = packet.søknadGjelder,
-            sakstype = packet.sakstype,
-            erHast = packet.erHast,
-        )
+        val data: BehovsmeldingData = jsonMapper.readValue(packet.toJson())
 
         if (skip(data.behovsmeldingId)) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
@@ -64,11 +53,11 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 fnrBruker = data.fnrBruker,
                 behovsmeldingId = data.behovsmeldingId,
                 sakstype = data.sakstype,
-                dokumenttittel = data.behovsmeldingGjelder,
+                dokumenttittel = data.behovsmeldingGjelder!!,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
             )
 
-            context.publish(data.fnrBruker, data.toJson(journalpostId, eventName))
+            context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))
             log.info { "Søknad ble arkivert i Joark, søknadId: ${data.behovsmeldingId}, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
             log.error(e) { "Søknad ble ikke arkivert i Joark, søknadId: ${data.behovsmeldingId}" }

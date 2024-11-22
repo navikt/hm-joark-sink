@@ -1,30 +1,32 @@
 package no.nav.hjelpemidler.joark.service
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.jsonMessage
 import java.time.LocalDateTime
 import java.util.UUID
 
 data class BehovsmeldingData(
-    val fnrBruker: String,
-    val behovsmeldingId: UUID,
-    val behovsmeldingGjelder: String,
-    val sakstype: Sakstype,
     val erHast: Boolean,
+    val joarkRef: String? = null,
+
+    @JsonAlias("behovsmeldingType")
+    val sakstype: Sakstype,
+
+    @JsonAlias("fodselNrBruker")
+    val fnrBruker: String,
+
+    @JsonProperty("soknadId")
+    val behovsmeldingId: UUID,
+
+    @JsonProperty("soknadGjelder")
+    val behovsmeldingGjelder: String? = Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel,
 ) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
-        return jsonMessage {
-            it["soknadId"] = this.behovsmeldingId
-            it["eventName"] = eventName
-            it["opprettet"] = LocalDateTime.now()
-            it["fodselNrBruker"] = this.fnrBruker // @deprecated
-            it["fnrBruker"] = this.fnrBruker
-            it["joarkRef"] = journalpostId
-            it["eventId"] = UUID.randomUUID()
-            it["soknadGjelder"] = behovsmeldingGjelder
-            it["sakstype"] = sakstype.name
-            it["erHast"] = erHast
-        }.toJson()
-    }
+    val eventId = UUID.randomUUID()
+    val eventName = Configuration.EVENT_NAME
+    val opprettet = LocalDateTime.now()
+
+    val fodselNrBruker = fnrBruker // @deprecated
 }
