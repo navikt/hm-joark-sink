@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.publish
@@ -101,6 +102,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
 private fun skip(journalpostId: String): Boolean =
     journalpostId in setOf("535250492")
 
+@Hendelse("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
     val fnrBruker: String,
     val soknadId: UUID,
@@ -114,10 +116,7 @@ private data class MottattJournalpostData(
     val begrunnelse: String?,
     val prioritet: String?,
 ) {
-    val eventId = UUID.randomUUID()
-    val eventName = "hm-opprettetMottattJournalpost"
     val opprettet = LocalDateTime.now()
-
     var fodselNrBruker = fnrBruker // @deprecated
     val joarkRef = journalpostId // @deprecated
 }
