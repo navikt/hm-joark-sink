@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.joark.enumValue
 import no.nav.hjelpemidler.joark.jsonMessage
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -25,17 +26,17 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-sakOpprettet") }
-            validate { it.requireKey("soknadId", "sakId", "fnrBruker", "navnBruker", "soknadGjelder") }
+            validate { it.requireKey("soknadId", "soknadGjelder", "sakId", "fnrBruker", "navnBruker") }
             validate { it.interestedIn("behovsmeldingType") }
         }.register(this)
     }
 
+    private val JsonMessage.søknadId get() = this["soknadId"].uuidValue()
+    private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
+    private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
     private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
-    private val JsonMessage.søknadId get() = this["soknadId"].uuidValue()
-    private val JsonMessage.sakId get() = this["sakId"].textValue()
-    private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
-    private val JsonMessage.behovsmeldingType: String? get() = this["behovsmeldingType"].textValue()
+    private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValue<Sakstype>()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = JournalpostData(
@@ -45,11 +46,11 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
             sakId = packet.sakId,
             dokumentTittel = packet.søknadGjelder
         )
-        val behovsmeldingType =
-            packet.behovsmeldingType ?: error("Mangler behovsmeldingType for søknadId: ${data.soknadId}")
-        val dokumenttype = Sakstype.valueOf(behovsmeldingType).dokumenttype
+        val sakstype =
+            packet.sakstype ?: error("Mangler sakstype for søknadId: ${data.soknadId}")
+        val dokumenttype = sakstype.dokumenttype
         log.info {
-            "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}'"
+            "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}', sakstype: $sakstype"
         }
 
         try {
