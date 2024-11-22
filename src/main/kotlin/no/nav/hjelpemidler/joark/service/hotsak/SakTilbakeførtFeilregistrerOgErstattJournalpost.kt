@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
@@ -39,7 +38,6 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
                     "valgteÅrsaker",
                     "enhet",
                     "begrunnelse",
-                    "soknadJson",
                     "prioritet",
                 )
             }
@@ -115,9 +113,6 @@ private data class MottattJournalpostData(
     val valgteÅrsaker: Set<String>,
     val begrunnelse: String?,
     val prioritet: String?,
-
-    @Deprecated("Vi skal slutte å sende dette feltet")
-    val soknadJson: JsonNode, // fixme -> slettes når vi ikke trenger dette feltet lenger
 ) {
     val eventId = UUID.randomUUID()
     val eventName = "hm-opprettetMottattJournalpost"

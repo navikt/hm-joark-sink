@@ -7,7 +7,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
@@ -40,11 +39,11 @@ class SakOpprettetOpprettOgFerdigstillJournalpostTest : TestSupport() {
         sendTestMessage(
             "eventName" to "hm-sakOpprettet",
             "soknadId" to UUID.randomUUID(),
-            "soknadJson" to jsonMapper.createObjectNode().also { it.put("behovsmeldingType", "SØKNAD") },
             "soknadGjelder" to "test",
             "sakId" to sakId,
             "fnrBruker" to fnrBruker,
             "navnBruker" to "test",
+            "behovsmeldingType" to "SØKNAD",
         )
 
         opprettJournalpostRequestSlot.assertSoftly {

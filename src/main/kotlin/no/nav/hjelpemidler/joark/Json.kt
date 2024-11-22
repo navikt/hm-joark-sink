@@ -27,6 +27,7 @@ inline fun <reified T : Any> MessageContext.publish(key: String, message: T) =
     }
 
 fun JsonNode.uuidValue(): UUID = UUID(textValue())
+inline fun <reified E : Enum<E>> JsonNode.enumValue(): E? = textValue()?.let { enumValueOf<E>(it) }
 
 @Deprecated("Serialiser til JSON med Jackson", ReplaceWith("MessageContext.publish(key, message)"))
 fun jsonMessage(block: (JsonMessage) -> Unit): JsonMessage =
