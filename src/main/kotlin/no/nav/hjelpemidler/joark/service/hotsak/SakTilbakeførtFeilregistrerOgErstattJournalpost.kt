@@ -106,8 +106,6 @@ private fun skip(journalpostId: String): Boolean =
 private data class MottattJournalpostData(
     val fnrBruker: String,
     val soknadId: UUID,
-    @JsonAlias("joarkRef") val journalpostId: String,
-    @JsonAlias("saksnummer") val sakId: String,
     val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
     val enhet: String,
@@ -115,6 +113,12 @@ private data class MottattJournalpostData(
     val valgteÅrsaker: Set<String>,
     val begrunnelse: String?,
     val prioritet: String?,
+
+    @JsonAlias("joarkRef")
+    val journalpostId: String,
+
+    @JsonAlias("saksnummer")
+    val sakId: String,
 ) {
     val opprettet = LocalDateTime.now()
     var fodselNrBruker = fnrBruker // @deprecated
