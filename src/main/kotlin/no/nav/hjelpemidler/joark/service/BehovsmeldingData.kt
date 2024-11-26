@@ -24,8 +24,13 @@ data class BehovsmeldingData(
     @JsonProperty("soknadGjelder")
     val behovsmeldingGjelder: String? = Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel,
 ) {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val eventId = UUID.randomUUID()
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val eventName = Configuration.EVENT_NAME
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     val opprettet = LocalDateTime.now()
 
     val fodselNrBruker = fnrBruker // @deprecated
