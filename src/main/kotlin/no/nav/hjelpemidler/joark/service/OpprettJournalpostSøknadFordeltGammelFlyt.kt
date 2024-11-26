@@ -36,9 +36,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        log.info { "DEBUG: Feilsøking: ${packet.toJson()}" } // FIXME: Fjern logging før prod
         val data: BehovsmeldingData = jsonMapper.readValue(packet.toJson())
-        log.info { "DEBUG: Feilsøking 2: ${jsonMapper.writeValueAsString(data)}" } // FIXME: Fjern logging før prod
 
         if (skip(data.behovsmeldingId)) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
