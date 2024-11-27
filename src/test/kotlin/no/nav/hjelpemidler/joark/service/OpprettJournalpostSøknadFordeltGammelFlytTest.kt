@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
