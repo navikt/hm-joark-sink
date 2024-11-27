@@ -6,9 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.Configuration
-import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.publish
 import java.util.UUID
