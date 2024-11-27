@@ -5,9 +5,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.enumValue
-import no.nav.hjelpemidler.joark.jsonMessage
+import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.uuidValue
@@ -26,7 +27,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("eventName", "hm-sakOpprettet") }
-            validate { it.requireKey("soknadId", "soknadGjelder", "sakId", "fnrBruker", "navnBruker") }
+            validate { it.requireKey("soknadId", "soknadGjelder", "sakId", "fnrBruker") }
             validate { it.interestedIn("behovsmeldingType") }
         }.register(this)
     }
@@ -35,20 +36,19 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
-    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
     private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValue<Sakstype>()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = JournalpostData(
             fnrBruker = packet.fnrBruker,
-            navnBruker = packet.navnBruker,
             soknadId = packet.søknadId,
             sakId = packet.sakId,
             dokumentTittel = packet.søknadGjelder
         )
-        val sakstype =
-            packet.sakstype ?: error("Mangler sakstype for søknadId: ${data.soknadId}")
+
+        val sakstype = packet.sakstype ?: error("Mangler sakstype for søknadId: ${data.soknadId}")
         val dokumenttype = sakstype.dokumenttype
+
         log.info {
             "Sak til journalføring mottatt, søknadId: ${data.soknadId}, sakId: ${data.sakId}, dokumenttype: $dokumenttype, dokumenttittel: '${data.dokumentTittel}', sakstype: $sakstype"
         }
@@ -68,7 +68,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                 hotsak(data.sakId)
             }.journalpostId
 
-            context.publish(data.fnrBruker, data.toJson(journalpostId, "hm-opprettetOgFerdigstiltJournalpost"))
+            context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))
             log.info { "Opprettet og ferdigstilte journalpost i Joark for søknadId: ${data.soknadId}" }
         } catch (e: Throwable) {
             log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost i Joark for søknadId: ${data.soknadId}" }
@@ -77,25 +77,13 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     }
 }
 
+@Hendelse("hm-opprettetOgFerdigstiltJournalpost")
 private data class JournalpostData(
-    val fnrBruker: String,
-    val navnBruker: String,
     val soknadId: UUID,
+    val opprettet: LocalDateTime = LocalDateTime.now(),
+    val fnrBruker: String,
+    val fodselNrBruker: String = fnrBruker, // @deprecated
+    val joarkRef: String? = null,
     val sakId: String,
     val dokumentTittel: String,
-) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
-        return jsonMessage {
-            it["soknadId"] = this.soknadId
-            it["eventName"] = eventName
-            it["opprettet"] = LocalDateTime.now()
-            it["fodselNrBruker"] = this.fnrBruker // @deprecated
-            it["fnrBruker"] = this.fnrBruker
-            it["joarkRef"] = journalpostId
-            it["sakId"] = sakId
-            it["dokumentTittel"] = dokumentTittel
-            it["eventId"] = UUID.randomUUID()
-        }.toJson()
-    }
-}
+)
