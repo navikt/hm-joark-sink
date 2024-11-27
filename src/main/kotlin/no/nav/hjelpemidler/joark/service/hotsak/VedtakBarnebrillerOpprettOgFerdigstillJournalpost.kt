@@ -6,12 +6,12 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.jsonMessage
+import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import java.time.LocalDateTime
-import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -29,8 +29,6 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 it.requireKey(
                     "saksnummer",
                     "fnrBruker",
-                    "navnBruker",
-                    "navnAvsender",
                     "opprettet",
                     "pdf"
                 )
@@ -43,8 +41,6 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     }
 
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
-    private val JsonMessage.navnBruker get() = this["navnBruker"].textValue()
-    private val JsonMessage.navnAvsender get() = this["navnAvsender"].textValue()
     private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
     private val JsonMessage.sakId get() = this["saksnummer"].textValue()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
@@ -55,12 +51,9 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
         val sakId = packet.sakId
         val data = JournalpostBarnebrillevedtakData(
             fnr = packet.fnrBruker,
-            brukersNavn = packet.navnBruker,
             sakId = sakId,
-            navnAvsender = packet.navnAvsender,
             dokumentTittel = "Journalføring barnebrillevedtak",
             opprettet = packet.opprettet,
-            pdf = packet.fysiskDokument
         )
         log.info { "Manuelt barnebrillevedtak til journalføring mottatt, sakId: ${data.sakId}" }
         val dokumenttype =
@@ -77,19 +70,16 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK",
                 forsøkFerdigstill = true
             ) {
-                dokument(fysiskDokument = data.pdf)
+                dokument(fysiskDokument = packet.fysiskDokument)
                 hotsak(sakId)
                 opprettetAv = packet.opprettetAv
             }
 
             context.publish(
                 data.fnr,
-                data.toJson(
-                    journalpostId,
-                    "hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost"
-                )
+                data.copy(joarkRef = journalpostId),
             )
-            log.info("Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}")
+            log.info { "Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
         } catch (e: Throwable) {
             log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
             throw e
@@ -97,28 +87,14 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     }
 }
 
-private data class JournalpostBarnebrillevedtakData(
+@Hendelse("hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost")
+internal data class JournalpostBarnebrillevedtakData(
     val fnr: String,
-    val brukersNavn: String,
     val sakId: String,
-    val navnAvsender: String,
     val dokumentTittel: String,
     val opprettet: LocalDateTime,
-    val pdf: ByteArray,
-) {
-    @Deprecated("Bruk Jackson direkte")
-    fun toJson(journalpostId: String, eventName: String): String {
-        return jsonMessage {
-            it["fnr"] = this.fnr
-            it["eventName"] = eventName
-            it["opprettet"] = opprettet
-            it["joarkRef"] = journalpostId
-            it["sakId"] = this.sakId
-            it["dokumentTittel"] = this.dokumentTittel
-            it["eventId"] = UUID.randomUUID()
-        }.toJson()
-    }
-}
+    val joarkRef: String? = null,
+)
 
 enum class Vedtaksstatus {
     INNVILGET,
