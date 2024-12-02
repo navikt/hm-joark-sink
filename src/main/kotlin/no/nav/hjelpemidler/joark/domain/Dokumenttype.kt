@@ -30,13 +30,13 @@ enum class Dokumenttype(
         tittel = "Ettersendelse til tilskudd ved kjøp av briller til barn",
     ),
     VEDTAKSBREV_BARNEBRILLER_OPTIKER(
-        brevkode = "vedtaksbrev_barnebriller_optiker",
-        tittel = "Vedtaksbrev barnebriller",
+        brevkode = "krav_barnebriller_optiker",
+        tittel = "Tilskudd ved kjøp av briller til barn via optiker",
         dokumenttittel = "Tilskudd ved kjøp av briller til barn via optiker"
     ),
     VEDTAKSBREV_BARNEBRILLER_OPTIKER_AVVISNING(
-        brevkode = "vedtaksbrev_barnebriller_optiker_avvisning",
-        tittel = "Stanset behandling barnebriller",
+        brevkode = "krav_barnebriller_optiker_avvisning",
+        tittel = "Stanset behandling av tilskudd til kjøp av briller til barn via optiker",
         dokumenttittel = "Stanset behandling av tilskudd til kjøp av briller til barn via optiker",
     ),
     VEDTAKSBREV_BARNEBRILLER_HOTSAK(
