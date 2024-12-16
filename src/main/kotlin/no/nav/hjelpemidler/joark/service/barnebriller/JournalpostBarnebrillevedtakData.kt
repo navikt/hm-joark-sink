@@ -23,7 +23,7 @@ data class JournalpostBarnebrillevedtakData(
     val satsBeskrivelse: String,
     val satsBeløp: BigDecimal,
     val beløp: BigDecimal,
-    val dokumenttype: Dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER,
+    val dokumenttype: Dokumenttype = Dokumenttype.KRAV_BARNEBRILLER_OPTIKER,
     val dokumentTittel: String = dokumenttype.tittel,
 
     @JsonAlias("opprettetDato")

@@ -53,7 +53,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerTest : TestSupport() {
             "satsBeløp" to "2475",
             "beløp" to "1200",
         )
-        val dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER
+        val dokumenttype = Dokumenttype.KRAV_BARNEBRILLER_OPTIKER
         opprettJournalpostRequestSlot.assertSoftly {
             tittel shouldBe dokumenttype.tittel
             dokumenter.shouldForExactly(1) { dokument ->

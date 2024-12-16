@@ -105,7 +105,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
                     fnrMottaker = packet.fnrBarn,
                     fnrBruker = packet.fnrBarn,
-                    dokumenttype = Dokumenttype.VEDTAKSBREV_BARNEBRILLER_OPTIKER_AVVISNING,
+                    dokumenttype = Dokumenttype.KRAV_BARNEBRILLER_OPTIKER_AVVISNING,
                     eksternReferanseId = UUID.randomUUID().toString(),
                     forsøkFerdigstill = true,
                 ) {

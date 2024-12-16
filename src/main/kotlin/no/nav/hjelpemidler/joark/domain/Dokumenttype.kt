@@ -29,12 +29,12 @@ enum class Dokumenttype(
         brevkode = "NAVe 10-07.34",
         tittel = "Ettersendelse til tilskudd ved kjøp av briller til barn",
     ),
-    VEDTAKSBREV_BARNEBRILLER_OPTIKER(
+    KRAV_BARNEBRILLER_OPTIKER(
         brevkode = "krav_barnebriller_optiker",
         tittel = "Tilskudd ved kjøp av briller til barn via optiker",
         dokumenttittel = "Tilskudd ved kjøp av briller til barn via optiker"
     ),
-    VEDTAKSBREV_BARNEBRILLER_OPTIKER_AVVISNING(
+    KRAV_BARNEBRILLER_OPTIKER_AVVISNING(
         brevkode = "krav_barnebriller_optiker_avvisning",
         tittel = "Stanset behandling av tilskudd til kjøp av briller til barn via optiker",
         dokumenttittel = "Stanset behandling av tilskudd til kjøp av briller til barn via optiker",
