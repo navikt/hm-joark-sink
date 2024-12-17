@@ -22,7 +22,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandValue("eventName", "hm-brevsending-opprettet") }
+                precondition { it.requireValue("eventName", "hm-brevsending-opprettet") }
                 validate {
                     it.requireKey(
                         "sakId",

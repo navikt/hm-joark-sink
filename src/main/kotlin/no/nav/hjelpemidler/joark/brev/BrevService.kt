@@ -6,8 +6,12 @@ import io.ktor.client.call.body
 private val log = KotlinLogging.logger {}
 
 class BrevService(val brevClient: BrevClient) {
-    suspend fun lagStansetBrev(flettefelter: FlettefelterAvvisning, begrunnelser: List<String>, målform: Målform = Målform.BOKMÅL): ByteArray {
-        log.info("Lager stansetbrev for optiker")
+    suspend fun lagStansetbrev(
+        flettefelter: FlettefelterAvvisning,
+        begrunnelser: List<String>,
+        målform: Målform = Målform.BOKMÅL,
+    ): ByteArray {
+        log.info { "Lager stansetbrev for optiker" }
         val reqData = HentAvvisningsbrevRequest(
             flettefelter = flettefelter,
             begrunnelser = begrunnelser,

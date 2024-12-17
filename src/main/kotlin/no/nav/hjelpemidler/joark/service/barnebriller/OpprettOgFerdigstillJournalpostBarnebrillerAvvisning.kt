@@ -14,12 +14,12 @@ import kotlinx.coroutines.launch
 import no.nav.hjelpemidler.joark.brev.BrevService
 import no.nav.hjelpemidler.joark.brev.FlettefelterAvvisning
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.joark.uuidValue
+import no.nav.hjelpemidler.localization.LOCALE_NORWEGIAN_BOKMÅL
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.serialization.jackson.uuidValue
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -34,7 +34,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-brille-avvisning") }
+            precondition { it.requireValue("eventName", "hm-brille-avvisning") }
             validate {
                 it.requireKey(
                     "eventId",
@@ -66,24 +66,21 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         log.info { "Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId: ${packet.eventId})" }
 
-        val locale = Locale.forLanguageTag("nb-NO")
-        val f = DateTimeFormatter.ofPattern("dd. MMMM yyyy").withLocale(locale)
-
         coroutineScope {
             launch {
-                // Generer fysisk dokument
+                // Lag fysisk dokument
                 val flettefelter = FlettefelterAvvisning(
-                    brevOpprettetDato = packet.opprettet.toLocalDate().format(f),
+                    brevOpprettetDato = packet.opprettet.toLocalDate().format(format),
                     barnetsFulleNavn = packet.navnBarn,
                     barnetsFodselsnummer = packet.fnrBarn,
-                    mottattDato = packet.opprettet.toLocalDate().format(f),
-                    bestillingsDato = packet.bestillingsdato.format(f),
+                    mottattDato = packet.opprettet.toLocalDate().format(format),
+                    bestillingsDato = packet.bestillingsdato.format(format),
                     optikerForretning = "${packet.orgNavn} (${packet.orgnr})",
                     sfæriskStyrkeHøyre = packet.brilleseddel.høyreSfære.toString(),
                     sfæriskStyrkeVenstre = packet.brilleseddel.venstreSfære.toString(),
                     cylinderstyrkeHøyre = packet.brilleseddel.høyreSylinder.toString(),
                     cylinderstyrkeVenstre = packet.brilleseddel.venstreSylinder.toString(),
-                    forrigeBrilleDato = packet.eksisterendeVedtakDato?.format(f) ?: "",
+                    forrigeBrilleDato = packet.eksisterendeVedtakDato?.format(format) ?: "",
                 )
 
                 val årsaker = packet.årsaker.map {
@@ -94,12 +91,12 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                         "Brillestyrke" -> "stansetForLavBrillestyrke"
                         "Bestillingsdato" -> "stansetBestillingsdatoEldreEnn6Mnd"
                         else -> {
-                            throw RuntimeException("Ukjent identifikator fra brille-api mottatt, kan ikke opprette avvisningsbrev (årsak=${it})")
+                            throw RuntimeException("Ukjent identifikator fra brille-API mottatt, kan ikke opprette avvisningsbrev (årsak: ${it})")
                         }
                     }
                 }
 
-                val fysiskDokument = brevService.lagStansetBrev(flettefelter, årsaker)
+                val fysiskDokument = brevService.lagStansetbrev(flettefelter, årsaker)
 
                 // Opprett og ferdigstill journalpost
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
@@ -130,3 +127,5 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
         )
     }
 }
+
+private val format = DateTimeFormatter.ofPattern("dd. MMMM yyyy").withLocale(LOCALE_NORWEGIAN_BOKMÅL)

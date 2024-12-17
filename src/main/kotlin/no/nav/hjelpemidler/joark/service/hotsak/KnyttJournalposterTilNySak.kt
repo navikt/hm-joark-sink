@@ -23,7 +23,7 @@ class KnyttJournalposterTilNySak(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandValue("eventName", "hm-journalposter-knyttet-til-ny-sak") }
+                precondition { it.requireValue("eventName", "hm-journalposter-knyttet-til-ny-sak") }
                 validate {
                     it.requireKey("fraSakId", "tilSakId", "fnrBruker", "journalførendeEnhet")
                 }

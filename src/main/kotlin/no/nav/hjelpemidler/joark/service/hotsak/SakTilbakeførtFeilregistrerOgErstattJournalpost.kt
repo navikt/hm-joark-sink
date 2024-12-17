@@ -9,10 +9,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -24,7 +24,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-sakTilbakeførtGosys") }
+            precondition { it.requireValue("eventName", "hm-sakTilbakeførtGosys") }
             validate {
                 it.requireKey(
                     "saksnummer",
@@ -47,7 +47,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet["joarkRef"].textValue()
-        if (skip(journalpostId)) {
+        if (journalpostId in skip) {
             log.warn {
                 "Hopper over feilregistrering av journalpost med journalpostId: $journalpostId"
             }
@@ -99,8 +99,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
     }
 }
 
-private fun skip(journalpostId: String): Boolean =
-    journalpostId in setOf("535250492")
+private val skip = setOf("535250492")
 
 @Hendelse("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(

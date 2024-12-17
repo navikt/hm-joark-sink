@@ -5,13 +5,13 @@ import io.mockk.mockk
 import io.mockk.slot
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.saf.SafClient
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import kotlin.random.Random
 
 abstract class TestSupport {

@@ -1,17 +1,12 @@
 package no.nav.hjelpemidler.joark
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
-import no.nav.hjelpemidler.domain.id.UUID
 import no.nav.hjelpemidler.joark.metrics.Prometheus
-import no.nav.hjelpemidler.serialization.defaultJsonMapper
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.util.UUID
 import kotlin.reflect.full.findAnnotation
-
-val jsonMapper: JsonMapper = defaultJsonMapper()
 
 inline fun <reified T : Any> MessageContext.publish(key: String, message: T) =
     when (val hendelse = message::class.findAnnotation<Hendelse>()) {
@@ -25,9 +20,6 @@ inline fun <reified T : Any> MessageContext.publish(key: String, message: T) =
                 .writeValueAsString(message)
         )
     }
-
-fun JsonNode.uuidValue(): UUID = UUID(textValue())
-inline fun <reified E : Enum<E>> JsonNode.enumValue(): E? = textValue()?.let { enumValueOf<E>(it) }
 
 @Deprecated("Serialiser til JSON med Jackson", ReplaceWith("MessageContext.publish(key, message)"))
 fun jsonMessage(block: (JsonMessage) -> Unit): JsonMessage =

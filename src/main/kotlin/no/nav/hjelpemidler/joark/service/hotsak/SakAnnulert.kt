@@ -16,7 +16,7 @@ class SakAnnulert(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-sak-annulert") }
+            precondition { it.requireValue("eventName", "hm-sak-annulert") }
             validate { it.requireKey("sakId", "journalpostId") }
         }.register(this)
     }

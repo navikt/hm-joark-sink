@@ -7,10 +7,10 @@ import io.mockk.coVerify
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest

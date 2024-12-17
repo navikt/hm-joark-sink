@@ -24,7 +24,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-manuelt-barnebrillevedtak-opprettet") }
+            precondition { it.requireValue("eventName", "hm-manuelt-barnebrillevedtak-opprettet") }
             validate {
                 it.requireKey(
                     "saksnummer",

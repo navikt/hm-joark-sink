@@ -7,11 +7,11 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.enumValue
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.joark.uuidValue
+import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
+import no.nav.hjelpemidler.serialization.jackson.uuidValue
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -26,9 +26,11 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-sakOpprettet") }
-            validate { it.requireKey("soknadId", "soknadGjelder", "sakId", "fnrBruker") }
-            validate { it.interestedIn("behovsmeldingType") }
+            precondition { it.requireValue("eventName", "hm-sakOpprettet") }
+            validate {
+                it.requireKey("soknadId", "soknadGjelder", "sakId", "fnrBruker")
+                it.interestedIn("behovsmeldingType")
+            }
         }.register(this)
     }
 
@@ -36,7 +38,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
     private val JsonMessage.sakId get() = this["sakId"].textValue()
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
-    private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValue<Sakstype>()
+    private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValueOrNull<Sakstype>()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data = JournalpostData(

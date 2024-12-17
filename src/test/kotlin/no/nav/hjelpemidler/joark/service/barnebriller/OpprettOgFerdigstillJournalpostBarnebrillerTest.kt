@@ -6,10 +6,10 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest

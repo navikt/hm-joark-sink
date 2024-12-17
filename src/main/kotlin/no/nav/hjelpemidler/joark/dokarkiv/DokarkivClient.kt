@@ -40,9 +40,9 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.ktor.navUserId
+import no.nav.hjelpemidler.logging.secureLog
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class DokarkivClient(
     baseUrl: String = Configuration.JOARK_BASE_URL,
@@ -67,7 +67,7 @@ class DokarkivClient(
         logging {
             logger = object : Logger {
                 override fun log(message: String) {
-                    secureLog.info(message)
+                    secureLog.info { message }
                 }
             }
             level = LogLevel.HEADERS

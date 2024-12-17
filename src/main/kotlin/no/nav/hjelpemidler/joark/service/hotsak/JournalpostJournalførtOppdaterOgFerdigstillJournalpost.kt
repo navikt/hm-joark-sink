@@ -12,16 +12,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val skip = setOf(
-    "453827301",
-    "598126522",
-    "609522349",
-    "610130874",
-    "610767289",
-    "611390815",
-    "453837166",
-    "453901864"
-)
 
 /**
  * Oppdater og ferdigstill journalpost etter manuell journalføring i Hotsak.
@@ -33,7 +23,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandValue("eventName", "hm-journalpost-journalført") }
+                precondition { it.requireValue("eventName", "hm-journalpost-journalført") }
                 validate {
                     it.requireKey("journalpostId", "journalførendeEnhet", "fnrBruker", "sakId")
                     it.interestedIn("dokumentId", "dokumenttittel", "oppgaveId")
@@ -113,4 +103,15 @@ data class JournalpostOppdatertOgFerdigstilt(
     val fnrBruker: String,
     val sakId: String,
     val oppgaveId: String?,
+)
+
+private val skip = setOf(
+    "453827301",
+    "598126522",
+    "609522349",
+    "610130874",
+    "610767289",
+    "611390815",
+    "453837166",
+    "453901864"
 )

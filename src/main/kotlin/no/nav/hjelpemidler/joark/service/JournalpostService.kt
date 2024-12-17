@@ -15,7 +15,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
@@ -27,11 +26,11 @@ import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.Journalstatus
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
-private val secureLog = KotlinLogging.logger("tjenestekall")
 
 class JournalpostService(
     private val pdfGeneratorClient: PdfGeneratorClient,

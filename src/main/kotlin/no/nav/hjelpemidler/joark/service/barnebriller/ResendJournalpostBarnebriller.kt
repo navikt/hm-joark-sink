@@ -6,10 +6,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.jsonMapper
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 
 private val log = KotlinLogging.logger {}
 
@@ -19,7 +19,7 @@ class ResendJournalpostBarnebriller(
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("eventName", "hm-barnebrillevedtak-rekjor") }
+            precondition { it.requireValue("eventName", "hm-barnebrillevedtak-rekjor") }
             validate {
                 it.requireKey(
                     "fnr",
