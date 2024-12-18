@@ -33,13 +33,8 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 fun main() {
-    log.info {
-        "Gjeldende miljø: ${Environment.current}"
-    }
-
-    log.info {
-        "Gjeldende event name: ${Configuration.EVENT_NAME}"
-    }
+    log.info { "Gjeldende miljø: ${Environment.current}" }
+    log.info { "Gjeldende event name: ${Configuration.EVENT_NAME}" }
 
     // Clients
     val engine = CIO.create()
@@ -48,29 +43,14 @@ fun main() {
             maximumSize = 10
         }
     }
-    val dokarkivClient = DokarkivClient(
-        azureADClient = azureADClient,
-        engine = engine,
-    )
-    val safClient = SafClient(
-        azureADClient = azureADClient,
-        engine = engine,
-    )
-    val pdfGeneratorClient = PdfGeneratorClient(
-        engine = engine,
-    )
-    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(
-        engine = engine,
-    )
-    val førstesidegeneratorClient = FørstesidegeneratorClient(
-        azureADClient = azureADClient,
-        engine = engine,
-    )
-    val brevClient = BrevClient()
-    val søknadApiClient = SøknadApiClient(
-        azureADClient = azureADClient,
-        engine = engine,
-    )
+    val brevClient = BrevClient(engine)
+    val dokarkivClient = DokarkivClient(azureADClient.withScope(Configuration.JOARK_SCOPE), engine)
+    val førstesidegeneratorClient =
+        FørstesidegeneratorClient(azureADClient.withScope(Configuration.FORSTESIDEGENERATOR_SCOPE), engine)
+    val pdfGeneratorClient = PdfGeneratorClient(engine)
+    val safClient = SafClient(azureADClient.withScope(Configuration.SAF_SCOPE), engine)
+    val søknadApiClient = SøknadApiClient(azureADClient.withScope(Configuration.SOKNAD_API_SCOPE), engine)
+    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
 
     // Services
     val journalpostService = JournalpostService(

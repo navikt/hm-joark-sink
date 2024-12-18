@@ -16,8 +16,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.http.openid.OpenIDClient
-import no.nav.hjelpemidler.http.openid.bearerAuth
+import no.nav.hjelpemidler.http.openid.TokenSetProvider
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.Configuration
 
@@ -28,13 +28,13 @@ typealias FørstesideResponse = no.nav.hjelpemidler.joark.førstesidegenerator.m
 private val log = KotlinLogging.logger {}
 
 class FørstesidegeneratorClient(
-    baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
-    private val scope: String = Configuration.FORSTESIDEGENERATOR_SCOPE,
-    private val azureADClient: OpenIDClient,
+    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
 ) {
     private val client = createHttpClient(engine) {
         expectSuccess = false
+        openID(tokenSetProvider)
         defaultRequest {
             url(baseUrl)
             accept(ContentType.Application.Json)
@@ -45,11 +45,7 @@ class FørstesidegeneratorClient(
 
     suspend fun lagFørsteside(request: OpprettFørstesideRequest): Førsteside = withCorrelationId {
         log.info { "Lager førsteside, brevkode: ${request.navSkjemaId}, tittel: ${request.overskriftstittel}, arkivtittel: ${request.arkivtittel}, enhetsnummer: ${request.enhetsnummer}" }
-        val tokenSet = azureADClient.grant(scope)
-        val response = client.post("foersteside") {
-            bearerAuth(tokenSet)
-            setBody(request)
-        }
+        val response = client.post("foersteside") { setBody(request) }
         when (response.status) {
             HttpStatusCode.Created -> {
                 val body = response.body<OpprettFørstesideResponse>()

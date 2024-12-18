@@ -19,8 +19,8 @@ import no.nav.hjelpemidler.joark.Configuration
 private val log = KotlinLogging.logger {}
 
 class PdfGeneratorClient(
-    baseUrl: String = Configuration.PDF_GENERATOR_BASE_URL,
     engine: HttpClientEngine = CIO.create(),
+    baseUrl: String = Configuration.PDF_GENERATOR_BASE_URL,
 ) {
     private val client = HttpClient(engine) {
         expectSuccess = false

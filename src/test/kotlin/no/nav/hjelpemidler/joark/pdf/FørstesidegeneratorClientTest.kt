@@ -12,9 +12,11 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 class FørstesidegeneratorClientTest {
+    private val tokenSetProvider = TestOpenIDClient().withScope("test")
+
     @Test
     fun `lager førsteside`() = runTest {
-        val client = FørstesidegeneratorClient(azureADClient = TestOpenIDClient(), engine = MockEngine { request ->
+        val client = FørstesidegeneratorClient(tokenSetProvider, engine = MockEngine { request ->
             when (request.method) {
                 HttpMethod.Post -> {
                     request.url.fullPath shouldBe "/api/foerstesidegenerator/v1/foersteside"

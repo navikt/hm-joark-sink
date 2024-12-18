@@ -8,8 +8,8 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import no.nav.hjelpemidler.http.correlationId
-import no.nav.hjelpemidler.http.openid.OpenIDClient
-import no.nav.hjelpemidler.http.openid.bearerAuth
+import no.nav.hjelpemidler.http.openid.TokenSetProvider
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.saf.hentjournalpost.Journalpost
 import java.net.URI
@@ -17,15 +17,15 @@ import java.net.URI
 private val log = KotlinLogging.logger {}
 
 class SafClient(
-    baseUrlGraphQL: String = Configuration.SAF_GRAPHQL_URL,
-    private val scope: String = Configuration.SAF_SCOPE,
-    private val azureADClient: OpenIDClient,
+    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    baseUrlGraphQL: String = Configuration.SAF_GRAPHQL_URL,
 ) {
     private val clientGraphQL = GraphQLKtorClient(
         url = URI(baseUrlGraphQL).toURL(),
         httpClient = HttpClient(engine) {
             expectSuccess = true
+            openID(tokenSetProvider)
             install(HttpRequestRetry) {
                 retryOnExceptionOrServerErrors(maxRetries = 5)
                 exponentialDelay()
@@ -36,21 +36,15 @@ class SafClient(
         })
 
     suspend fun hentJournalpost(journalpostId: String): Journalpost? {
-        val tokenSet = azureADClient.grant(scope)
-        val response =
-            clientGraphQL.execute(HentJournalpost(HentJournalpost.Variables(journalpostId = journalpostId))) {
-                bearerAuth(tokenSet)
-            }
+        val request = HentJournalpost(HentJournalpost.Variables(journalpostId = journalpostId))
+        val response = clientGraphQL.execute(request)
         val result = response.resultOrThrow()
         return result.journalpost
     }
 
     suspend fun hentJournalposterForSak(sakId: String): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> {
-        val tokenSet = azureADClient.grant(scope)
-        val response =
-            clientGraphQL.execute(HentDokumentoversiktSak(HentDokumentoversiktSak.Variables(fagsakId = sakId))) {
-                bearerAuth(tokenSet)
-            }
+        val request = HentDokumentoversiktSak(HentDokumentoversiktSak.Variables(fagsakId = sakId))
+        val response = clientGraphQL.execute(request)
         val result = response.resultOrThrow()
         return result.dokumentoversiktFagsak.journalposter.filterNotNull()
     }

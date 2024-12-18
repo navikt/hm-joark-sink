@@ -11,21 +11,21 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.http.openid.OpenIDClient
-import no.nav.hjelpemidler.http.openid.bearerAuth
+import no.nav.hjelpemidler.http.openid.TokenSetProvider
+import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
 class SøknadApiClient(
-    baseUrl: String = Configuration.SOKNAD_API_URL,
-    private val scope: String = Configuration.SOKNAD_API_SCOPE,
-    private val azureADClient: OpenIDClient,
+    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    baseUrl: String = Configuration.SOKNAD_API_URL,
 ) {
     private val client = createHttpClient(engine) {
         expectSuccess = false
+        openID(tokenSetProvider)
         defaultRequest {
             url(baseUrl)
             accept(ContentType.Application.Pdf)
@@ -33,11 +33,8 @@ class SøknadApiClient(
     }
 
     suspend fun hentPdf(id: UUID): ByteArray {
-        log.info { "Henter PDF fra hm-soknad-api for $id" }
-        val tokenSet = azureADClient.grant(scope)
-        val response = client.get("/hm/hm-joark-sink/pdf/$id") {
-            bearerAuth(tokenSet)
-        }
+        log.info { "Henter PDF fra hm-soknad-api for id: $id" }
+        val response = client.get("/hm/hm-joark-sink/pdf/$id")
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
             else -> {

@@ -16,8 +16,8 @@ import no.nav.hjelpemidler.joark.Configuration
 private val log = KotlinLogging.logger {}
 
 class BrevClient(
-    private val baseUrl: String = Configuration.BREV_API_URL,
     engine: HttpClientEngine = CIO.create(),
+    private val baseUrl: String = Configuration.BREV_API_URL,
 ) {
     private val client = createHttpClient(engine = engine) {
         expectSuccess = true

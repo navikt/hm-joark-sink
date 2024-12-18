@@ -24,7 +24,7 @@ import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
-import no.nav.hjelpemidler.http.openid.OpenIDClient
+import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
@@ -45,10 +45,9 @@ import no.nav.hjelpemidler.logging.secureLog
 private val log = KotlinLogging.logger {}
 
 class DokarkivClient(
-    baseUrl: String = Configuration.JOARK_BASE_URL,
-    private val scope: String = Configuration.JOARK_SCOPE,
-    private val azureADClient: OpenIDClient,
+    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    baseUrl: String = Configuration.JOARK_BASE_URL,
 ) {
     private val client = createHttpClient(engine) {
         expectSuccess = false
@@ -63,7 +62,7 @@ class DokarkivClient(
             contentType(ContentType.Application.Json)
             correlationId()
         }
-        openID(scope, azureADClient)
+        openID(tokenSetProvider)
         logging {
             logger = object : Logger {
                 override fun log(message: String) {

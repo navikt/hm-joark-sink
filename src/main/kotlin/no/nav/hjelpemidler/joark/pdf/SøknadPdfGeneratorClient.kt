@@ -19,8 +19,8 @@ import org.intellij.lang.annotations.Language
 private val log = KotlinLogging.logger {}
 
 class SøknadPdfGeneratorClient(
-    baseUrl: String = Configuration.SOKNAD_PDFGEN_BASE_URL,
     engine: HttpClientEngine = CIO.create(),
+    baseUrl: String = Configuration.SOKNAD_PDFGEN_BASE_URL,
 ) {
     private val client = createHttpClient(engine) {
         expectSuccess = false
