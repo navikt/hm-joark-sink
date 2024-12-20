@@ -1,6 +1,4 @@
 import com.expediagroup.graphql.plugin.gradle.config.GraphQLScalar
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
@@ -29,26 +27,23 @@ dependencies {
         exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
     }
     implementation(libs.graphql.client.jackson)
-
-    // Testing
-    testImplementation(libs.bundles.test)
-    testImplementation(libs.tbdLibs.rapidsAndRivers.test)
 }
 
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        showExceptions = true
-        showStackTraces = true
-        exceptionFormat = TestExceptionFormat.SHORT
-        events = setOf(TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useKotlinTest(libs.versions.kotlin.asProvider())
+            dependencies {
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.mockk)
+                implementation(libs.tbdLibs.rapidsAndRivers.test)
+            }
+        }
     }
-}
-
-tasks.compileKotlin {
-    dependsOn(tasks.openApiGenerate, førstesidegenerator)
 }
 
 graphql {
@@ -64,17 +59,19 @@ graphql {
     }
 }
 
+val openApiGenerated: Provider<Directory> = layout.buildDirectory.dir("generated/source")
 openApiGenerate {
-    skipValidateSpec.set(true)
-    inputSpec.set("$rootDir/src/main/resources/dokarkiv/openapi.yaml")
-    outputDir.set("$buildDir/generated/source/dokarkiv")
     generatorName.set("kotlin")
+    skipValidateSpec.set(true)
+    inputSpec.set(layout.projectDirectory.file("src/main/resources/dokarkiv/openapi.yaml").toString())
+    outputDir.set(openApiGenerated.map { it.dir("dokarkiv").toString() })
     packageName.set("no.nav.hjelpemidler.joark.dokarkiv")
     globalProperties.set(
         mapOf(
             "apis" to "none",
             "models" to "",
             "modelDocs" to "false",
+            "modelTests" to "false",
         ),
     )
     configOptions.set(
@@ -88,22 +85,23 @@ openApiGenerate {
 }
 
 val førstesidegenerator by tasks.registering(GenerateTask::class) {
-    skipValidateSpec.set(true)
-    inputSpec.set("$rootDir/src/main/resources/førstesidegenerator/openapi.yaml")
-    outputDir.set("$buildDir/generated/source/førstesidegenerator")
     generatorName.set("kotlin")
+    skipValidateSpec.set(true)
+    inputSpec.set(layout.projectDirectory.file("src/main/resources/førstesidegenerator/openapi.yaml").toString())
+    outputDir.set(openApiGenerated.map { it.dir("førstesidegenerator").toString() })
     packageName.set("no.nav.hjelpemidler.joark.førstesidegenerator")
     globalProperties.set(
         mapOf(
             "apis" to "none",
             "models" to "",
             "modelDocs" to "false",
+            "modelTests" to "false",
         ),
     )
     configOptions.set(
         mapOf(
             "serializationLibrary" to "jackson",
-            "dateLibrary" to "java8-localdatetime", // burde vært default ("java8"), men eksterne saf/dokarkiv benytter LocalDateTime
+            "dateLibrary" to "java8-localdatetime", // burde vært default ("java8"), men førstesidegenerator benytter LocalDateTime
             "enumPropertyNaming" to "UPPERCASE",
             "sourceFolder" to "main",
         ),
@@ -113,8 +111,13 @@ val førstesidegenerator by tasks.registering(GenerateTask::class) {
 sourceSets {
     main {
         kotlin {
-            srcDir("$buildDir/generated/source/dokarkiv/main")
-            srcDir("$buildDir/generated/source/førstesidegenerator/main")
+            srcDir(openApiGenerated.map { it.dir("dokarkiv/main") })
+            srcDir(openApiGenerated.map { it.dir("førstesidegenerator/main") })
         }
     }
+}
+
+tasks {
+    compileKotlin { dependsOn(openApiGenerate, førstesidegenerator) }
+    shadowJar { mergeServiceFiles() }
 }
