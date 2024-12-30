@@ -15,11 +15,10 @@ application {
 }
 
 dependencies {
-    implementation(platform(libs.ktor.bom))
-    implementation(libs.kotlin.stdlib)
+    implementation(platform(libs.hotlibs.platform))
+    implementation(libs.hotlibs.http)
     implementation(libs.kotlin.logging)
     implementation(libs.rapidsAndRivers)
-    implementation(libs.hotlibs.http)
 
     // GraphQL
     implementation(libs.graphql.ktor.client) {
@@ -37,9 +36,7 @@ testing {
         val test by getting(JvmTestSuite::class) {
             useKotlinTest(libs.versions.kotlin.asProvider())
             dependencies {
-                implementation(libs.kotest.assertions.core)
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.mockk)
+                implementation(libs.hotlibs.test)
                 implementation(libs.tbdLibs.rapidsAndRivers.test)
             }
         }
