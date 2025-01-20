@@ -34,7 +34,8 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 )
                 it.interestedIn(
                     "vedtaksstatus",
-                    "opprettetAv"
+                    "opprettetAv",
+                    "brevsendingId"
                 )
             }
         }.register(this)
@@ -46,6 +47,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
     private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue()?.let(Vedtaksstatus::valueOf)
     private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].textValue()
+    private val JsonMessage.brevsendingId: String? get() = this["brevsendingId"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
@@ -77,7 +79,10 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
 
             context.publish(
                 data.fnr,
-                data.copy(joarkRef = journalpostId),
+                data.copy(
+                    joarkRef = journalpostId,
+                    brevsendingId = packet.brevsendingId
+                ),
             )
             log.info { "Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
         } catch (e: Throwable) {
@@ -94,6 +99,7 @@ internal data class JournalpostBarnebrillevedtakData(
     val dokumentTittel: String,
     val opprettet: LocalDateTime,
     val joarkRef: String? = null,
+    val brevsendingId: String? = null,
 )
 
 enum class Vedtaksstatus {
