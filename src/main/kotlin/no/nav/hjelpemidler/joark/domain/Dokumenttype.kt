@@ -59,6 +59,11 @@ enum class Dokumenttype(
         tittel = "Briller til barn: NAV etterspør opplysninger",
         dokumenttittel = "Briller til barn: NAV etterspør opplysninger",
     ),
+    NOTAT(
+        brevkode = "GEN_NOT_001", // Samme som gosys bruker
+        tittel = "Journalført notat i sak",
+        dokumenttittel = "Journalført notat i sak",
+    ),
     ;
 }
 

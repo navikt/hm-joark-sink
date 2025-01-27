@@ -135,6 +135,40 @@ class JournalpostService(
         journalpostId
     }
 
+    suspend fun opprettJournalførtNotatJournalpost(
+        fnrSaksbehandler: String,
+        fnrBruker: String,
+        eksternReferanseId: String,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ): String = withCorrelationId {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker,
+            fnrAvsenderMottaker = fnrSaksbehandler,
+            dokumenttype = Dokumenttype.NOTAT,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
+            eksternReferanseId = eksternReferanseId,
+        ).apply(block).apply {
+            kanal = null // Ref. dokumentasjon for OpprettJournalpostRequest: "Kanal skal ikke settes for notater"
+        }
+
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = true,
+            opprettetAv = lagOpprettJournalpostRequest.opprettetAv,
+        )
+
+        val journalpostId = journalpost.journalpostId
+        val ferdigstilt = journalpost.journalpostferdigstilt
+
+        log.info {
+            "Notat journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
+        }
+
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
+
+        journalpostId
+    }
+
     suspend fun arkiverBehovsmelding(
         fnrBruker: String,
         behovsmeldingId: UUID,

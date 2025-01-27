@@ -21,6 +21,7 @@ class OpprettJournalpostRequestConfigurer(
     var datoDokument: LocalDateTime? = null
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"
+    var kanal: String? = Kanal.NAV_NO.toString()
 
     var opprettetAv: String? = null
 
@@ -72,7 +73,7 @@ class OpprettJournalpostRequestConfigurer(
             eksternReferanseId = eksternReferanseId,
             journalfoerendeEnhet = journalførendeEnhet,
             journalposttype = journalposttype,
-            kanal = Kanal.NAV_NO.toString(),
+            kanal = kanal,
             sak = sak,
             tema = Tema.HJE.toString(),
             tittel = tittel,
