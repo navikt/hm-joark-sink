@@ -14,7 +14,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 
 private val log = KotlinLogging.logger {}
 
-class NotatOpprettetOpprettOgFerdigstillJournalpost(
+class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {
@@ -25,7 +25,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
                 validate {
                     it.requireKey(
                         "sakId",
-                        "fnrSaksbehandler",
                         "fnrBruker",
                         "fysiskDokument",
                         "dokumenttittel",
@@ -39,9 +38,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
 
     private val JsonMessage.sakId: String
         get() = this["sakId"].textValue()
-
-    private val JsonMessage.fnrSaksbehandler: String
-        get() = this["fnrSaksbehandler"].textValue()
 
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].textValue()
@@ -63,7 +59,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
-        val fnrSaksbehandler = packet.fnrSaksbehandler
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val notatId = packet.notatId
@@ -74,7 +69,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
         val fysiskDokument = packet.fysiskDokument
 
         val journalpostId = journalpostService.opprettJournalførtNotatJournalpost(
-            fnrSaksbehandler = fnrSaksbehandler,
             fnrBruker = fnrBruker,
             eksternReferanseId = "${sakId}_${notatId}",
         ) {
@@ -88,7 +82,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
         data class JournalførtNotatJournalførtHendelse(
             val journalpostId: String,
             val sakId: String,
-            val fnrSaksbehandler: String,
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
@@ -101,7 +94,6 @@ class NotatOpprettetOpprettOgFerdigstillJournalpost(
             message = JournalførtNotatJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
-                fnrSaksbehandler = fnrSaksbehandler,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = Dokumenttype.NOTAT,

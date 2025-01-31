@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 
 class OpprettJournalpostRequestConfigurer(
     val fnrBruker: String,
-    val fnrAvsenderMottaker: String = fnrBruker,
+    val fnrAvsenderMottaker: String? = fnrBruker,
     val dokumenttype: Dokumenttype,
     val journalposttype: OpprettJournalpostRequest.Journalposttype,
     val eksternReferanseId: String,
@@ -65,7 +65,7 @@ class OpprettJournalpostRequestConfigurer(
             "Ingen dokumenter er lagt til!"
         }
         return OpprettJournalpostRequest(
-            avsenderMottaker = avsenderMottakerMedFnr(fnrAvsenderMottaker),
+            avsenderMottaker = fnrAvsenderMottaker?.let { avsenderMottakerMedFnr(it) },
             bruker = brukerMedFnr(fnrBruker),
             datoDokument = datoDokument,
             datoMottatt = datoMottatt,

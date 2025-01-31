@@ -136,14 +136,13 @@ class JournalpostService(
     }
 
     suspend fun opprettJournalførtNotatJournalpost(
-        fnrSaksbehandler: String,
         fnrBruker: String,
         eksternReferanseId: String,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsenderMottaker = fnrSaksbehandler,
+            fnrAvsenderMottaker = null, // Ref. openapi dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
             eksternReferanseId = eksternReferanseId,
@@ -161,7 +160,7 @@ class JournalpostService(
         val ferdigstilt = journalpost.journalpostferdigstilt
 
         log.info {
-            "Notat journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
+            "Journalført notat journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
         }
 
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
