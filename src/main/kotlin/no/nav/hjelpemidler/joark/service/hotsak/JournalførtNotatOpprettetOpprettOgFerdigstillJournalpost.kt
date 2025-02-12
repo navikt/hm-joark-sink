@@ -48,7 +48,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         get() = this["fysiskDokument"].binaryValue()
 
     private val JsonMessage.strukturertDokument: JsonNode?
-        get() = this.get("strukturertDokument").let { if (it.isNull) null else it }
+        get() = this["strukturertDokument"].let { if (it.isNull) null else it }
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
@@ -69,7 +69,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         val notatId = packet.notatId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, notatId: $notatId" }
+        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, notatId: $notatId, inkludererStrukturertDokument=${packet.strukturertDokument != null}" }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
