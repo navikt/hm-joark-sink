@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
+import io.ktor.serialization.jackson.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -105,6 +108,9 @@ fun devBuilder(rapidAccess: RapidAccess): RapidApplication.Builder.() -> Unit {
     }
     return {
         withKtorModule {
+            install(ContentNegotiation) {
+                jackson()
+            }
             routing {
                 post("/internal/test-api") {
                     data class KafkaBody(
@@ -124,7 +130,7 @@ fun devBuilder(rapidAccess: RapidAccess): RapidApplication.Builder.() -> Unit {
                         val dryRun: Boolean = true,
                     )
                     val body: RequestBody = call.receive()
-                    log.info { "Received KafkaBody for test (dryRun=${body.dryRun}): ${jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body.body)}" }
+                    no.nav.hjelpemidler.joark.log.info { "Received KafkaBody for test (dryRun=${body.dryRun}): ${jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body.body)}" }
                     rapidAccess.rapidsConnection?.let { rapid ->
                         if (!body.dryRun) {
                             rapid.publish(jsonMapper.writeValueAsString(body.body))
