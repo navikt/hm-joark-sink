@@ -76,7 +76,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
 
         val journalpostId = journalpostService.opprettJournalførtNotatJournalpost(
             fnrBruker = fnrBruker,
-            eksternReferanseId = "${sakId}_${notatId}",
+            eksternReferanseId = "hotsak-jfrnotat-${sakId}_${notatId}",
         ) {
             tittel = dokumenttittel
             dokument(
