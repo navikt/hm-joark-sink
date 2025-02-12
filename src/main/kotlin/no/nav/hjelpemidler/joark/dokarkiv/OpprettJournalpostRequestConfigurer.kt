@@ -40,6 +40,7 @@ class OpprettJournalpostRequestConfigurer(
     fun dokument(
         fysiskDokument: ByteArray,
         dokumenttittel: String? = null,
+        strukturertDokument: JsonNode? = null,
     ) {
         dokumenter.add(
             Dokument(
@@ -48,19 +49,15 @@ class OpprettJournalpostRequestConfigurer(
                 tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
             )
         )
-    }
-
-    fun originalDokument(
-        json: JsonNode,
-        dokumenttittel: String? = null,
-    ) {
-        dokumenter.add(
-            Dokument(
-                brevkode = dokumenttype.brevkode,
-                dokumentvarianter = listOf(json.toOriginal()),
-                tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
+        if (strukturertDokument != null) {
+            dokumenter.add(
+                Dokument(
+                    brevkode = dokumenttype.brevkode,
+                    dokumentvarianter = listOf(strukturertDokument.toOriginal()),
+                    tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
+                )
             )
-        )
+        }
     }
 
     fun hotsak(sakId: String) {

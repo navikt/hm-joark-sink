@@ -39,7 +39,7 @@ class DokarkivClientTest {
             OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
             "test",
         ).apply {
-            dokument(ByteArray(0))
+            dokument(fysiskDokument = ByteArray(0))
         }
 
         client.opprettJournalpost(lagRequest(), forsøkFerdigstill = true)

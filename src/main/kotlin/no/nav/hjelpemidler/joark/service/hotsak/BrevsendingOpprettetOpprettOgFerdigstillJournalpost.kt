@@ -92,7 +92,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             eksternReferanseId = "${sakId}_${brevsendingId}",
             forsøkFerdigstill = true,
         ) {
-            dokument(fysiskDokument)
+            dokument(fysiskDokument = fysiskDokument)
             hotsak(sakId)
             this.opprettetAv = opprettetAv
         }

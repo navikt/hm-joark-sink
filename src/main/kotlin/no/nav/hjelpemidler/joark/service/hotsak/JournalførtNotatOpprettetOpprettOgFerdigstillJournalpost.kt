@@ -29,11 +29,10 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                         "sakId",
                         "fnrBruker",
                         "fysiskDokument",
-                        "strukturertDokument",
                         "dokumenttittel",
                         "språkkode",
                     )
-                    it.interestedIn("notatId", "opprettetAv")
+                    it.interestedIn("notatId", "opprettetAv", "strukturertDokument")
                 }
             }
             .register(this)
@@ -48,8 +47,8 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
 
-    private val JsonMessage.strukturertDokument: JsonNode
-        get() = this["strukturertDokument"].textValue().let { jsonMapper.readTree(it ?: "{}") }
+    private val JsonMessage.strukturertDokument: JsonNode?
+        get() = this["strukturertDokument"].textValue()?.let { jsonMapper.readTree(it) }
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
@@ -80,8 +79,11 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
             eksternReferanseId = "${sakId}_${notatId}",
         ) {
             tittel = dokumenttittel
-            dokument(fysiskDokument, dokumenttittel)
-            originalDokument(strukturertDokument, dokumenttittel)
+            dokument(
+                fysiskDokument = fysiskDokument,
+                strukturertDokument = strukturertDokument,
+                dokumenttittel = dokumenttittel,
+            )
             hotsak(sakId)
             this.opprettetAv = opprettetAv
         }
