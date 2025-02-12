@@ -42,22 +42,17 @@ class OpprettJournalpostRequestConfigurer(
         dokumenttittel: String? = null,
         strukturertDokument: JsonNode? = null,
     ) {
+        val varianter: MutableList<DokumentVariant> = mutableListOf(fysiskDokument.toArkiv())
+        if (strukturertDokument != null) {
+            varianter.add(strukturertDokument.toOriginal())
+        }
         dokumenter.add(
             Dokument(
                 brevkode = dokumenttype.brevkode,
-                dokumentvarianter = listOf(fysiskDokument.toArkiv()),
+                dokumentvarianter = varianter,
                 tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
             )
         )
-        if (strukturertDokument != null) {
-            dokumenter.add(
-                Dokument(
-                    brevkode = dokumenttype.brevkode,
-                    dokumentvarianter = listOf(strukturertDokument.toOriginal()),
-                    tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
-                )
-            )
-        }
     }
 
     fun hotsak(sakId: String) {
