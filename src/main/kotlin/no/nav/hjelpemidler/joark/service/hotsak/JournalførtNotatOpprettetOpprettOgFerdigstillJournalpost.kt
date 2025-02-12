@@ -48,7 +48,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         get() = this["fysiskDokument"].binaryValue()
 
     private val JsonMessage.strukturertDokument: JsonNode?
-        get() = this["strukturertDokument"].textValue()?.let { jsonMapper.readTree(it) }
+        get() = this.get("strukturertDokument").let { if (it.isNull) null else it }
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
