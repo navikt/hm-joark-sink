@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -11,6 +12,7 @@ import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 
 private val log = KotlinLogging.logger {}
 
@@ -46,8 +48,8 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
 
-    private val JsonMessage.strukturertDokument: String
-        get() = this["strukturertDokument"].textValue()
+    private val JsonMessage.strukturertDokument: JsonNode
+        get() = this["strukturertDokument"].textValue().let { jsonMapper.readTree(it ?: "{}") }
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()

@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.dokarkiv
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.hjelpemidler.joark.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
@@ -8,6 +9,7 @@ import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 
 class OpprettJournalpostRequestConfigurer(
@@ -49,7 +51,7 @@ class OpprettJournalpostRequestConfigurer(
     }
 
     fun originalDokument(
-        json: String,
+        json: JsonNode,
         dokumenttittel: String? = null,
     ) {
         dokumenter.add(
@@ -98,6 +100,6 @@ private fun ByteArray.toArkiv(): DokumentVariant = DokumentVariant(
     filtype = "PDFA", fysiskDokument = this, variantformat = Variantformat.ARKIV.toString()
 )
 
-private fun String.toOriginal(): DokumentVariant = DokumentVariant(
-    filtype = "JSON", fysiskDokument = this.toByteArray(), variantformat = Variantformat.ORIGINAL.toString()
+private fun JsonNode.toOriginal(): DokumentVariant = DokumentVariant(
+    filtype = "JSON", fysiskDokument = jsonMapper.writeValueAsString(this).toByteArray(), variantformat = Variantformat.ORIGINAL.toString()
 )
