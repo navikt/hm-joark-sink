@@ -48,6 +48,19 @@ class OpprettJournalpostRequestConfigurer(
         )
     }
 
+    fun originalDokument(
+        json: String,
+        dokumenttittel: String? = null,
+    ) {
+        dokumenter.add(
+            Dokument(
+                brevkode = dokumenttype.brevkode,
+                dokumentvarianter = listOf(json.toOriginal()),
+                tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
+            )
+        )
+    }
+
     fun hotsak(sakId: String) {
         sak = fagsakHjelpemidler(sakId)
     }
@@ -83,4 +96,8 @@ class OpprettJournalpostRequestConfigurer(
 
 private fun ByteArray.toArkiv(): DokumentVariant = DokumentVariant(
     filtype = "PDFA", fysiskDokument = this, variantformat = Variantformat.ARKIV.toString()
+)
+
+private fun String.toOriginal(): DokumentVariant = DokumentVariant(
+    filtype = "JSON", fysiskDokument = this.toByteArray(), variantformat = Variantformat.ORIGINAL.toString()
 )

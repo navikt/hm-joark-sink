@@ -27,6 +27,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                         "sakId",
                         "fnrBruker",
                         "fysiskDokument",
+                        "strukturertDokument",
                         "dokumenttittel",
                         "språkkode",
                     )
@@ -44,6 +45,9 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
 
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
+
+    private val JsonMessage.strukturertDokument: String
+        get() = this["strukturertDokument"].textValue()
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
@@ -67,6 +71,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, notatId: $notatId" }
 
         val fysiskDokument = packet.fysiskDokument
+        val strukturertDokument = packet.strukturertDokument
 
         val journalpostId = journalpostService.opprettJournalførtNotatJournalpost(
             fnrBruker = fnrBruker,
@@ -74,6 +79,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         ) {
             tittel = dokumenttittel
             dokument(fysiskDokument, dokumenttittel)
+            originalDokument(strukturertDokument, dokumenttittel)
             hotsak(sakId)
             this.opprettetAv = opprettetAv
         }
