@@ -12,7 +12,6 @@ import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 
 private val log = KotlinLogging.logger {}
 
@@ -26,17 +25,22 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                 precondition { it.requireValue("eventName", "hm-journalført-notat-opprettet") }
                 validate {
                     it.requireKey(
+                        "notatId",
                         "sakId",
                         "fnrBruker",
-                        "fysiskDokument",
-                        "dokumenttittel",
                         "språkkode",
+                        "dokumenttittel",
+                        "fysiskDokument",
+                        "strukturertDokument",
+                        "opprettetAv",
                     )
-                    it.interestedIn("notatId", "opprettetAv", "strukturertDokument")
                 }
             }
             .register(this)
     }
+
+    private val JsonMessage.notatId: String
+        get() = this["notatId"].textValue()
 
     private val JsonMessage.sakId: String
         get() = this["sakId"].textValue()
@@ -44,20 +48,17 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].textValue()
 
+    private val JsonMessage.språkkode: Språkkode
+        get() = this["språkkode"].textValue().let(Språkkode::valueOf)
+
+    private val JsonMessage.dokumenttittel: String
+        get() = this["dokumenttittel"].textValue()
+
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
 
     private val JsonMessage.strukturertDokument: JsonNode?
         get() = this["strukturertDokument"].let { if (it.isNull) null else it }
-
-    private val JsonMessage.dokumenttittel: String
-        get() = this["dokumenttittel"].textValue()
-
-    private val JsonMessage.språkkode: Språkkode
-        get() = this["språkkode"].textValue().let(Språkkode::valueOf)
-
-    private val JsonMessage.notatId: String?
-        get() = this["notatId"].textValue()
 
     private val JsonMessage.opprettetAv: String?
         get() = this["opprettetAv"].textValue()
