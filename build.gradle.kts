@@ -21,8 +21,6 @@ dependencies {
     implementation(libs.hotlibs.core)
     implementation(libs.hotlibs.http)
     implementation(libs.hotlibs.serialization)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.serialization.jackson)
 
     implementation(libs.kotlin.logging)
     implementation(libs.rapidsAndRivers)

@@ -1,14 +1,8 @@
 package no.nav.hjelpemidler.joark
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
-import io.ktor.serialization.jackson.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.openid.azureADClient
@@ -25,10 +19,16 @@ import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBa
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebrillerAvvisning
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
-import no.nav.hjelpemidler.joark.service.hotsak.*
+import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
+import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
+import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerOgErstattJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
-import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
@@ -66,8 +66,7 @@ fun main() {
         brevClient = brevClient,
     )
 
-    val rapidAccess = RapidAccess()
-    RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current, builder = devBuilder(rapidAccess))
+    RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)
         .apply {
             register(statusListener)
             OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
@@ -88,56 +87,11 @@ fun main() {
             OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
             ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
-
-            rapidAccess.rapidsConnection = this
         }
         .start()
 }
 
 val statusListener = object : RapidsConnection.StatusListener {
     override fun onReady(rapidsConnection: RapidsConnection) {
-    }
-}
-
-data class RapidAccess(
-    var rapidsConnection: RapidsConnection? = null,
-)
-fun devBuilder(rapidAccess: RapidAccess): RapidApplication.Builder.() -> Unit {
-    if (!Environment.current.isDev) {
-        return {}
-    }
-    return {
-        withKtorModule {
-            install(ContentNegotiation) {
-                jackson()
-            }
-            routing {
-                post("/internal/test-api") {
-                    data class KafkaBody(
-                        val eventName: String = "hm-journalført-notat-opprettet",
-                        val eventId: UUID = UUID.randomUUID(),
-                        val fnrBruker: String = "26848497710",
-                        val dokumenttittel: String = "Test notat",
-                        val språkkode: String = "bokmaal",
-                        val strukturertDokument: JsonNode? = null,
-                        val sakId: String,
-                        val brevsendingId: String,
-                        val opprettetAv: String,
-                        val fysiskDokument: ByteArray,
-                    )
-                    data class RequestBody(
-                        val body: KafkaBody,
-                        val dryRun: Boolean = true,
-                    )
-                    val body: RequestBody = call.receive()
-                    no.nav.hjelpemidler.joark.log.info { "Received KafkaBody for test (dryRun=${body.dryRun}): ${jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body.body)}" }
-                    rapidAccess.rapidsConnection?.let { rapid ->
-                        if (!body.dryRun) {
-                            rapid.publish(jsonMapper.writeValueAsString(body.body))
-                        }
-                    }
-                }
-            }
-        }
     }
 }
