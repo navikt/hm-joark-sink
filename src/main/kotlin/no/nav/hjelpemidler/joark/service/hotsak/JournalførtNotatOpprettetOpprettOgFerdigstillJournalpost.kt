@@ -25,7 +25,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                 precondition { it.requireValue("eventName", "hm-journalført-notat-opprettet") }
                 validate {
                     it.requireKey(
-                        "notatId",
+                        "brevsendingId",
                         "sakId",
                         "fnrBruker",
                         "språkkode",
@@ -39,8 +39,8 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
             .register(this)
     }
 
-    private val JsonMessage.notatId: String
-        get() = this["notatId"].textValue()
+    private val JsonMessage.brevsendingId: String
+        get() = this["brevsendingId"].textValue()
 
     private val JsonMessage.sakId: String
         get() = this["sakId"].textValue()
@@ -60,24 +60,24 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.strukturertDokument: JsonNode?
         get() = this["strukturertDokument"].let { if (it.isNull) null else it }
 
-    private val JsonMessage.opprettetAv: String?
+    private val JsonMessage.opprettetAv: String
         get() = this["opprettetAv"].textValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
-        val notatId = packet.notatId
+        val brevsendingId = packet.brevsendingId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, notatId: $notatId, inkludererStrukturertDokument=${packet.strukturertDokument != null}" }
+        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument=${packet.strukturertDokument != null}" }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
 
         val journalpostId = journalpostService.opprettJournalførtNotatJournalpost(
             fnrBruker = fnrBruker,
-            eksternReferanseId = "hotsak-jfrnotat-${sakId}_${notatId}",
+            eksternReferanseId = "hotsak-jfrnotat-${sakId}_${brevsendingId}",
         ) {
             tittel = dokumenttittel
             dokument(
@@ -96,8 +96,8 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
-            val notatId: String?,
-            val opprettetAv: String?,
+            val brevsendingId: String,
+            val opprettetAv: String,
         )
 
         context.publish(
@@ -108,7 +108,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = Dokumenttype.NOTAT,
-                notatId = notatId,
+                brevsendingId = brevsendingId,
                 opprettetAv = opprettetAv,
             )
         )

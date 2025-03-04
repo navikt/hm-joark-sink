@@ -121,7 +121,7 @@ fun devBuilder(rapidAccess: RapidAccess): RapidApplication.Builder.() -> Unit {
                         val språkkode: String = "bokmaal",
                         val strukturertDokument: JsonNode? = null,
                         val sakId: String,
-                        val notatId: String,
+                        val brevsendingId: String,
                         val opprettetAv: String,
                         val fysiskDokument: ByteArray,
                     )
