@@ -21,9 +21,9 @@ import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJourna
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
-import no.nav.hjelpemidler.joark.service.hotsak.JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerOgErstattJournalpost
