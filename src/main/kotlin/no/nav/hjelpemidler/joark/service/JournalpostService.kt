@@ -242,6 +242,13 @@ class JournalpostService(
         oppdaterJournalpostResponse.journalpostId
     }
 
+    suspend fun overstyrInnsynForBruker(journalpostId: String) = withCorrelationId {
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+            overstyrInnsynsregler = "VISES_MASKINELT_GODKJENT"
+        )
+        dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+    }
+
     suspend fun hentJournalposterForSak(
         sakId: String,
     ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId {
