@@ -60,7 +60,7 @@ enum class Dokumenttype(
         dokumenttittel = "Briller til barn: NAV etterspør opplysninger",
     ),
     NOTAT(
-        brevkode = "GEN_NOT_001", // Samme som gosys bruker
+        brevkode = "GEN_NOT_001", // Samme som Gosys bruker
         tittel = "Journalført notat i sak",
         dokumenttittel = "Journalført notat i sak",
     ),

@@ -8,7 +8,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -25,31 +24,30 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                 precondition { it.requireValue("eventName", "hm-journalført-notat-opprettet") }
                 validate {
                     it.requireKey(
-                        "brevsendingId",
                         "sakId",
                         "fnrBruker",
-                        "språkkode",
                         "dokumenttittel",
                         "fysiskDokument",
                         "strukturertDokument",
                         "opprettetAv",
                     )
+                    it.interestedIn("saksnotatId", "brevsendingId") // todo -> fjernes
                 }
             }
             .register(this)
     }
 
-    private val JsonMessage.brevsendingId: String
-        get() = this["brevsendingId"].textValue()
-
     private val JsonMessage.sakId: String
         get() = this["sakId"].textValue()
 
+    private val JsonMessage.saksnotatId: String? // todo -> ikke nullable
+        get() = this["saksnotatId"].textValue()
+
+    private val JsonMessage.brevsendingId: String? // todo -> fjernes
+        get() = this["brevsendingId"].textValue()
+
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].textValue()
-
-    private val JsonMessage.språkkode: Språkkode
-        get() = this["språkkode"].textValue().let(Språkkode::valueOf)
 
     private val JsonMessage.dokumenttittel: String
         get() = this["dokumenttittel"].textValue()
@@ -65,12 +63,13 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
+        val saksnotatId = packet.saksnotatId
+        val brevsendingId = packet.brevsendingId
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
-        val brevsendingId = packet.brevsendingId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument=${packet.strukturertDokument != null}" }
+        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, saksnotatId: $saksnotatId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument: ${packet.strukturertDokument != null}" }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
@@ -89,28 +88,31 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
             this.opprettetAv = opprettetAv
         }
 
-        @Hendelse("hm-journalført-notat-journalført")
-        data class JournalførtNotatJournalførtHendelse(
-            val journalpostId: String,
-            val sakId: String,
-            val fnrBruker: String,
-            val dokumenttittel: String,
-            val dokumenttype: Dokumenttype,
-            val brevsendingId: String,
-            val opprettetAv: String,
-        )
-
         context.publish(
             key = fnrBruker,
             message = JournalførtNotatJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
+                saksnotatId = saksnotatId,
+                brevsendingId = brevsendingId,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = Dokumenttype.NOTAT,
-                brevsendingId = brevsendingId,
                 opprettetAv = opprettetAv,
             )
         )
     }
 }
+
+@Hendelse("hm-journalført-notat-journalført")
+private data class JournalførtNotatJournalførtHendelse(
+    val journalpostId: String,
+    val sakId: String,
+    val saksnotatId: String?, // todo -> ikke nullable
+    @Deprecated("Byttes med saksnotatId")
+    val brevsendingId: String?,
+    val fnrBruker: String,
+    val dokumenttittel: String,
+    val dokumenttype: Dokumenttype,
+    val opprettetAv: String,
+)

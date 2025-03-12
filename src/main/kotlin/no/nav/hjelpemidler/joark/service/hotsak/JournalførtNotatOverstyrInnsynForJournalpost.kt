@@ -32,7 +32,7 @@ class JournalførtNotatOverstyrInnsynForJournalpost(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId
-        log.info { "Mottok melding om at journalført notat trenger overstyring av innsyn for journalpost: $journalpostId" }
+        log.info { "Mottok melding om at journalført notat trenger overstyring av innsyn for journalpostId: $journalpostId" }
         journalpostService.overstyrInnsynForBruker(journalpostId)
     }
 }
