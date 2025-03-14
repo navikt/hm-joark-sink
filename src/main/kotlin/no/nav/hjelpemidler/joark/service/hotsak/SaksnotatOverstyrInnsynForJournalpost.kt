@@ -10,7 +10,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 
 private val log = KotlinLogging.logger {}
 
-class JournalførtNotatOverstyrInnsynForJournalpost(
+class SaksnotatOverstyrInnsynForJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {

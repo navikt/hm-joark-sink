@@ -37,12 +37,12 @@ data class JournalpostBarnebrillevedtakData(
         val orgnr: String,
         val sakId: String,
         val joarkRef: String,
-        val dokumentIder: List<String>,
+        val dokumentIder: Set<String>,
         val dokumentTittel: String,
-        val opprettet: LocalDateTime = LocalDateTime.now()
+        val opprettet: LocalDateTime = LocalDateTime.now(),
     )
 
-    fun tilUtgående(journalpostId: String, dokumentIder: List<String>) = Utgående(
+    fun tilUtgående(journalpostId: String, dokumentIder: Set<String>) = Utgående(
         fnr = fnr,
         orgnr = orgnr,
         sakId = sakId,

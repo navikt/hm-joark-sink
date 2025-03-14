@@ -4,7 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
+import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.test.TestSupport
@@ -26,7 +26,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest : TestSupport() {
                 capture(opprettJournalpostRequestSlot),
                 capture(forsøkFerdigstillSlot)
             )
-        } returns OpprettJournalpostResponse("1", true)
+        } returns JournalpostOpprettet("1", setOf("1"), true)
     }
 
     @Test

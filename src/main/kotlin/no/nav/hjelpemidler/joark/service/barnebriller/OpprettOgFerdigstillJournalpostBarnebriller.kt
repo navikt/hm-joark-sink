@@ -66,7 +66,7 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                 data.fnr,
                 data.tilUtgående(
                     journalpost.journalpostId,
-                    journalpost.dokumenter?.mapNotNull { it.dokumentInfoId } ?: listOf(),
+                    journalpost.dokumentIder,
                 )
             )
             log.info { "Opprettet og ferdigstilte journalpost for barnebriller i joark for sakId: ${data.sakId}" }

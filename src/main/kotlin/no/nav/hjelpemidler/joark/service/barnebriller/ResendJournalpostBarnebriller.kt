@@ -63,8 +63,9 @@ class ResendJournalpostBarnebriller(
                 data.fnr,
                 data.tilUtgående(
                     journalpost.journalpostId,
-                    journalpost.dokumenter?.mapNotNull { it.dokumentInfoId } ?: listOf(),
-                ))
+                    journalpost.dokumentIder,
+                )
+            )
             log.info { "Opprettet og ferdigstilte journalpost for barnebriller i joark for sakId: ${data.sakId}" }
         } catch (e: Throwable) {
             log.error(e) { "Kunne ikke opprette og ferdigstille journalpost for barnebriller, sakId: ${data.sakId}" }

@@ -14,7 +14,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 
 private val log = KotlinLogging.logger {}
 
-class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
+class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {
@@ -31,7 +31,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
                         "strukturertDokument",
                         "opprettetAv",
                     )
-                    it.interestedIn("saksnotatId", "brevsendingId") // todo -> fjernes
+                    it.interestedIn("saksnotatId", "brevsendingId") // todo -> brevsendingId fjernes
                 }
             }
             .register(this)
@@ -69,14 +69,14 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at journalført notat er opprettet, sakId: $sakId, saksnotatId: $saksnotatId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument: ${packet.strukturertDokument != null}" }
+        log.info { "Mottok melding om at saksnotat er opprettet, sakId: $sakId, saksnotatId: $saksnotatId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument: ${packet.strukturertDokument != null}" }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
 
-        val journalpostId = journalpostService.opprettJournalførtNotatJournalpost(
+        val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = "hotsak-jfrnotat-${sakId}_${brevsendingId}",
+            eksternReferanseId = if (saksnotatId == null) "hotsak-jfrnotat-${sakId}_${brevsendingId}" else "hotsak-saksnotat-${sakId}_${saksnotatId}",
         ) {
             tittel = dokumenttittel
             dokument(
@@ -91,7 +91,8 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
         context.publish(
             key = fnrBruker,
             message = JournalførtNotatJournalførtHendelse(
-                journalpostId = journalpostId,
+                journalpostId = journalpost.journalpostId,
+                dokumentId = journalpost.dokumentIder.single(),
                 sakId = sakId,
                 saksnotatId = saksnotatId,
                 brevsendingId = brevsendingId,
@@ -107,6 +108,7 @@ class JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(
 @Hendelse("hm-journalført-notat-journalført")
 private data class JournalførtNotatJournalførtHendelse(
     val journalpostId: String,
+    val dokumentId: String,
     val sakId: String,
     val saksnotatId: String?, // todo -> ikke nullable
     @Deprecated("Byttes med saksnotatId")

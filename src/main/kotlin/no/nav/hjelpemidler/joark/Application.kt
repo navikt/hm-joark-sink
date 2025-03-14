@@ -21,8 +21,8 @@ import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJourna
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.JournalførtNotatOverstyrInnsynForJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
@@ -75,8 +75,8 @@ fun main() {
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
             BrevsendingOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            JournalførtNotatOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            JournalførtNotatOverstyrInnsynForJournalpost(this, journalpostService)
+            SaksnotatOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            SaksnotatOverstyrInnsynForJournalpost(this, journalpostService)
             JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)

@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
@@ -89,7 +90,7 @@ class JournalpostService(
         )
 
         val journalpostId = journalpost.journalpostId
-        val ferdigstilt = journalpost.journalpostferdigstilt
+        val ferdigstilt = journalpost.ferdigstilt
         val datoMottatt = lagOpprettJournalpostRequest.datoMottatt
 
         log.info {
@@ -124,10 +125,9 @@ class JournalpostService(
         )
 
         val journalpostId = journalpost.journalpostId
-        val ferdigstilt = journalpost.journalpostferdigstilt
 
         log.info {
-            "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
+            "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: ${journalpost.ferdigstilt}"
         }
 
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
@@ -135,14 +135,14 @@ class JournalpostService(
         journalpostId
     }
 
-    suspend fun opprettJournalførtNotatJournalpost(
+    suspend fun opprettNotat(
         fnrBruker: String,
         eksternReferanseId: String,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
-    ): String = withCorrelationId {
+    ): JournalpostOpprettet = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsenderMottaker = null, // Ref. openapi dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
+            fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
             eksternReferanseId = eksternReferanseId,
@@ -157,15 +157,16 @@ class JournalpostService(
         )
 
         val journalpostId = journalpost.journalpostId
-        val ferdigstilt = journalpost.journalpostferdigstilt
+        val dokumentIder = journalpost.dokumentIder
+        val ferdigstilt = journalpost.ferdigstilt
 
         log.info {
-            "Journalført notat journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
+            "Notat opprettet, journalpostId: $journalpostId, dokumentIder: $dokumentIder, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
         }
 
         Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
 
-        journalpostId
+        journalpost
     }
 
     suspend fun arkiverBehovsmelding(

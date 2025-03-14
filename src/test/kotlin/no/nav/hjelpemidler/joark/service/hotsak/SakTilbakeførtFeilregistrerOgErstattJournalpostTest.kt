@@ -4,8 +4,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
-import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.test.TestSupport
 import no.nav.hjelpemidler.joark.test.assertSoftly
@@ -38,7 +38,7 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpostTest : TestSupport() {
                 capture(opprettJournalpostRequestSlot),
                 capture(forsøkFerdigstillSlot)
             )
-        } returns OpprettJournalpostResponse("3", false)
+        } returns JournalpostOpprettet("3", setOf("3"), false)
     }
 
     @Test

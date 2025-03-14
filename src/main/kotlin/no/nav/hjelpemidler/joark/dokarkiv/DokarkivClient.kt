@@ -30,6 +30,7 @@ import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.KopierJournalpostRequest
@@ -77,7 +78,7 @@ class DokarkivClient(
         opprettJournalpostRequest: OpprettJournalpostRequest,
         forsøkFerdigstill: Boolean = false,
         opprettetAv: String? = null,
-    ): OpprettJournalpostResponse {
+    ): JournalpostOpprettet {
         val url = "journalpost"
         val eksternReferanseId = opprettJournalpostRequest.eksternReferanseId
         log.info {
@@ -101,7 +102,7 @@ class DokarkivClient(
         if (forsøkFerdigstill != journalpost.journalpostferdigstilt) {
             dokarkivError("Journalpost ble ikke ferdigstilt, journalpostId: ${journalpost.journalpostId}")
         }
-        return journalpost
+        return JournalpostOpprettet(journalpost)
     }
 
     suspend fun oppdaterJournalpost(
