@@ -18,7 +18,11 @@ import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
-class SakTilbakeførtFeilregistrerOgErstattJournalpost(
+/**
+ * Sak fra Hotsak skal overføres til behandling i Gosys. Feilregistrer journalpost og lag kopi.
+ * Det opprettes oppgaver for journalføring i hm-oppgave-sink downstream.
+ */
+class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {
@@ -68,23 +72,15 @@ class SakTilbakeførtFeilregistrerOgErstattJournalpost(
         }
 
         log.info { "Oppretter ny journalpost for feilregistrert sakstilknytning, sakId: ${data.sakId}, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}, journalpostId: $journalpostId" }
-        val eksternReferanseId = "${data.soknadId}_${journalpostId}_HOTSAK_TIL_GOSYS"
+        val eksternReferanseId = "${data.soknadId}_${data.sakId}_${journalpostId}_HOTSAK_TIL_GOSYS"
         try {
             val nyJournalpostId = when (data.sakstype) {
-                Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.arkiverBehovsmelding(
-                    fnrBruker = data.fnrBruker,
-                    behovsmeldingId = data.soknadId,
-                    sakstype = data.sakstype,
-                    dokumenttittel = data.dokumentBeskrivelse,
-                    eksternReferanseId = eksternReferanseId,
-                )
-
-                Sakstype.BARNEBRILLER -> journalpostService.kopierJournalpost(
+                Sakstype.BARNEBRILLER, Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.kopierJournalpost(
                     journalpostId = journalpostId,
                     nyEksternReferanseId = eksternReferanseId
                 )
 
-                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> throw IllegalArgumentException("Uventet sakstype: ${data.sakstype}")
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> error("Uventet sakstype: ${data.sakstype}")
             }
 
             // Oppdater journalpostId etter feilregistrering og ny-oppretting

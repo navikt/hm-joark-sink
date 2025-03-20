@@ -20,7 +20,6 @@ class OpprettJournalpostRequestConfigurer(
     val eksternReferanseId: String,
 ) {
     var tittel: String? = null
-    var datoDokument: LocalDateTime? = null
     var datoMottatt: LocalDateTime? = null
     var journalførendeEnhet: String? = "9999"
     var kanal: String? = Kanal.NAV_NO.toString()
@@ -74,7 +73,6 @@ class OpprettJournalpostRequestConfigurer(
         return OpprettJournalpostRequest(
             avsenderMottaker = fnrAvsenderMottaker?.let { avsenderMottakerMedFnr(it) },
             bruker = brukerMedFnr(fnrBruker),
-            datoDokument = datoDokument,
             datoMottatt = datoMottatt,
             dokumenter = dokumenter.toList(),
             eksternReferanseId = eksternReferanseId,
