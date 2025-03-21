@@ -218,12 +218,12 @@ class JournalpostService(
      * Brukes når vi vil at videre behandling av journalpost skal skje i Gosys / Infotrygd.
      */
     suspend fun kopierJournalpost(
-        journalpostId: String,
+        kildeJournalpostId: String,
         nyEksternReferanseId: String,
     ): String = withCorrelationId {
-        val nyJournalpostId = dokarkivClient.kopierJournalpost(journalpostId, nyEksternReferanseId)
+        val nyJournalpostId = dokarkivClient.kopierJournalpost(kildeJournalpostId, nyEksternReferanseId)
         log.info {
-            "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+            "Kopierte journalpost med journalpostId: $kildeJournalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
         }
         nyJournalpostId
     }

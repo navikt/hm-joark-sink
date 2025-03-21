@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -9,7 +8,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 
 private val log = KotlinLogging.logger {}
 
@@ -43,7 +42,7 @@ class ResendJournalpostBarnebriller(
     }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val data: JournalpostBarnebrillevedtakData = jsonMapper.readValue(packet.toJson())
+        val data: JournalpostBarnebrillevedtakData = jsonToValue(packet.toJson())
         log.info { "Sak til rejournalføring barnebriller mottatt, sakId: ${data.sakId}" }
 
         try {

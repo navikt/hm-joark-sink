@@ -1,18 +1,18 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -50,46 +50,58 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val journalpostId = packet["joarkRef"].textValue()
-        if (journalpostId in skip) {
-            log.warn {
-                "Hopper over feilregistrering av journalpost med journalpostId: $journalpostId"
-            }
+        val kildeJournalpostId = packet["joarkRef"].textValue()
+        if (kildeJournalpostId in skip) {
+            log.warn { "Hopper over feilregistrering av journalpost med journalpostId: $kildeJournalpostId" }
             return
         }
 
-        val data: MottattJournalpostData = jsonMapper.readValue(packet.toJson())
+        val data: MottattJournalpostData = jsonToValue(packet.toJson())
 
         log.info {
-            "Journalpost til feilregistrering av sakstilknytning mottatt, sakId: ${data.sakId}, sakstype: ${data.sakstype}, journalpostId: $journalpostId"
+            data.toMap().joinToString(prefix = "Journalpost til feilregistrering av sakstilknytning mottatt, ")
         }
         try {
-            journalpostService.feilregistrerSakstilknytning(journalpostId)
-            log.info { "Feilregistrerte sakstilknytning for sakId: ${data.sakId}, journalpostId: $journalpostId" }
+            journalpostService.feilregistrerSakstilknytning(kildeJournalpostId)
+            log.info { data.toMap().joinToString(prefix = "Feilregistrerte sakstilknytning, ") }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å feilregistrere sakstilknytning for journalpostId: $journalpostId, sakId: ${data.sakId}" }
+            log.error(e) { data.toMap().joinToString(prefix = "Klarte ikke å feilregistrere sakstilknytning, ") }
             throw e
         }
 
-        log.info { "Oppretter ny journalpost for feilregistrert sakstilknytning, sakId: ${data.sakId}, søknadId: ${data.soknadId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.dokumentBeskrivelse}, journalpostId: $journalpostId" }
-        val eksternReferanseId = "${data.soknadId}_${data.sakId}_${journalpostId}_HOTSAK_TIL_GOSYS"
+        log.info {
+            data.toMap().joinToString(prefix = "Oppretter ny journalpost etter feilregistrering av sakstilknytning, ")
+        }
+        val nyEksternReferanseId = "${data.søknadId}_${data.sakId}_${kildeJournalpostId}_HOTSAK_TIL_GOSYS"
         try {
             val nyJournalpostId = when (data.sakstype) {
                 Sakstype.BARNEBRILLER, Sakstype.BESTILLING, Sakstype.SØKNAD -> journalpostService.kopierJournalpost(
-                    journalpostId = journalpostId,
-                    nyEksternReferanseId = eksternReferanseId
+                    kildeJournalpostId = kildeJournalpostId,
+                    nyEksternReferanseId = nyEksternReferanseId
                 )
 
                 Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> error("Uventet sakstype: ${data.sakstype}")
             }
 
             // Oppdater journalpostId etter feilregistrering og ny-oppretting
-            val data = data.copy(journalpostId = nyJournalpostId)
+            val nyData = data.copy(journalpostId = nyJournalpostId)
 
-            context.publish(data.fnrBruker, data)
-            log.info { "Opprettet journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, journalpostId: $nyJournalpostId, sakId: ${data.sakId}, sakstype: ${data.sakstype}" }
+            context.publish(nyData.fnrBruker, nyData)
+            log.info {
+                nyData.toMap()
+                    .plus(
+                        mapOf(
+                            "kildeJournalpostId" to kildeJournalpostId,
+                            "nyEksternReferanseId" to nyEksternReferanseId,
+                        )
+                    )
+                    .joinToString(prefix = "Opprettet ny journalpost med status mottatt etter feilregistrering, ")
+            }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprette journalpost med status mottatt i dokarkiv for søknadId: ${data.soknadId}, sakstype: ${data.sakstype}" }
+            log.error(e) {
+                data.toMap()
+                    .joinToString(prefix = "Klarte ikke å opprette ny journalpost med status mottatt etter feilregistrering, ")
+            }
             throw e
         }
     }
@@ -100,7 +112,8 @@ private val skip = setOf("535250492")
 @Hendelse("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
     val fnrBruker: String,
-    val soknadId: UUID,
+    @JsonAlias("soknadId")
+    val søknadId: UUID,
     val sakstype: Sakstype,
     val dokumentBeskrivelse: String,
     val enhet: String,
@@ -116,6 +129,18 @@ private data class MottattJournalpostData(
     val sakId: String,
 ) {
     val opprettet = LocalDateTime.now()
-    var fodselNrBruker = fnrBruker // @deprecated
-    val joarkRef = journalpostId // @deprecated
+
+    @Deprecated("Bruk fnrBruker")
+    val fodselNrBruker by this::fnrBruker
+
+    @Deprecated("Bruk journalpostId")
+    val joarkRef by this::journalpostId
+
+    fun toMap(): Map<String, Any?> = mapOf(
+        "sakId" to sakId,
+        "søknadId" to søknadId,
+        "journalpostId" to journalpostId,
+        "sakstype" to sakstype,
+        "dokumenttittel" to "'$dokumentBeskrivelse'",
+    )
 }
