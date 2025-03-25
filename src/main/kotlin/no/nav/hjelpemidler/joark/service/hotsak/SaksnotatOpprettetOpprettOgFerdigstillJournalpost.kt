@@ -28,13 +28,13 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
                 validate {
                     it.requireKey(
                         "sakId",
+                        "saksnotatId",
                         "fnrBruker",
                         "dokumenttittel",
                         "fysiskDokument",
                         "strukturertDokument",
                         "opprettetAv",
                     )
-                    it.interestedIn("saksnotatId", "brevsendingId") // todo -> brevsendingId fjernes
                 }
             }
             .register(this)
@@ -43,11 +43,8 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.sakId: String
         get() = this["sakId"].textValue()
 
-    private val JsonMessage.saksnotatId: String? // todo -> ikke nullable
+    private val JsonMessage.saksnotatId: String
         get() = this["saksnotatId"].textValue()
-
-    private val JsonMessage.brevsendingId: String? // todo -> fjernes
-        get() = this["brevsendingId"].textValue()
 
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].textValue()
@@ -67,7 +64,6 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val saksnotatId = packet.saksnotatId
-        val brevsendingId = packet.brevsendingId
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val opprettetAv = packet.opprettetAv
@@ -76,7 +72,6 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             mapOf(
                 "sakId" to sakId,
                 "saksnotatId" to saksnotatId,
-                "brevsendingId" to brevsendingId,
                 "dokumenttype" to Dokumenttype.NOTAT,
                 "inkludererStrukturertDokument" to (packet.strukturertDokument != null)
             ).joinToString(prefix = "Mottok melding om at saksnotat er opprettet, ")
@@ -87,13 +82,11 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = if (saksnotatId != null) {
-                EksternId(applicationId = HotsakApplicationId, resource = "saksnotat", id = saksnotatId)
-            } else if (brevsendingId != null) {
-                EksternId(applicationId = HotsakApplicationId, resource = "brevsending", id = brevsendingId)
-            } else {
-                error("Mangler både saksnotatId og brevsendingId, sakId: $sakId")
-            },
+            eksternReferanseId = EksternId(
+                applicationId = HotsakApplicationId,
+                resource = "saksnotat",
+                id = saksnotatId,
+            ),
         ) {
             this.tittel = dokumenttittel
             this.opprettetAv = opprettetAv
@@ -106,7 +99,6 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             tilleggsopplysninger(
                 "sakId" to sakId,
                 "saksnotatId" to saksnotatId,
-                "brevsendingId" to brevsendingId,
                 prefix = HotsakApplicationId.application,
             )
         }
@@ -118,7 +110,6 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
                 dokumentId = journalpost.dokumentIder.single(),
                 sakId = sakId,
                 saksnotatId = saksnotatId,
-                brevsendingId = brevsendingId,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = Dokumenttype.NOTAT,
@@ -133,9 +124,7 @@ private data class JournalførtNotatJournalførtHendelse(
     val journalpostId: String,
     val dokumentId: String,
     val sakId: String,
-    val saksnotatId: String?, // todo -> ikke nullable
-    @Deprecated("Byttes med saksnotatId")
-    val brevsendingId: String?,
+    val saksnotatId: String?,
     val fnrBruker: String,
     val dokumenttittel: String,
     val dokumenttype: Dokumenttype,
