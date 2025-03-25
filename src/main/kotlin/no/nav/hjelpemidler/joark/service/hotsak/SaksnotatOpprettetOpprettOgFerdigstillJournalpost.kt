@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
+import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.domain.id.EksternId
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
@@ -87,9 +88,9 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
             eksternReferanseId = if (saksnotatId != null) {
-                EksternId("urn:hotsak:saksnotat:$saksnotatId")
+                EksternId(applicationId = HotsakApplicationId, resource = "saksnotat", id = saksnotatId)
             } else if (brevsendingId != null) {
-                EksternId("urn:hotsak:brevsending:$brevsendingId")
+                EksternId(applicationId = HotsakApplicationId, resource = "brevsending", id = brevsendingId)
             } else {
                 error("Mangler både saksnotatId og brevsendingId, sakId: $sakId")
             },
@@ -103,9 +104,10 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             )
             hotsak(sakId)
             tilleggsopplysninger(
-                "hotsak_sakId" to sakId,
-                "hotsak_saksnotatId" to saksnotatId,
-                "hotsak_brevsendingId" to brevsendingId,
+                "sakId" to sakId,
+                "saksnotatId" to saksnotatId,
+                "brevsendingId" to brevsendingId,
+                prefix = HotsakApplicationId.application,
             )
         }
 

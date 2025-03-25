@@ -64,13 +64,15 @@ class OpprettJournalpostRequestConfigurer(
         sak = generellSak()
     }
 
-    private val tilleggsopplysninger = mutableListOf<Pair<String, String?>>()
-    fun tilleggsopplysning(nøkkel: String, verdi: String?) {
-        tilleggsopplysninger.add(nøkkel to verdi)
-    }
-
-    fun tilleggsopplysninger(vararg tilleggsopplysninger: Pair<String, String?>) {
-        this.tilleggsopplysninger.addAll(tilleggsopplysninger.toList())
+    private var tilleggsopplysninger: List<Tilleggsopplysning>? = null
+    fun tilleggsopplysninger(vararg tilleggsopplysninger: Pair<String, String?>, prefix: String? = null) {
+        this.tilleggsopplysninger = tilleggsopplysninger.mapNotNull { (nøkkel, verdi) ->
+            if (verdi == null) {
+                null
+            } else {
+                Tilleggsopplysning(listOfNotNull(prefix, nøkkel).joinToString("_"), verdi)
+            }
+        }
     }
 
     operator fun invoke(): OpprettJournalpostRequest {
@@ -88,15 +90,7 @@ class OpprettJournalpostRequestConfigurer(
             kanal = kanal,
             sak = sak,
             tema = Tema.HJE.toString(),
-            tilleggsopplysninger = tilleggsopplysninger
-                .mapNotNull { (nøkkel, verdi) ->
-                    if (verdi == null) {
-                        null
-                    } else {
-                        Tilleggsopplysning(nøkkel, verdi)
-                    }
-                }
-                .takeUnless(List<Tilleggsopplysning>::isEmpty),
+            tilleggsopplysninger = tilleggsopplysninger,
             tittel = tittel,
         )
     }
