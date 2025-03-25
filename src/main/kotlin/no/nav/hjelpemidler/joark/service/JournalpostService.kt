@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.joark.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.domain.id.EksternId
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
@@ -137,7 +138,7 @@ class JournalpostService(
 
     suspend fun opprettNotat(
         fnrBruker: String,
-        eksternReferanseId: String,
+        eksternReferanseId: EksternId,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): JournalpostOpprettet = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
@@ -145,7 +146,7 @@ class JournalpostService(
             fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
-            eksternReferanseId = eksternReferanseId,
+            eksternReferanseId = eksternReferanseId.toString(),
         ).apply(block).apply {
             kanal = null // Ref. dokumentasjon for OpprettJournalpostRequest: "Kanal skal ikke settes for notater"
         }
@@ -218,12 +219,12 @@ class JournalpostService(
      * Brukes når vi vil at videre behandling av journalpost skal skje i Gosys / Infotrygd.
      */
     suspend fun kopierJournalpost(
-        journalpostId: String,
+        kildeJournalpostId: String,
         nyEksternReferanseId: String,
     ): String = withCorrelationId {
-        val nyJournalpostId = dokarkivClient.kopierJournalpost(journalpostId, nyEksternReferanseId)
+        val nyJournalpostId = dokarkivClient.kopierJournalpost(kildeJournalpostId, nyEksternReferanseId)
         log.info {
-            "Kopierte journalpost med journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+            "Kopierte journalpost med journalpostId: $kildeJournalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
         }
         nyJournalpostId
     }

@@ -27,7 +27,7 @@ import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterO
 import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.SakTilbakeførtFeilregistrerOgErstattJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
@@ -80,7 +80,7 @@ fun main() {
             JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            SakTilbakeførtFeilregistrerOgErstattJournalpost(this, journalpostService)
+            SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
             KnyttJournalposterTilNySak(this, journalpostService)
 
             // Barnebriller

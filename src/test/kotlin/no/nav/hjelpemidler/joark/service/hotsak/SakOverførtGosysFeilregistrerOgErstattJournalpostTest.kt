@@ -1,74 +1,51 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
-import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.test.TestSupport
-import no.nav.hjelpemidler.joark.test.assertSoftly
-import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class SakTilbakeførtFeilregistrerOgErstattJournalpostTest : TestSupport() {
+class SakOverførtGosysFeilregistrerOgErstattJournalpostTest : TestSupport() {
     private val nå = LocalDateTime.now()
     private val fnrBruker = "10101012345"
     private val journalpostId = "2"
 
     override fun TestRapid.configure() {
-        SakTilbakeførtFeilregistrerOgErstattJournalpost(this, journalpostService)
+        SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
     }
 
     @BeforeTest
     fun setUp() {
         coEvery {
-            journalpostService.feilregistrerSakstilknytning(any())
+            journalpostService.feilregistrerSakstilknytning(journalpostId)
         } returns Unit
         coEvery {
-            søknadApiClientMock.hentPdf(any())
-        } returns pdf
-        coEvery {
-            dokarkivClientMock.opprettJournalpost(
-                capture(opprettJournalpostRequestSlot),
-                capture(forsøkFerdigstillSlot)
-            )
-        } returns JournalpostOpprettet("3", setOf("3"), false)
+            dokarkivClientMock.kopierJournalpost(any(), any())
+        } returns "3"
     }
 
     @Test
-    fun `Oppretter ny journalpost hvis sakstype er SØKNAD`() {
+    fun `Kopierer hvis sakstype er SØKNAD`() {
         sendTestMessage(sakstype = Sakstype.SØKNAD)
 
-        opprettJournalpostRequestSlot.assertSoftly {
-            journalposttype shouldBe OpprettJournalpostRequest.Journalposttype.INNGAAENDE
-            journalfoerendeEnhet shouldBe null
-        }
-        forsøkFerdigstillSlot shouldHaveCaptured false
+        coVerify(exactly = 1) { dokarkivClientMock.kopierJournalpost(journalpostId, any()) }
     }
 
     @Test
-    fun `Oppretter ny journalpost hvis sakstype er BESTILLING`() {
+    fun `Kopierer journalpost hvis sakstype er BESTILLING`() {
         sendTestMessage(sakstype = Sakstype.BESTILLING)
 
-        opprettJournalpostRequestSlot.assertSoftly {
-            journalposttype shouldBe OpprettJournalpostRequest.Journalposttype.INNGAAENDE
-            journalfoerendeEnhet shouldBe null
-        }
-        forsøkFerdigstillSlot shouldHaveCaptured false
+        coVerify(exactly = 1) { dokarkivClientMock.kopierJournalpost(journalpostId, any()) }
     }
 
     @Test
     fun `Kopierer journalpost hvis sakstype er BARNEBRILLER`() {
-        coEvery {
-            dokarkivClientMock.kopierJournalpost(journalpostId, any())
-        } returns "3"
-
         sendTestMessage(sakstype = Sakstype.BARNEBRILLER)
 
         coVerify(exactly = 1) { dokarkivClientMock.kopierJournalpost(journalpostId, any()) }

@@ -6,6 +6,9 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.collections.joinToString
+import no.nav.hjelpemidler.configuration.HotsakApplicationId
+import no.nav.hjelpemidler.domain.id.EksternId
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.publish
@@ -69,23 +72,43 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at saksnotat er opprettet, sakId: $sakId, saksnotatId: $saksnotatId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument: ${packet.strukturertDokument != null}" }
+        log.info {
+            mapOf(
+                "sakId" to sakId,
+                "saksnotatId" to saksnotatId,
+                "brevsendingId" to brevsendingId,
+                "dokumenttype" to Dokumenttype.NOTAT,
+                "inkludererStrukturertDokument" to (packet.strukturertDokument != null)
+            ).joinToString(prefix = "Mottok melding om at saksnotat er opprettet, ")
+        }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = if (saksnotatId == null) "hotsak-jfrnotat-${sakId}_${brevsendingId}" else "hotsak-saksnotat-${sakId}_${saksnotatId}",
+            eksternReferanseId = if (saksnotatId != null) {
+                EksternId(applicationId = HotsakApplicationId, resource = "saksnotat", id = saksnotatId)
+            } else if (brevsendingId != null) {
+                EksternId(applicationId = HotsakApplicationId, resource = "brevsending", id = brevsendingId)
+            } else {
+                error("Mangler både saksnotatId og brevsendingId, sakId: $sakId")
+            },
         ) {
-            tittel = dokumenttittel
+            this.tittel = dokumenttittel
+            this.opprettetAv = opprettetAv
             dokument(
                 fysiskDokument = fysiskDokument,
                 strukturertDokument = strukturertDokument,
                 dokumenttittel = dokumenttittel,
             )
             hotsak(sakId)
-            this.opprettetAv = opprettetAv
+            tilleggsopplysninger(
+                "sakId" to sakId,
+                "saksnotatId" to saksnotatId,
+                "brevsendingId" to brevsendingId,
+                prefix = HotsakApplicationId.application,
+            )
         }
 
         context.publish(

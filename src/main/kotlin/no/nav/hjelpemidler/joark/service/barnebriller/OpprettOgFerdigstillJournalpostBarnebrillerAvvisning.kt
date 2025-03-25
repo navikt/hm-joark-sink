@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
@@ -17,8 +16,8 @@ import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.localization.LOCALE_NORWEGIAN_BOKMÅL
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.uuidValue
+import no.nav.hjelpemidler.serialization.jackson.value
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -58,7 +57,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
     private val JsonMessage.navnBarn get() = this["navnBarn"].textValue()
     private val JsonMessage.orgnr get() = this["orgnr"].textValue()
     private val JsonMessage.orgNavn get() = this["orgNavn"].textValue()
-    private val JsonMessage.brilleseddel get() = this["brilleseddel"].let { jsonMapper.readValue<Brilleseddel>(it.toString()) }
+    private val JsonMessage.brilleseddel get() = this["brilleseddel"].value<Brilleseddel>()
     private val JsonMessage.bestillingsdato get() = this["bestillingsdato"].asLocalDate()
     private val JsonMessage.eksisterendeVedtakDato get() = this["eksisterendeVedtakDato"].asOptionalLocalDate()
     private val JsonMessage.årsaker get() = this["årsaker"].let { it.toList().mapNotNull { it.textValue() } }

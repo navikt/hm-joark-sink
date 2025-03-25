@@ -184,13 +184,13 @@ class DokarkivClient(
         }
     }
 
-    suspend fun kopierJournalpost(journalpostId: String, eksternReferanseId: String): String {
+    suspend fun kopierJournalpost(kildeJournalpostId: String, eksternReferanseId: String): String {
         val url = "journalpost/kopierJournalpost"
         log.info {
-            "Kopierer journalpost med url: '$url', journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
+            "Kopierer journalpost med url: '$url', kildeJournalpostId: $kildeJournalpostId, eksternReferanseId: $eksternReferanseId"
         }
         val response = client.post(url) {
-            parameter("kildeJournalpostId", journalpostId)
+            parameter("kildeJournalpostId", kildeJournalpostId)
             setBody(KopierJournalpostRequest(eksternReferanseId))
         }
         return when (response.status) {
