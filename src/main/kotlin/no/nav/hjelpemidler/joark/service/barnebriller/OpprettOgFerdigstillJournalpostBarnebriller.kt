@@ -57,7 +57,7 @@ class OpprettOgFerdigstillJournalpostBarnebriller(
                 forsøkFerdigstill = true,
             ) {
                 dokument(fysiskDokument = fysiskDokument)
-                optiker(data.sakId)
+                optikerFagsak(data.sakId)
                 datoMottatt = data.opprettet
             }
 

@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.dokarkiv.models.Tilleggsopplysning
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
@@ -26,16 +27,11 @@ class OpprettJournalpostRequestConfigurer(
 
     var opprettetAv: String? = null
 
-    var dokumenter = mutableListOf<Dokument>()
-        private set
-
-    var sak: Sak? = null
-        private set
-
     init {
         tittel = dokumenttype.tittel
     }
 
+    private val dokumenter = mutableListOf<Dokument>()
     fun dokument(
         fysiskDokument: ByteArray,
         dokumenttittel: String? = null,
@@ -54,11 +50,13 @@ class OpprettJournalpostRequestConfigurer(
         )
     }
 
+    private var sak: Sak? = null
+
     fun hotsak(sakId: String) {
         sak = fagsakHjelpemidler(sakId)
     }
 
-    fun optiker(sakId: String) {
+    fun optikerFagsak(sakId: String) {
         sak = fagsakBarnebriller(sakId)
     }
 
@@ -66,21 +64,39 @@ class OpprettJournalpostRequestConfigurer(
         sak = generellSak()
     }
 
+    private val tilleggsopplysninger = mutableListOf<Pair<String, String?>>()
+    fun tilleggsopplysning(nøkkel: String, verdi: String?) {
+        tilleggsopplysninger.add(nøkkel to verdi)
+    }
+
+    fun tilleggsopplysninger(vararg tilleggsopplysninger: Pair<String, String?>) {
+        this.tilleggsopplysninger.addAll(tilleggsopplysninger.toList())
+    }
+
     operator fun invoke(): OpprettJournalpostRequest {
         check(dokumenter.isNotEmpty()) {
             "Ingen dokumenter er lagt til!"
         }
         return OpprettJournalpostRequest(
+            dokumenter = dokumenter.toList(),
+            eksternReferanseId = eksternReferanseId,
+            journalposttype = journalposttype,
             avsenderMottaker = fnrAvsenderMottaker?.let { avsenderMottakerMedFnr(it) },
             bruker = brukerMedFnr(fnrBruker),
             datoMottatt = datoMottatt,
-            dokumenter = dokumenter.toList(),
-            eksternReferanseId = eksternReferanseId,
             journalfoerendeEnhet = journalførendeEnhet,
-            journalposttype = journalposttype,
             kanal = kanal,
             sak = sak,
             tema = Tema.HJE.toString(),
+            tilleggsopplysninger = tilleggsopplysninger
+                .mapNotNull { (nøkkel, verdi) ->
+                    if (verdi == null) {
+                        null
+                    } else {
+                        Tilleggsopplysning(nøkkel, verdi)
+                    }
+                }
+                .takeUnless(List<Tilleggsopplysning>::isEmpty),
             tittel = tittel,
         )
     }
@@ -91,5 +107,7 @@ private fun ByteArray.toArkiv(): DokumentVariant = DokumentVariant(
 )
 
 private fun JsonNode.toOriginal(): DokumentVariant = DokumentVariant(
-    filtype = "JSON", fysiskDokument = jsonMapper.writeValueAsString(this).toByteArray(), variantformat = Variantformat.ORIGINAL.toString()
+    filtype = "JSON",
+    fysiskDokument = jsonMapper.writeValueAsString(this).toByteArray(),
+    variantformat = Variantformat.ORIGINAL.toString()
 )

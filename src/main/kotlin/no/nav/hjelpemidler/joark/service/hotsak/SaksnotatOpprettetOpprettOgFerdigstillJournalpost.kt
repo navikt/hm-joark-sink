@@ -6,6 +6,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.collections.joinToString
+import no.nav.hjelpemidler.domain.id.EksternId
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.publish
@@ -69,23 +71,42 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at saksnotat er opprettet, sakId: $sakId, saksnotatId: $saksnotatId, dokumenttype: ${Dokumenttype.NOTAT}, brevsendingId: $brevsendingId, inkludererStrukturertDokument: ${packet.strukturertDokument != null}" }
+        log.info {
+            mapOf(
+                "sakId" to sakId,
+                "saksnotatId" to saksnotatId,
+                "brevsendingId" to brevsendingId,
+                "dokumenttype" to Dokumenttype.NOTAT,
+                "inkludererStrukturertDokument" to (packet.strukturertDokument != null)
+            ).joinToString(prefix = "Mottok melding om at saksnotat er opprettet, ")
+        }
 
         val fysiskDokument = packet.fysiskDokument
         val strukturertDokument = packet.strukturertDokument
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = if (saksnotatId == null) "hotsak-jfrnotat-${sakId}_${brevsendingId}" else "hotsak-saksnotat-${sakId}_${saksnotatId}",
+            eksternReferanseId = EksternId(
+                application = "hotsak",
+                resource = "saksnotat",
+                "sakId" to sakId,
+                "saksnotatId" to saksnotatId,
+                "brevsendingId" to brevsendingId,
+            ),
         ) {
-            tittel = dokumenttittel
+            this.tittel = dokumenttittel
+            this.opprettetAv = opprettetAv
             dokument(
                 fysiskDokument = fysiskDokument,
                 strukturertDokument = strukturertDokument,
                 dokumenttittel = dokumenttittel,
             )
             hotsak(sakId)
-            this.opprettetAv = opprettetAv
+            tilleggsopplysninger(
+                "hotsak_sakId" to sakId,
+                "hotsak_saksnotatId" to saksnotatId,
+                "hotsak_brevsendingId" to brevsendingId,
+            )
         }
 
         context.publish(
