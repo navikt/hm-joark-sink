@@ -86,13 +86,13 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = EksternId(
-                application = "hotsak",
-                resource = "saksnotat",
-                "sakId" to sakId,
-                "saksnotatId" to saksnotatId,
-                "brevsendingId" to brevsendingId,
-            ),
+            eksternReferanseId = if (saksnotatId != null) {
+                EksternId("urn:hotsak:saksnotat:$saksnotatId")
+            } else if (brevsendingId != null) {
+                EksternId("urn:hotsak:brevsending:$brevsendingId")
+            } else {
+                error("Mangler både saksnotatId og brevsendingId, sakId: $sakId")
+            },
         ) {
             this.tittel = dokumenttittel
             this.opprettetAv = opprettetAv
