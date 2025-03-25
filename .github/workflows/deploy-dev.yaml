@@ -9,7 +9,6 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - kopier_journalpost_ved_overforing
 
 jobs:
   build:
