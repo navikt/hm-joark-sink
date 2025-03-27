@@ -8,7 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.configuration.HotsakApplicationId
-import no.nav.hjelpemidler.domain.id.EksternId
+import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.publish
@@ -82,7 +82,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = EksternId(
+            eksternReferanseId = URN(
                 applicationId = HotsakApplicationId,
                 resource = "saksnotat",
                 id = saksnotatId,
@@ -92,8 +92,8 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             this.opprettetAv = opprettetAv
             dokument(
                 fysiskDokument = fysiskDokument,
-                strukturertDokument = strukturertDokument,
                 dokumenttittel = dokumenttittel,
+                strukturertDokument = strukturertDokument,
             )
             hotsak(sakId)
             tilleggsopplysninger(
@@ -124,7 +124,7 @@ private data class JournalførtNotatJournalførtHendelse(
     val journalpostId: String,
     val dokumentId: String,
     val sakId: String,
-    val saksnotatId: String?,
+    val saksnotatId: String,
     val fnrBruker: String,
     val dokumenttittel: String,
     val dokumenttype: Dokumenttype,
