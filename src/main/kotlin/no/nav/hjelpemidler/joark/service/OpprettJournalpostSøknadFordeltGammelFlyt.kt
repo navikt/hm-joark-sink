@@ -5,7 +5,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.publish
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import java.util.UUID
 

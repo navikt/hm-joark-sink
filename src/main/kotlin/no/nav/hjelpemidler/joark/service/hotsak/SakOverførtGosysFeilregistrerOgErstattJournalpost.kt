@@ -7,11 +7,12 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import java.time.LocalDateTime
 import java.util.UUID
@@ -109,7 +110,7 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
 
 private val skip = setOf("535250492")
 
-@Hendelse("hm-opprettetMottattJournalpost")
+@KafkaEvent("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
     val fnrBruker: String,
     @JsonAlias("soknadId")
@@ -127,7 +128,9 @@ private data class MottattJournalpostData(
 
     @JsonAlias("saksnummer")
     val sakId: String,
-) {
+
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage {
     val opprettet = LocalDateTime.now()
 
     @Deprecated("Bruk fnrBruker")

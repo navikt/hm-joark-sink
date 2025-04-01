@@ -209,9 +209,7 @@ class JournalpostService(
 
     suspend fun feilregistrerSakstilknytning(journalpostId: String) =
         withCorrelationId {
-            log.info {
-                "Feilregistrerer journalpost med journalpostId: $journalpostId"
-            }
+            log.info { "Feilregistrerer sakstilknytning for journalpostId: $journalpostId" }
             dokarkivClient.feilregistrerSakstilknytning(journalpostId)
             Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.increment()
         }

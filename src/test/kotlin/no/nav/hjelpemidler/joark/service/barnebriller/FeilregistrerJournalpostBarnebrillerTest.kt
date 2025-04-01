@@ -1,19 +1,14 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.coEvery
 import io.mockk.coVerify
-import no.nav.hjelpemidler.joark.test.TestSupport
+import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class FeilregistrerJournalpostBarnebrillerTest : TestSupport() {
-    override fun TestRapid.configure() {
-        FeilregistrerJournalpostBarnebriller(this, journalpostService)
-    }
-
+class FeilregistrerJournalpostBarnebrillerTest : AbstractListenerTest(::FeilregistrerJournalpostBarnebriller) {
     @BeforeTest
     fun setUp() {
         coEvery {

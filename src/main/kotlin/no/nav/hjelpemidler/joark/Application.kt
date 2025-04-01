@@ -21,13 +21,14 @@ import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJourna
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
@@ -75,13 +76,14 @@ fun main() {
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
             BrevsendingOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            SaksnotatOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            SaksnotatOverstyrInnsynForJournalpost(this, journalpostService)
             JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
+            KnyttJournalposterTilNySak(this, journalpostService)
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
-            KnyttJournalposterTilNySak(this, journalpostService)
+            SaksnotatFeilregistrertFeilregistrerJournalpost(this, journalpostService)
+            SaksnotatOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            SaksnotatOverstyrInnsynForJournalpost(this, journalpostService)
 
             // Barnebriller
             FeilregistrerJournalpostBarnebriller(this, journalpostService)

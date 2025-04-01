@@ -2,11 +2,13 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 data class JournalpostBarnebrillevedtakData(
     val fnr: String,
@@ -29,9 +31,11 @@ data class JournalpostBarnebrillevedtakData(
     @JsonAlias("opprettetDato")
     val opprettet: LocalDateTime,
 ) {
-    // Må ha egen klasse her fordi man serialiserer denne (JournalpostBarnebrillevedtakData) for to forskjellige formål
-    // formål (pdfgen, og event) med forskjellig innhold
-    @Hendelse("hm-opprettetOgFerdigstiltBarnebrillerJournalpost")
+    /**
+     * Må ha egen klasse her fordi man serialiserer denne (JournalpostBarnebrillevedtakData) for to forskjellige formål
+     * formål (pdf-generator, og event) med forskjellig innhold.
+     */
+    @KafkaEvent("hm-opprettetOgFerdigstiltBarnebrillerJournalpost")
     data class Utgående(
         val fnr: String,
         val orgnr: String,
@@ -40,7 +44,8 @@ data class JournalpostBarnebrillevedtakData(
         val dokumentIder: Set<String>,
         val dokumentTittel: String,
         val opprettet: LocalDateTime = LocalDateTime.now(),
-    )
+        override val eventId: UUID = UUID.randomUUID(),
+    ) : KafkaMessage
 
     fun tilUtgående(journalpostId: String, dokumentIder: Set<String>) = Utgående(
         fnr = fnr,

@@ -1,12 +1,11 @@
 package no.nav.hjelpemidler.joark.service.barnebriller
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.test.TestSupport
+import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
@@ -15,11 +14,7 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class OpprettOgFerdigstillJournalpostBarnebrillerTest : TestSupport() {
-    override fun TestRapid.configure() {
-        OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
-    }
-
+class OpprettOgFerdigstillJournalpostBarnebrillerTest : AbstractListenerTest(::OpprettOgFerdigstillJournalpostBarnebriller) {
     @BeforeTest
     fun setUp() {
         coEvery {

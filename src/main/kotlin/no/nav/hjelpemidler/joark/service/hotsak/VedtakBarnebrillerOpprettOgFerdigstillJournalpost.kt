@@ -6,12 +6,14 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import java.time.LocalDateTime
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -92,15 +94,16 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     }
 }
 
-@Hendelse("hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost")
-internal data class JournalpostBarnebrillevedtakData(
+@KafkaEvent("hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost")
+data class JournalpostBarnebrillevedtakData(
     val fnr: String,
     val sakId: String,
     val dokumentTittel: String,
     val opprettet: LocalDateTime,
     val joarkRef: String? = null,
     val brevsendingId: String? = null,
-)
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage
 
 enum class Vedtaksstatus {
     INNVILGET,

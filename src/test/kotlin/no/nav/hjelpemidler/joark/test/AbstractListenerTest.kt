@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.joark.test
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.River.PacketListener
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
@@ -11,19 +13,21 @@ import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.saf.SafClient
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.serialization.jackson.valueToJson
 import kotlin.random.Random
 
-abstract class TestSupport {
-    val pdfGeneratorClient = mockk<PdfGeneratorClient>()
-    val pdfClientMock = mockk<SøknadPdfGeneratorClient>()
+abstract class AbstractListenerTest(block: (RapidsConnection, JournalpostService) -> PacketListener) {
+    private val rapid = TestRapid()
+
     val dokarkivClientMock = mockk<DokarkivClient>()
-    val safClientMock = mockk<SafClient>()
     val førstesidegeneratorClientMock = mockk<FørstesidegeneratorClient>()
+    val pdfClientMock = mockk<SøknadPdfGeneratorClient>()
+    val pdfGeneratorClientMock = mockk<PdfGeneratorClient>()
+    val safClientMock = mockk<SafClient>()
     val søknadApiClientMock = mockk<SøknadApiClient>()
 
-    val journalpostService = JournalpostService(
-        pdfGeneratorClient = pdfGeneratorClient,
+    private val journalpostService = JournalpostService(
+        pdfGeneratorClient = pdfGeneratorClientMock,
         søknadPdfGeneratorClient = pdfClientMock,
         dokarkivClient = dokarkivClientMock,
         safClient = safClientMock,
@@ -31,18 +35,16 @@ abstract class TestSupport {
         søknadApiClient = søknadApiClientMock,
     )
 
+    init {
+        block(rapid, journalpostService)
+    }
+
     val pdf = Random.nextBytes(8)
 
     val opprettJournalpostRequestSlot = slot<OpprettJournalpostRequest>()
     val forsøkFerdigstillSlot = slot<Boolean>()
 
-    val rapid = TestRapid().apply {
-        configure()
-    }
-
     fun sendTestMessage(vararg pairs: Pair<String, Any?>) {
-        rapid.sendTestMessage(jsonMapper.writeValueAsString(mapOf(*pairs)))
+        rapid.sendTestMessage(valueToJson(mapOf(*pairs)))
     }
-
-    abstract fun TestRapid.configure()
 }

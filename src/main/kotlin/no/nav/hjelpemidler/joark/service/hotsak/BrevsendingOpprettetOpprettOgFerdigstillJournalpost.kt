@@ -5,13 +5,15 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -97,7 +99,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             this.opprettetAv = opprettetAv
         }
 
-        @Hendelse("hm-brevsending-journalført")
+        @KafkaEvent("hm-brevsending-journalført")
         data class BrevsendingJournalførtHendelse(
             val journalpostId: String,
             val sakId: String,
@@ -107,7 +109,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val dokumenttype: Dokumenttype,
             val brevsendingId: String?,
             val opprettetAv: String?,
-        )
+            override val eventId: UUID = UUID.randomUUID(),
+        ) : KafkaMessage
 
         context.publish(
             key = fnrBruker,

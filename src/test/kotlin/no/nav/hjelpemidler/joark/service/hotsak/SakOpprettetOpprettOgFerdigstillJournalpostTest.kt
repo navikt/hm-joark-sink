@@ -1,24 +1,19 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
-import no.nav.hjelpemidler.joark.test.TestSupport
+import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class SakOpprettetOpprettOgFerdigstillJournalpostTest : TestSupport() {
-    override fun TestRapid.configure() {
-        SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-    }
-
+class SakOpprettetOpprettOgFerdigstillJournalpostTest : AbstractListenerTest(::SakOpprettetOpprettOgFerdigstillJournalpost) {
     @BeforeTest
     fun setUp() {
         coEvery {

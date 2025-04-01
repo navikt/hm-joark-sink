@@ -1,32 +1,28 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.coEvery
 import io.mockk.coVerify
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.test.TestSupport
+import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class SakOverførtGosysFeilregistrerOgErstattJournalpostTest : TestSupport() {
+class SakOverførtGosysFeilregistrerOgErstattJournalpostTest :
+    AbstractListenerTest(::SakOverførtGosysFeilregistrerOgErstattJournalpost) {
     private val nå = LocalDateTime.now()
     private val fnrBruker = "10101012345"
     private val journalpostId = "2"
 
-    override fun TestRapid.configure() {
-        SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
-    }
-
     @BeforeTest
     fun setUp() {
         coEvery {
-            journalpostService.feilregistrerSakstilknytning(journalpostId)
+            dokarkivClientMock.feilregistrerSakstilknytning(journalpostId)
         } returns Unit
         coEvery {
-            dokarkivClientMock.kopierJournalpost(any(), any())
+            dokarkivClientMock.kopierJournalpost(journalpostId, any())
         } returns "3"
     }
 

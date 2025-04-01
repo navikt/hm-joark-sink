@@ -2,83 +2,47 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.domain.id.URN
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.publish
-import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
+import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
+import no.nav.hjelpemidler.rapids_and_rivers.register
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
 class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
-) : AsyncPacketListener {
+) : KafkaMessageListener<SaksnotatOpprettetMessage>(SaksnotatOpprettetMessage::class, failOnError = true) {
     init {
-        River(rapidsConnection)
-            .apply {
-                precondition { it.requireValue("eventName", "hm-journalført-notat-opprettet") }
-                validate {
-                    it.requireKey(
-                        "sakId",
-                        "saksnotatId",
-                        "fnrBruker",
-                        "dokumenttittel",
-                        "fysiskDokument",
-                        "strukturertDokument",
-                        "opprettetAv",
-                    )
-                }
-            }
-            .register(this)
+        rapidsConnection.register<SaksnotatOpprettetMessage>(this)
     }
 
-    private val JsonMessage.sakId: String
-        get() = this["sakId"].textValue()
+    override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
 
-    private val JsonMessage.saksnotatId: String
-        get() = this["saksnotatId"].textValue()
-
-    private val JsonMessage.fnrBruker: String
-        get() = this["fnrBruker"].textValue()
-
-    private val JsonMessage.dokumenttittel: String
-        get() = this["dokumenttittel"].textValue()
-
-    private val JsonMessage.fysiskDokument: ByteArray
-        get() = this["fysiskDokument"].binaryValue()
-
-    private val JsonMessage.strukturertDokument: JsonNode?
-        get() = this["strukturertDokument"].let { if (it.isNull) null else it }
-
-    private val JsonMessage.opprettetAv: String
-        get() = this["opprettetAv"].textValue()
-
-    override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val sakId = packet.sakId
-        val saksnotatId = packet.saksnotatId
-        val fnrBruker = packet.fnrBruker
-        val dokumenttittel = packet.dokumenttittel
-        val opprettetAv = packet.opprettetAv
+    override suspend fun onMessage(message: SaksnotatOpprettetMessage, context: ExtendedMessageContext) {
+        val sakId = message.sakId
+        val saksnotatId = message.saksnotatId
+        val fnrBruker = message.fnrBruker
+        val dokumenttittel = message.dokumenttittel
+        val opprettetAv = message.opprettetAv
 
         log.info {
             mapOf(
                 "sakId" to sakId,
                 "saksnotatId" to saksnotatId,
                 "dokumenttype" to Dokumenttype.NOTAT,
-                "inkludererStrukturertDokument" to (packet.strukturertDokument != null)
+                "inkludererStrukturertDokument" to (message.strukturertDokument != null)
             ).joinToString(prefix = "Mottok melding om at saksnotat er opprettet, ")
         }
-
-        val fysiskDokument = packet.fysiskDokument
-        val strukturertDokument = packet.strukturertDokument
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
@@ -91,9 +55,9 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             this.tittel = dokumenttittel
             this.opprettetAv = opprettetAv
             dokument(
-                fysiskDokument = fysiskDokument,
+                fysiskDokument = message.fysiskDokument,
                 dokumenttittel = dokumenttittel,
-                strukturertDokument = strukturertDokument,
+                strukturertDokument = message.strukturertDokument,
             )
             hotsak(sakId)
             tilleggsopplysninger(
@@ -119,7 +83,23 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     }
 }
 
-@Hendelse("hm-journalført-notat-journalført")
+@KafkaEvent(SaksnotatOpprettetMessage.EVENT_NAME)
+data class SaksnotatOpprettetMessage(
+    val sakId: String,
+    val saksnotatId: String,
+    val fnrBruker: String,
+    val dokumenttittel: String,
+    val fysiskDokument: ByteArray,
+    val strukturertDokument: JsonNode?,
+    val opprettetAv: String,
+    override val eventId: UUID,
+) : KafkaMessage {
+    companion object {
+        const val EVENT_NAME = "hm-journalført-notat-opprettet"
+    }
+}
+
+@KafkaEvent("hm-journalført-notat-journalført")
 private data class JournalførtNotatJournalførtHendelse(
     val journalpostId: String,
     val dokumentId: String,
@@ -129,4 +109,5 @@ private data class JournalførtNotatJournalførtHendelse(
     val dokumenttittel: String,
     val dokumenttype: Dokumenttype,
     val opprettetAv: String,
-)
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage

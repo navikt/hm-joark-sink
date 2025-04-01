@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.kafka.KafkaMessage
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -23,15 +24,16 @@ data class BehovsmeldingData(
 
     @JsonProperty("soknadGjelder")
     val behovsmeldingGjelder: String? = Dokumenttype.SØKNAD_OM_HJELPEMIDLER.tittel,
-) {
+) : KafkaMessage {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    val eventId = UUID.randomUUID()
+    override val eventId: UUID = UUID.randomUUID()
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    val eventName = Configuration.EVENT_NAME
+    override val eventName: String = Configuration.EVENT_NAME
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    val opprettet = LocalDateTime.now()
+    val opprettet: LocalDateTime = LocalDateTime.now()
 
-    val fodselNrBruker = fnrBruker // @deprecated
+    @Deprecated("Bruk fnrBruker")
+    val fodselNrBruker by this::fnrBruker
 }

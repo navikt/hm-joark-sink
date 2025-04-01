@@ -5,11 +5,12 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.Hendelse
 import no.nav.hjelpemidler.joark.domain.Sakstype
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
 import no.nav.hjelpemidler.serialization.jackson.uuidValue
 import java.time.LocalDateTime
@@ -79,13 +80,16 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     }
 }
 
-@Hendelse("hm-opprettetOgFerdigstiltJournalpost")
+@KafkaEvent("hm-opprettetOgFerdigstiltJournalpost")
 private data class JournalpostData(
     val soknadId: UUID,
     val opprettet: LocalDateTime = LocalDateTime.now(),
     val fnrBruker: String,
-    val fodselNrBruker: String = fnrBruker, // @deprecated
     val joarkRef: String? = null,
     val sakId: String,
     val dokumentTittel: String,
-)
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage {
+    @Deprecated("Bruk fnrBruker")
+    val fodselNrBruker by this::fnrBruker
+}

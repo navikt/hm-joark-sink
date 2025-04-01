@@ -5,9 +5,11 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -87,13 +89,13 @@ class KnyttJournalposterTilNySak(
     }
 }
 
+@KafkaEvent("hm-journalposter-tilknyttet-sak")
 data class JournalposterTilknyttetSak(
-    val eventId: UUID = UUID.randomUUID(),
-    val eventName: String = "hm-journalposter-tilknyttet-sak",
-    val opprettet: LocalDateTime = LocalDateTime.now(),
     val fraSakId: String,
     val tilSakId: String,
     val fnrBruker: String,
     val journalførendeEnhet: String,
     val journalposter: Map<String, String>,
-)
+    val opprettet: LocalDateTime = LocalDateTime.now(),
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage

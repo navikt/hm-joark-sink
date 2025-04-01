@@ -5,9 +5,11 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.publish
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.publish
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -93,17 +95,17 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     }
 }
 
+@KafkaEvent("hm-journalpost-oppdatert-og-ferdigstilt")
 data class JournalpostOppdatertOgFerdigstilt(
-    val eventId: UUID = UUID.randomUUID(),
-    val eventName: String = "hm-journalpost-oppdatert-og-ferdigstilt",
-    val opprettet: LocalDateTime = LocalDateTime.now(),
     val journalpostId: String,
     val journalførendeEnhet: String,
     val nyJournalpostId: String,
     val fnrBruker: String,
     val sakId: String,
     val oppgaveId: String?,
-)
+    val opprettet: LocalDateTime = LocalDateTime.now(),
+    override val eventId: UUID = UUID.randomUUID(),
+) : KafkaMessage
 
 private val skip = setOf(
     "453827301",
