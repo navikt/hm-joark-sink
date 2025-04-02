@@ -18,7 +18,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerTest : AbstractListenerTest(::O
     @BeforeTest
     fun setUp() {
         coEvery {
-            pdfClientMock.genererPdfBarnebriller(any())
+            søknadPdfGeneratorClientMock.genererPdfBarnebriller(any())
         } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(

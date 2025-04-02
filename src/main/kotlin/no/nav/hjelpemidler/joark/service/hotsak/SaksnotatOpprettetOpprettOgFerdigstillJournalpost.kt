@@ -2,33 +2,30 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.domain.id.URN
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
 import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
-import no.nav.hjelpemidler.rapids_and_rivers.register
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
 class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
-    rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
-) : KafkaMessageListener<SaksnotatOpprettetMessage>(SaksnotatOpprettetMessage::class, failOnError = true) {
-    init {
-        rapidsConnection.register<SaksnotatOpprettetMessage>(this)
-    }
-
+) : KafkaMessageListener<SaksnotatOpprettetOpprettOgFerdigstillJournalpost.IncomingMessage>(
+    IncomingMessage::class,
+    failOnError = true,
+) {
     override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
 
-    override suspend fun onMessage(message: SaksnotatOpprettetMessage, context: ExtendedMessageContext) {
+    override suspend fun onMessage(message: IncomingMessage, context: ExtendedMessageContext) {
         val sakId = message.sakId
         val saksnotatId = message.saksnotatId
         val fnrBruker = message.fnrBruker
@@ -68,8 +65,8 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         }
 
         context.publish(
-            key = fnrBruker,
-            message = JournalførtNotatJournalførtHendelse(
+            key = fnrBruker.toString(),
+            message = OutgoingMessage(
                 journalpostId = journalpost.journalpostId,
                 dokumentId = journalpost.dokumentIder.single(),
                 sakId = sakId,
@@ -81,33 +78,37 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             )
         )
     }
-}
 
-@KafkaEvent(SaksnotatOpprettetMessage.EVENT_NAME)
-data class SaksnotatOpprettetMessage(
-    val sakId: String,
-    val saksnotatId: String,
-    val fnrBruker: String,
-    val dokumenttittel: String,
-    val fysiskDokument: ByteArray,
-    val strukturertDokument: JsonNode?,
-    val opprettetAv: String,
-    override val eventId: UUID,
-) : KafkaMessage {
-    companion object {
-        const val EVENT_NAME = "hm-journalført-notat-opprettet"
+    @KafkaEvent(IncomingMessage.EVENT_NAME)
+    data class IncomingMessage(
+        val sakId: String,
+        val saksnotatId: String,
+        val fnrBruker: Fødselsnummer,
+        val dokumenttittel: String,
+        val fysiskDokument: ByteArray,
+        val strukturertDokument: JsonNode?,
+        val opprettetAv: String,
+        override val eventId: UUID,
+    ) : KafkaMessage {
+        companion object {
+            const val EVENT_NAME = "hm-journalført-notat-opprettet"
+        }
+    }
+
+    @KafkaEvent(OutgoingMessage.EVENT_NAME)
+    data class OutgoingMessage(
+        val journalpostId: String,
+        val dokumentId: String,
+        val sakId: String,
+        val saksnotatId: String,
+        val fnrBruker: Fødselsnummer,
+        val dokumenttittel: String,
+        val dokumenttype: Dokumenttype,
+        val opprettetAv: String,
+        override val eventId: UUID = UUID.randomUUID(),
+    ) : KafkaMessage {
+        companion object {
+            const val EVENT_NAME = "hm-journalført-notat-journalført"
+        }
     }
 }
-
-@KafkaEvent("hm-journalført-notat-journalført")
-private data class JournalførtNotatJournalførtHendelse(
-    val journalpostId: String,
-    val dokumentId: String,
-    val sakId: String,
-    val saksnotatId: String,
-    val fnrBruker: String,
-    val dokumenttittel: String,
-    val dokumenttype: Dokumenttype,
-    val opprettetAv: String,
-    override val eventId: UUID = UUID.randomUUID(),
-) : KafkaMessage

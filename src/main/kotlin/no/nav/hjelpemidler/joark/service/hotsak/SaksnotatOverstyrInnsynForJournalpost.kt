@@ -1,38 +1,37 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.kafka.KafkaEvent
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
+import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
 class SaksnotatOverstyrInnsynForJournalpost(
-    rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
-) : AsyncPacketListener {
-    init {
-        River(rapidsConnection)
-            .apply {
-                precondition { it.requireValue("eventName", "hm-journalført-notat-overstyr-innsyn") }
-                validate {
-                    it.requireKey(
-                        "journalpostId",
-                    )
-                }
-            }
-            .register(this)
+) : KafkaMessageListener<SaksnotatOverstyrInnsynForJournalpost.IncomingMessage>(
+    IncomingMessage::class,
+    failOnError = true,
+) {
+    override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
+
+    override suspend fun onMessage(message: IncomingMessage, context: ExtendedMessageContext) {
+        val journalpostId = message.journalpostId
+        log.info { "Mottok melding om at journalført saksnotat trenger overstyring av innsyn, journalpostId: $journalpostId" }
+        journalpostService.overstyrInnsynForBruker(journalpostId)
     }
 
-    private val JsonMessage.journalpostId: String
-        get() = this["journalpostId"].textValue()
-
-    override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val journalpostId = packet.journalpostId
-        log.info { "Mottok melding om at journalført notat trenger overstyring av innsyn for journalpostId: $journalpostId" }
-        journalpostService.overstyrInnsynForBruker(journalpostId)
+    @KafkaEvent(IncomingMessage.EVENT_NAME)
+    data class IncomingMessage(
+        val journalpostId: String,
+        override val eventId: UUID = UUID.randomUUID(),
+    ) : KafkaMessage {
+        companion object {
+            const val EVENT_NAME = "hm-journalført-notat-overstyr-innsyn"
+        }
     }
 }

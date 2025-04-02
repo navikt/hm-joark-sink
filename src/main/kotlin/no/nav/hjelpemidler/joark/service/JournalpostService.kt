@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.domain.id.URN
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
@@ -35,11 +36,11 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 
 class JournalpostService(
-    private val pdfGeneratorClient: PdfGeneratorClient,
-    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
     private val dokarkivClient: DokarkivClient,
-    private val safClient: SafClient,
     private val førstesidegeneratorClient: FørstesidegeneratorClient,
+    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
+    private val pdfGeneratorClient: PdfGeneratorClient,
+    private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
 ) {
     suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentPdf(id)
@@ -137,13 +138,13 @@ class JournalpostService(
     }
 
     suspend fun opprettNotat(
-        fnrBruker: String,
+        fnrBruker: Fødselsnummer,
         eksternReferanseId: URN,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): JournalpostOpprettet = withCorrelationId {
         eksternReferanseId.validerEksternReferanseId()
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
-            fnrBruker = fnrBruker,
+            fnrBruker = fnrBruker.toString(),
             fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,

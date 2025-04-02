@@ -30,6 +30,7 @@ import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregis
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.rapids_and_rivers.register
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
 
@@ -57,11 +58,11 @@ fun main() {
 
     // Services
     val journalpostService = JournalpostService(
-        pdfGeneratorClient = pdfGeneratorClient,
-        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
         dokarkivClient = dokarkivClient,
-        safClient = safClient,
         førstesidegeneratorClient = førstesidegeneratorClient,
+        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
+        pdfGeneratorClient = pdfGeneratorClient,
+        safClient = safClient,
         søknadApiClient = søknadApiClient,
     )
     val brevService = BrevService(
@@ -81,9 +82,11 @@ fun main() {
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
-            SaksnotatFeilregistrertFeilregistrerJournalpost(this, journalpostService)
-            SaksnotatOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            SaksnotatOverstyrInnsynForJournalpost(this, journalpostService)
+
+            // Saksnotater
+            register(SaksnotatFeilregistrertFeilregistrerJournalpost(journalpostService))
+            register(SaksnotatOpprettetOpprettOgFerdigstillJournalpost(journalpostService))
+            register(SaksnotatOverstyrInnsynForJournalpost(journalpostService))
 
             // Barnebriller
             FeilregistrerJournalpostBarnebriller(this, journalpostService)
