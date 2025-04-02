@@ -32,7 +32,7 @@ data class JournalpostBarnebrillevedtakData(
     val opprettet: LocalDateTime,
 ) {
     /**
-     * Må ha egen klasse her fordi man serialiserer denne (JournalpostBarnebrillevedtakData) for to forskjellige formål
+     * Vi må ha en egen klasse her fordi man serialiserer denne [JournalpostBarnebrillevedtakData] for to forskjellige
      * formål (pdf-generator, og event) med forskjellig innhold.
      */
     @KafkaEvent("hm-opprettetOgFerdigstiltBarnebrillerJournalpost")
