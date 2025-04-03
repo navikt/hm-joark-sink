@@ -38,12 +38,9 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 fun main() {
-    log.info { "Gjeldende miljø: ${Environment.current}" }
-    log.info { "Gjeldende event name: ${Configuration.EVENT_NAME}" }
+    TILLAT_SYNTETISKE_FØDSELSNUMRE = !Environment.current.isProd
 
-    if (!Environment.current.isProd) {
-        TILLAT_SYNTETISKE_FØDSELSNUMRE = true
-    }
+    log.info { "Gjeldende miljø: ${Environment.current}, eventName: ${Configuration.EVENT_NAME}, TILLAT_SYNTETISKE_FØDSELSNUMRE: $TILLAT_SYNTETISKE_FØDSELSNUMRE" }
 
     // Clients
     val engine = CIO.create()
