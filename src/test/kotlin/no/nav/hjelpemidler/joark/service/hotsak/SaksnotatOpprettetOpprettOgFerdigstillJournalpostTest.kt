@@ -7,7 +7,7 @@ import io.mockk.slot
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.IncomingMessage
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.SaksnotatOpprettetMessage
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
@@ -47,7 +47,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpostTest : AbstractListenerTe
             "strukturertDokument" to mapOf<String, Any?>(),
             "opprettetAv" to "X999999",
             "eventId" to UUID.randomUUID(),
-            "eventName" to IncomingMessage.EVENT_NAME,
+            "eventName" to SaksnotatOpprettetMessage.EVENT_NAME,
         )
 
         opprettJournalpostRequestSlot.assertSoftly {

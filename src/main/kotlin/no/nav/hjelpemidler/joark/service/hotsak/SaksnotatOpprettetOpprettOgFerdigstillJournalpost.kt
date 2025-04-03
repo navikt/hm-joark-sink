@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.SaksnotatOpprettetMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
@@ -17,15 +18,18 @@ import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Saksnotat er opprettet (ferdigstilt) i Hotsak, opprett tilhørende journalpost og ferdigstill denne.
+ */
 class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
     private val journalpostService: JournalpostService,
-) : KafkaMessageListener<SaksnotatOpprettetOpprettOgFerdigstillJournalpost.IncomingMessage>(
-    IncomingMessage::class,
+) : KafkaMessageListener<SaksnotatOpprettetMessage>(
+    SaksnotatOpprettetMessage::class,
     failOnError = true,
 ) {
     override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
 
-    override suspend fun onMessage(message: IncomingMessage, context: ExtendedMessageContext) {
+    override suspend fun onMessage(message: SaksnotatOpprettetMessage, context: ExtendedMessageContext) {
         val sakId = message.sakId
         val saksnotatId = message.saksnotatId
         val fnrBruker = message.fnrBruker
@@ -66,7 +70,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
 
         context.publish(
             key = fnrBruker.toString(),
-            message = OutgoingMessage(
+            message = SaksnotatFerdigstiltMessage(
                 journalpostId = journalpost.journalpostId,
                 dokumentId = journalpost.dokumentIder.single(),
                 sakId = sakId,
@@ -79,8 +83,8 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         )
     }
 
-    @KafkaEvent(IncomingMessage.EVENT_NAME)
-    data class IncomingMessage(
+    @KafkaEvent(SaksnotatOpprettetMessage.EVENT_NAME)
+    data class SaksnotatOpprettetMessage(
         val sakId: String,
         val saksnotatId: String,
         val fnrBruker: Fødselsnummer,
@@ -95,8 +99,8 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         }
     }
 
-    @KafkaEvent(OutgoingMessage.EVENT_NAME)
-    data class OutgoingMessage(
+    @KafkaEvent(SaksnotatFerdigstiltMessage.EVENT_NAME)
+    data class SaksnotatFerdigstiltMessage(
         val journalpostId: String,
         val dokumentId: String,
         val sakId: String,

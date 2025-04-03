@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.openid.azureADClient
 import no.nav.hjelpemidler.joark.brev.BrevClient
 import no.nav.hjelpemidler.joark.brev.BrevService
@@ -39,6 +40,10 @@ private val log = KotlinLogging.logger {}
 fun main() {
     log.info { "Gjeldende miljø: ${Environment.current}" }
     log.info { "Gjeldende event name: ${Configuration.EVENT_NAME}" }
+
+    if (!Environment.current.isProd) {
+        TILLAT_SYNTETISKE_FØDSELSNUMRE = true
+    }
 
     // Clients
     val engine = CIO.create()

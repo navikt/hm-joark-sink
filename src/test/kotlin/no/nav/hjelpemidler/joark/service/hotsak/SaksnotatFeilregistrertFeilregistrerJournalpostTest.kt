@@ -6,7 +6,7 @@ import io.mockk.Called
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.verify
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.IncomingMessage
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.SaksnotatFeilregistrertMessage
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.rapids_and_rivers.register
 import java.util.UUID
@@ -32,7 +32,7 @@ class SaksnotatFeilregistrertFeilregistrerJournalpostTest : AbstractListenerTest
             "saksnotatId" to "1050",
             "journalpostId" to journalpostId,
             "eventId" to UUID.randomUUID(),
-            "eventName" to IncomingMessage.EVENT_NAME,
+            "eventName" to SaksnotatFeilregistrertMessage.EVENT_NAME,
         )
 
         coVerify(exactly = 1) { dokarkivClientMock.feilregistrerSakstilknytning(journalpostId) }
@@ -46,7 +46,7 @@ class SaksnotatFeilregistrertFeilregistrerJournalpostTest : AbstractListenerTest
                 // saksnotatId mangler
                 "journalpostId" to journalpostId,
                 "eventId" to UUID.randomUUID(),
-                "eventName" to IncomingMessage.EVENT_NAME,
+                "eventName" to SaksnotatFeilregistrertMessage.EVENT_NAME,
             )
         } shouldHaveMessage "Validering av melding feilet, se secureLog for detaljer"
 

@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.joark.service.JournalpostService
+import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.SaksnotatFeilregistrertMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
@@ -17,13 +18,13 @@ private val log = KotlinLogging.logger {}
  */
 class SaksnotatFeilregistrertFeilregistrerJournalpost(
     private val journalpostService: JournalpostService,
-) : KafkaMessageListener<SaksnotatFeilregistrertFeilregistrerJournalpost.IncomingMessage>(
-    IncomingMessage::class,
+) : KafkaMessageListener<SaksnotatFeilregistrertMessage>(
+    SaksnotatFeilregistrertMessage::class,
     failOnError = true,
 ) {
     override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
 
-    override suspend fun onMessage(message: IncomingMessage, context: ExtendedMessageContext) {
+    override suspend fun onMessage(message: SaksnotatFeilregistrertMessage, context: ExtendedMessageContext) {
         log.info {
             mapOf(
                 "sakId" to message.sakId,
@@ -34,8 +35,8 @@ class SaksnotatFeilregistrertFeilregistrerJournalpost(
         journalpostService.feilregistrerSakstilknytning(message.journalpostId)
     }
 
-    @KafkaEvent(IncomingMessage.EVENT_NAME)
-    data class IncomingMessage(
+    @KafkaEvent(SaksnotatFeilregistrertMessage.EVENT_NAME)
+    data class SaksnotatFeilregistrertMessage(
         val sakId: String,
         val saksnotatId: String,
         val journalpostId: String,
