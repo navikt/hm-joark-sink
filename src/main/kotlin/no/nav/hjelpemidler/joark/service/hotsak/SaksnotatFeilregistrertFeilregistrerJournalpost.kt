@@ -1,7 +1,9 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.SaksnotatFeilregistrertMessage
@@ -18,13 +20,20 @@ private val log = KotlinLogging.logger {}
  */
 class SaksnotatFeilregistrertFeilregistrerJournalpost(
     private val journalpostService: JournalpostService,
-) : KafkaMessageListener<SaksnotatFeilregistrertMessage>(
-    SaksnotatFeilregistrertMessage::class,
-    failOnError = true,
-) {
-    override fun skipMessage(message: JsonMessage, context: ExtendedMessageContext): Boolean = false
+) : KafkaMessageListener<SaksnotatFeilregistrertMessage>(failOnError = true) {
+    override fun skipMessage(
+        message: JsonMessage,
+        context: ExtendedMessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ): Boolean = false
 
-    override suspend fun onMessage(message: SaksnotatFeilregistrertMessage, context: ExtendedMessageContext) {
+    override suspend fun onMessage(
+        message: SaksnotatFeilregistrertMessage,
+        context: ExtendedMessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         log.info {
             mapOf(
                 "sakId" to message.sakId,

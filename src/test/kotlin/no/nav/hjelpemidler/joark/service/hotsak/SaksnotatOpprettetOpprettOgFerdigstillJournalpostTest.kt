@@ -23,9 +23,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpostTest : AbstractListenerTe
 
     @BeforeTest
     fun setUp() {
-        configure { connection, journalpostService ->
-            connection.register(SaksnotatOpprettetOpprettOgFerdigstillJournalpost(journalpostService))
-        }
+        connection.register(SaksnotatOpprettetOpprettOgFerdigstillJournalpost(journalpostService))
     }
 
     @Test

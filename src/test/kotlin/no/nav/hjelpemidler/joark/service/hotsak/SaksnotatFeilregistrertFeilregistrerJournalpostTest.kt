@@ -18,9 +18,7 @@ class SaksnotatFeilregistrertFeilregistrerJournalpostTest : AbstractListenerTest
 
     @BeforeTest
     fun setUp() {
-        configure { connection, journalpostService ->
-            connection.register(SaksnotatFeilregistrertFeilregistrerJournalpost(journalpostService))
-        }
+        connection.register(SaksnotatFeilregistrertFeilregistrerJournalpost(journalpostService))
     }
 
     @Test

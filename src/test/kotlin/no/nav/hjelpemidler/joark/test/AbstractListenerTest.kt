@@ -18,14 +18,16 @@ import kotlin.random.Random
 abstract class AbstractListenerTest() {
     private val rapid: TestRapid = TestRapid()
 
-    val dokarkivClientMock = mockk<DokarkivClient>()
-    val førstesidegeneratorClientMock = mockk<FørstesidegeneratorClient>()
-    val søknadPdfGeneratorClientMock = mockk<SøknadPdfGeneratorClient>()
-    val pdfGeneratorClientMock = mockk<PdfGeneratorClient>()
-    val safClientMock = mockk<SafClient>()
-    val søknadApiClientMock = mockk<SøknadApiClient>()
+    protected val connection: RapidsConnection get() = rapid
 
-    private val journalpostService = JournalpostService(
+    protected val dokarkivClientMock = mockk<DokarkivClient>()
+    protected val førstesidegeneratorClientMock = mockk<FørstesidegeneratorClient>()
+    protected val søknadPdfGeneratorClientMock = mockk<SøknadPdfGeneratorClient>()
+    protected val pdfGeneratorClientMock = mockk<PdfGeneratorClient>()
+    protected val safClientMock = mockk<SafClient>()
+    protected val søknadApiClientMock = mockk<SøknadApiClient>()
+
+    protected val journalpostService = JournalpostService(
         dokarkivClient = dokarkivClientMock,
         førstesidegeneratorClient = førstesidegeneratorClientMock,
         søknadPdfGeneratorClient = søknadPdfGeneratorClientMock,
@@ -38,16 +40,12 @@ abstract class AbstractListenerTest() {
         block(rapid, journalpostService)
     }
 
-    fun configure(block: (RapidsConnection, JournalpostService) -> Unit) {
-        block(rapid, journalpostService)
-    }
+    protected val pdf = Random.nextBytes(8)
 
-    val pdf = Random.nextBytes(8)
+    protected val opprettJournalpostRequestSlot = slot<OpprettJournalpostRequest>()
+    protected val forsøkFerdigstillSlot = slot<Boolean>()
 
-    val opprettJournalpostRequestSlot = slot<OpprettJournalpostRequest>()
-    val forsøkFerdigstillSlot = slot<Boolean>()
-
-    fun sendTestMessage(vararg pairs: Pair<String, Any?>) {
+    protected fun sendTestMessage(vararg pairs: Pair<String, Any?>) {
         rapid.sendTestMessage(valueToJson(mapOf(*pairs)))
     }
 }
