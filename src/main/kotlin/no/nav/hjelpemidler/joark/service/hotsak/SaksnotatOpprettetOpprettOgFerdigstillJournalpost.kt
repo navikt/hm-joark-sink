@@ -34,7 +34,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         meterRegistry: MeterRegistry,
     ): Boolean {
         val saksnotatId = message["saksnotatId"].textValue()
-        return saksnotatId in setOf("340", "341", "342") && Environment.current.isDev
+        return saksnotatId in setOf("340", "341", "342", "343") && Environment.current.isDev
     }
 
     override suspend fun onMessage(
