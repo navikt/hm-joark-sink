@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.collections.joinToString
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -31,7 +32,10 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         context: ExtendedMessageContext,
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
-    ): Boolean = false
+    ): Boolean {
+        val saksnotatId = message["saksnotatId"].textValue()
+        return saksnotatId == "340" && Environment.current.isDev
+    }
 
     override suspend fun onMessage(
         message: SaksnotatOpprettetMessage,
