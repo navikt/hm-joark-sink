@@ -22,8 +22,7 @@ dependencies {
     implementation(libs.hotlibs.http)
     implementation(libs.hotlibs.rapidsAndRivers)
     implementation(libs.hotlibs.serialization)
-
-    implementation(libs.kotlin.logging)
+    implementation(libs.hotlibs.logging)
 
     // GraphQL
     implementation(libs.graphql.ktor.client) {

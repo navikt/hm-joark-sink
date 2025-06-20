@@ -9,7 +9,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import no.nav.hjelpemidler.logging.secureLog
+import no.nav.hjelpemidler.logging.teamInfo
 
 private val log = KotlinLogging.logger {}
 
@@ -31,8 +31,8 @@ interface AsyncPacketListener : River.PacketListener {
         context: MessageContext,
         metadata: MessageMetadata,
     ) {
-        log.info { "Validering av melding feilet, se secureLog for detaljer" }
-        secureLog.info {
+        log.info { "Validering av melding feilet, se Team Logs for detaljer" }
+        log.teamInfo {
             "Validering av melding feilet: '${problems.toExtendedReport()}'"
         }
     }
