@@ -33,8 +33,6 @@ spec:
      - name: {{@key}}
        value: "{{this}}"
   {{/each}}
-  secureLogs:
-    enabled: true
   kafka:
     pool: nav-prod
   azure:
@@ -47,6 +45,8 @@ spec:
         - application: hm-pdf-generator
         - application: hm-brev
         - application: hm-soknad-api
+        - application: logging
+          namespace: nais-system
       external:
         - host: dokarkiv.prod-fss-pub.nais.io
         - host: foerstesidegenerator.prod-fss-pub.nais.io
