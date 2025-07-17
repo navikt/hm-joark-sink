@@ -17,6 +17,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.brev.Målform
 
@@ -26,7 +27,7 @@ class PdfGeneratorClient(
     engine: HttpClientEngine = CIO.create(),
     baseUrl: String = Configuration.PDF_GENERATOR_BASE_URL,
 ) {
-    private val client = HttpClient(engine) {
+    private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
             url(baseUrl)
