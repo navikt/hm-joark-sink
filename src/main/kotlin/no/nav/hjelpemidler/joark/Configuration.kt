@@ -15,7 +15,6 @@ object Configuration {
 
     // Søknad PDF-generator
     val SOKNAD_PDFGEN_BASE_URL by EnvironmentVariable
-    val BREV_API_URL by EnvironmentVariable
 
     // hm-soknad-api
     val SOKNAD_API_URL by EnvironmentVariable

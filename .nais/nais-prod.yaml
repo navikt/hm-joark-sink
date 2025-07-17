@@ -43,7 +43,6 @@ spec:
       rules:
         - application: hm-soknad-pdfgen
         - application: hm-pdf-generator
-        - application: hm-brev
         - application: hm-soknad-api
         - application: logging
           namespace: nais-system

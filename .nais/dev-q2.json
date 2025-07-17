@@ -6,7 +6,6 @@
   "KAFKA_RESET_POLICY": "LATEST",
   "SOKNAD_PDFGEN_BASE_URL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local/api/v1/genpdf/",
   "PDF_GENERATOR_BASE_URL": "http://hm-pdf-generator.teamdigihot.svc.cluster.local/api/",
-  "BREV_API_URL": "http://hm-brev.teamdigihot/api/hotsak-brev-prod/dokument",
   "SOKNAD_API_URL": "http://hm-soknad-api.teamdigihot.svc.cluster.local",
   "SOKNAD_API_SCOPE": "api://dev-gcp.teamdigihot.hm-soknad-api/.default",
   "JOARK_BASE_URL": "https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1/",
