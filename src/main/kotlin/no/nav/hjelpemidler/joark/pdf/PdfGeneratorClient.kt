@@ -9,12 +9,16 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.joark.Configuration
+import no.nav.hjelpemidler.joark.brev.Målform
 
 private val log = KotlinLogging.logger {}
 
@@ -41,6 +45,21 @@ class PdfGeneratorClient(
                 })
             }
         })
+        return when (response.status) {
+            HttpStatusCode.OK -> response.body<ByteArray>()
+            else -> {
+                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
+                throw PdfClientException("Uventet status: '${response.status}', body: '$body'")
+            }
+        }
+    }
+
+    suspend fun lagBrev(mappe: String, brevId: String, målform: Målform, data: Any): ByteArray {
+        log.info { "Generer pdf med målform=$målform" }
+        val response = client.post("brev/$mappe/$brevId/$målform") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody(data)
+        }
         return when (response.status) {
             HttpStatusCode.OK -> response.body<ByteArray>()
             else -> {

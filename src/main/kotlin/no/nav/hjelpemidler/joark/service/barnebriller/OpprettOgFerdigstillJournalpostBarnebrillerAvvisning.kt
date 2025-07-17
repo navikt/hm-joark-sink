@@ -10,8 +10,9 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import no.nav.hjelpemidler.joark.brev.BarnebrillerAvvisningDirekteoppgjor
+import no.nav.hjelpemidler.joark.brev.BarnebrillerAvvisningDirekteoppgjorBegrunnelser
 import no.nav.hjelpemidler.joark.brev.BrevService
-import no.nav.hjelpemidler.joark.brev.FlettefelterAvvisning
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -20,6 +21,7 @@ import no.nav.hjelpemidler.serialization.jackson.uuidValue
 import no.nav.hjelpemidler.serialization.jackson.value
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import kotlin.reflect.full.primaryConstructor
 
 private val log = KotlinLogging.logger {}
 
@@ -68,21 +70,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
         coroutineScope {
             launch {
                 // Lag fysisk dokument
-                val flettefelter = FlettefelterAvvisning(
-                    brevOpprettetDato = packet.opprettet.toLocalDate().format(format),
-                    barnetsFulleNavn = packet.navnBarn,
-                    barnetsFodselsnummer = packet.fnrBarn,
-                    mottattDato = packet.opprettet.toLocalDate().format(format),
-                    bestillingsDato = packet.bestillingsdato.format(format),
-                    optikerForretning = "${packet.orgNavn} (${packet.orgnr})",
-                    sfæriskStyrkeHøyre = packet.brilleseddel.høyreSfære.toString(),
-                    sfæriskStyrkeVenstre = packet.brilleseddel.venstreSfære.toString(),
-                    cylinderstyrkeHøyre = packet.brilleseddel.høyreSylinder.toString(),
-                    cylinderstyrkeVenstre = packet.brilleseddel.venstreSylinder.toString(),
-                    forrigeBrilleDato = packet.eksisterendeVedtakDato?.format(format) ?: "",
-                )
-
-                val årsaker = packet.årsaker.map {
+                val begrunnelser = packet.årsaker.map {
                     when (it) {
                         "HarIkkeVedtakIKalenderåret" -> "stansetEksisterendeVedtak"
                         "Under18ÅrPåBestillingsdato" -> "stansetOver18"
@@ -93,9 +81,33 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
                             throw RuntimeException("Ukjent identifikator fra brille-API mottatt, kan ikke opprette avvisningsbrev (årsak: ${it})")
                         }
                     }
+                }.toSet().let { begrunnelser ->
+                    val pc = BarnebrillerAvvisningDirekteoppgjorBegrunnelser::class.primaryConstructor!!
+                    val ukjenteBegrunnelser = begrunnelser.filterNot { b -> b in pc.parameters.map { it.name } }.toSet()
+                    if (ukjenteBegrunnelser.isNotEmpty()) {
+                        throw RuntimeException("Ukjente begrunnelser: ${ukjenteBegrunnelser.joinToString(", ")}")
+                    }
+                    pc.callBy(pc.parameters.filter { it.name in begrunnelser }.associateWith { true })
                 }
 
-                val fysiskDokument = brevService.lagStansetbrev(flettefelter, årsaker)
+                val data = BarnebrillerAvvisningDirekteoppgjor(
+                    viseNavAdresse = true,
+                    mottattDato = packet.opprettet.toLocalDate(),
+                    brevOpprettetDato = packet.opprettet.toLocalDate(),
+                    bestillingsDato = packet.bestillingsdato,
+                    forrigeBrilleDato = packet.eksisterendeVedtakDato,
+                    optikerVirksomhetNavn = packet.orgNavn,
+                    optikerVirksomhetOrgnr = packet.orgnr,
+                    barnetsFulleNavn = packet.navnBarn,
+                    barnetsFodselsnummer = packet.fnrBarn,
+                    sfæriskStyrkeHøyre = packet.brilleseddel.høyreSfære.toString(),
+                    sfæriskStyrkeVenstre = packet.brilleseddel.venstreSfære.toString(),
+                    cylinderstyrkeHøyre = packet.brilleseddel.høyreSylinder.toString(),
+                    cylinderstyrkeVenstre = packet.brilleseddel.venstreSylinder.toString(),
+                    begrunnelser = begrunnelser,
+                )
+
+                val fysiskDokument = brevService.lagStansetbrev(data)
 
                 // Opprett og ferdigstill journalpost
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(

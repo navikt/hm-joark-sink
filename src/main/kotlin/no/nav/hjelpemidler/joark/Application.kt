@@ -7,7 +7,6 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.openid.entraIDClient
-import no.nav.hjelpemidler.joark.brev.BrevClient
 import no.nav.hjelpemidler.joark.brev.BrevService
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
@@ -31,7 +30,6 @@ import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregis
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
-import no.nav.hjelpemidler.logging.teamInfo
 import no.nav.hjelpemidler.rapids_and_rivers.register
 import no.nav.hjelpemidler.saf.SafClient
 import kotlin.time.Duration.Companion.seconds
@@ -50,7 +48,6 @@ fun main() {
             maximumSize = 10
         }
     }
-    val brevClient = BrevClient(engine)
     val dokarkivClient = DokarkivClient(entraIDClient.withScope(Configuration.JOARK_SCOPE), engine)
     val førstesidegeneratorClient =
         FørstesidegeneratorClient(entraIDClient.withScope(Configuration.FORSTESIDEGENERATOR_SCOPE), engine)
@@ -69,7 +66,7 @@ fun main() {
         søknadApiClient = søknadApiClient,
     )
     val brevService = BrevService(
-        brevClient = brevClient,
+        pdfGeneratorClient = pdfGeneratorClient,
     )
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration.current)

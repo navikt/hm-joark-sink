@@ -1,30 +1,18 @@
 package no.nav.hjelpemidler.joark.brev
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.call.body
+import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
 
-class BrevService(val brevClient: BrevClient) {
+class BrevService(val pdfGeneratorClient: PdfGeneratorClient) {
     suspend fun lagStansetbrev(
-        flettefelter: FlettefelterAvvisning,
-        begrunnelser: List<String>,
+        data: BarnebrillerAvvisningDirekteoppgjor,
         målform: Målform = Målform.BOKMÅL,
     ): ByteArray {
         log.info { "Lager stansetbrev for optiker" }
-        val reqData = HentAvvisningsbrevRequest(
-            flettefelter = flettefelter,
-            begrunnelser = begrunnelser,
-            betingelser = Betingelser(viseNavAdresse = true, viseNavAdresseHoT = false),
-        )
-
-        val req = HentBrevRequest(
-            Brevmal.BARNEBRILLER_VEDTAK_OPTIKER_AVVISNING,
-            målform,
-            reqData,
-        )
-
-        return brevClient.lagBrev(req).body<ByteArray>()
+        return pdfGeneratorClient.lagBrev("brille-api", Brevmal.BARNEBRILLER_VEDTAK_OPTIKER_AVVISNING.apiNavn, målform, data)
     }
 }
 
@@ -36,38 +24,32 @@ enum class Brevmal(
     ),
 }
 
-enum class Språkkode {
-    NB, NN,
+enum class Målform {
+    BOKMÅL,
+    NYNORSK,
 }
 
-enum class Målform(val språkkode: Språkkode, val urlNavn: String) {
-    BOKMÅL(språkkode = Språkkode.NB, urlNavn = "bokmaal"),
-    NYNORSK(språkkode = Språkkode.NN, urlNavn = "nynorsk"),
-}
+data class BarnebrillerAvvisningDirekteoppgjorBegrunnelser (
+    val stansetEksisterendeVedtak: Boolean? = false,
+    val stansetOver18: Boolean? = false,
+    val stansetIkkeMedlem: Boolean? = false,
+    val stansetForLavBrillestyrke: Boolean? = false,
+    val stansetBestillingsdatoEldreEnn6Mnd: Boolean? = false,
+)
 
-data class FlettefelterAvvisning(
-    val brevOpprettetDato: String,
+data class BarnebrillerAvvisningDirekteoppgjor(
+    val viseNavAdresse: Boolean,
+    val mottattDato: LocalDate? = null,
+    val brevOpprettetDato: LocalDate,
+    val bestillingsDato: LocalDate? = null,
+    val forrigeBrilleDato: LocalDate? = null,
+    val optikerVirksomhetNavn: String,
+    val optikerVirksomhetOrgnr: String,
     val barnetsFulleNavn: String,
     val barnetsFodselsnummer: String,
-    val mottattDato: String,
-    val bestillingsDato: String,
-    val optikerForretning: String,
-    val sfæriskStyrkeHøyre: String,
-    val sfæriskStyrkeVenstre: String,
-    val cylinderstyrkeHøyre: String,
-    val cylinderstyrkeVenstre: String,
-    val forrigeBrilleDato: String,
+    val sfæriskStyrkeHøyre: String? = null,
+    val cylinderstyrkeHøyre: String? = null,
+    val sfæriskStyrkeVenstre: String? = null,
+    val cylinderstyrkeVenstre: String? = null,
+    val begrunnelser: BarnebrillerAvvisningDirekteoppgjorBegrunnelser,
 )
-
-data class Betingelser(
-    val viseNavAdresse: Boolean,
-    val viseNavAdresseHoT: Boolean,
-)
-
-data class HentAvvisningsbrevRequest(
-    val flettefelter: FlettefelterAvvisning,
-    val begrunnelser: List<String>,
-    val betingelser: Betingelser,
-) : Data
-
-sealed interface Data
