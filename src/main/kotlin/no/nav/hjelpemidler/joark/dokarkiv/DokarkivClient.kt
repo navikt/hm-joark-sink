@@ -21,6 +21,7 @@ import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
@@ -109,6 +110,11 @@ class DokarkivClient(
         journalpostId: String,
         oppdaterJournalpostRequest: OppdaterJournalpostRequest,
     ): OppdaterJournalpostResponse {
+        if (Environment.current.isDev && journalpostId === "453822965") {
+            log.info {"Hopper over journalpostId=453822965 i dev"}
+            return OppdaterJournalpostResponse(journalpostId)
+        }
+
         val url = "journalpost/$journalpostId"
         log.info {
             "Oppdaterer journalpost med url: '$url', journalpostId: $journalpostId"
