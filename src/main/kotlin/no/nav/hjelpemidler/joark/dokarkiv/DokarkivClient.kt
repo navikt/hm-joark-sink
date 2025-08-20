@@ -110,7 +110,7 @@ class DokarkivClient(
         journalpostId: String,
         oppdaterJournalpostRequest: OppdaterJournalpostRequest,
     ): OppdaterJournalpostResponse {
-        if (Environment.current.isDev && journalpostId === "453822965") {
+        if (Environment.current.isDev && journalpostId == "453822965") {
             log.info {"Hopper over journalpostId=453822965 i dev"}
             return OppdaterJournalpostResponse(journalpostId)
         }
