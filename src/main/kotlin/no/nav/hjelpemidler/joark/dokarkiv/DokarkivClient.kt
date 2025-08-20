@@ -110,11 +110,6 @@ class DokarkivClient(
         journalpostId: String,
         oppdaterJournalpostRequest: OppdaterJournalpostRequest,
     ): OppdaterJournalpostResponse {
-        if (Environment.current.isDev && journalpostId == "453822965") {
-            log.info {"Hopper over journalpostId=453822965 i dev"}
-            return OppdaterJournalpostResponse(journalpostId)
-        }
-
         val url = "journalpost/$journalpostId"
         log.info {
             "Oppdaterer journalpost med url: '$url', journalpostId: $journalpostId"
@@ -124,7 +119,14 @@ class DokarkivClient(
         }
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
-            else -> response.feilmelding()
+            else -> {
+                if (Environment.current.isDev) {
+                    log.info { "Oppdatering av journalpostId=$journalpostId feilet i dev, men skipper den der." }
+                    OppdaterJournalpostResponse(journalpostId = journalpostId)
+                } else {
+                    response.feilmelding()
+                }
+            }
         }
     }
 
