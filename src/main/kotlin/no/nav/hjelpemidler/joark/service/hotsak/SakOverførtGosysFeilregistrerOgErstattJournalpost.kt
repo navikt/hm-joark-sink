@@ -108,7 +108,7 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     }
 }
 
-private val skip = setOf("535250492")
+private val skip = setOf("535250492", "454015801")
 
 @KafkaEvent("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
