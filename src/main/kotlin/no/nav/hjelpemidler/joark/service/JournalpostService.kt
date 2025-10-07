@@ -221,7 +221,7 @@ class JournalpostService(
     suspend fun kopierJournalpost(
         kildeJournalpostId: String,
         nyEksternReferanseId: String,
-    ): String = withCorrelationId {
+    ): String? = withCorrelationId {
         val nyJournalpostId = dokarkivClient.kopierJournalpost(kildeJournalpostId, nyEksternReferanseId)
         log.info {
             "Kopierte journalpost med journalpostId: $kildeJournalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"

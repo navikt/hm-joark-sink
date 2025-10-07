@@ -192,7 +192,7 @@ class DokarkivClient(
         }
     }
 
-    suspend fun kopierJournalpost(kildeJournalpostId: String, eksternReferanseId: String): String {
+    suspend fun kopierJournalpost(kildeJournalpostId: String, eksternReferanseId: String): String? {
         val url = "journalpost/kopierJournalpost"
         log.info {
             "Kopierer journalpost med url: '$url', kildeJournalpostId: $kildeJournalpostId, eksternReferanseId: $eksternReferanseId"
@@ -204,6 +204,14 @@ class DokarkivClient(
         return when (response.status) {
             HttpStatusCode.Created -> checkNotNull(response.body<KopierJournalpostResponse>().kopierJournalpostId) {
                 "Mangler ny journalpostId i svar fra dokarkiv"
+            }
+
+            HttpStatusCode.Conflict -> {
+                val nyJournalpostId = response.body<KopierJournalpostResponse>().kopierJournalpostId
+                log.warn {
+                    "Journalpost allerede kopiert, kildeJournalpostId: $kildeJournalpostId, nyJournalpostId: $nyJournalpostId, eksternReferanseId: $eksternReferanseId"
+                }
+                null
             }
 
             else -> response.feilmelding()

@@ -83,6 +83,10 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
 
                 Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> error("Uventet sakstype: ${data.sakstype}")
             }
+            if (nyJournalpostId == null) {
+                log.warn { "Stopper behandling av kopiert journalpost fordi den allerede er behandlet, journalpostId: $kildeJournalpostId, eksternReferanseId: $nyEksternReferanseId" }
+                return
+            }
 
             // Oppdater journalpostId etter feilregistrering og ny-oppretting
             val nyData = data.copy(journalpostId = nyJournalpostId)
@@ -108,7 +112,7 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     }
 }
 
-private val skip = setOf("535250492", "454015801")
+private val skip = setOf<String>()
 
 @KafkaEvent("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
