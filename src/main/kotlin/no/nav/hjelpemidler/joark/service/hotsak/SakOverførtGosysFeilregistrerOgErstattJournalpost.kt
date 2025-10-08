@@ -52,8 +52,13 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val kildeJournalpostId = packet["joarkRef"].textValue()
-        if (kildeJournalpostId in skip) {
-            log.warn { "Hopper over feilregistrering av journalpost med journalpostId: $kildeJournalpostId" }
+        val sakId = packet["saksnummer"].textValue()
+        if (kildeJournalpostId in skipJournalpostId) {
+            log.warn { "Hopper over feilregistrering av journalpost med journalpostId: $kildeJournalpostId, sakId: $sakId" }
+            return
+        }
+        if (sakId in skipSakId) {
+            log.warn { "Hopper over feilregistrering av journalpostId: $kildeJournalpostId for sakId: $sakId" }
             return
         }
 
@@ -112,7 +117,8 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     }
 }
 
-private val skip = setOf("188952", "196161", "206197", "223488", "225775", "226832", "239721")
+private val skipJournalpostId = setOf<String>()
+private val skipSakId = setOf("188952", "196161", "206197", "223488", "225775", "226832", "239721")
 
 @KafkaEvent("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
