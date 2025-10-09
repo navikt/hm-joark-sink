@@ -211,10 +211,10 @@ class JournalpostService(
             this.journalførendeEnhet = null
 
             // Vedlegg. Må ligge etter hoveddokumentet i listen med dokumenter. Ref: Joark doc (https://confluence.adeo.no/spaces/BOA/pages/313346837/opprettJournalpost#opprettJournalpost-Payload%3A)
-            vedlegg.forEach {
+            vedlegg.forEach { v->
                 dokument(
-                    fysiskDokument = it.pdf,
-                    dokumenttittel = it.type.name.capitalize() // TODO deprecated. Hva skal vi bruke som tittel?
+                    fysiskDokument = v.pdf,
+                    dokumenttittel = v.type.name.lowercase().replaceFirstChar { it.uppercase() },
                 )
             }
         }.journalpostId
