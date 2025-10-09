@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.domain.Vedlegg
+import no.nav.hjelpemidler.joark.domain.VedleggMetadata
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
@@ -17,7 +17,7 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : AbstractListenerTest(::Op
     @BeforeTest
     fun setUp() {
         coEvery {
-            søknadApiClientMock.hentPdf(any())
+            søknadApiClientMock.hentBehovsmeldingPdf(any())
         } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(
@@ -40,7 +40,7 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest : AbstractListenerTest(::Op
             "behovsmeldingType" to "SØKNAD",
             "erHast" to false,
             "soknadGjelder" to søknadGjelder,
-            "vedlegg" to emptyList<Vedlegg>(),
+            "vedlegg" to emptyList<VedleggMetadata>(),
         )
         val dokumenttype = Dokumenttype.SØKNAD_OM_HJELPEMIDLER
         opprettJournalpostRequestSlot.assertSoftly {

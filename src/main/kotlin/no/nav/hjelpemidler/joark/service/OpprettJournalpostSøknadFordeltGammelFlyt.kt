@@ -36,8 +36,6 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data: BehovsmeldingData = jsonToValue(packet.toJson())
 
-        log.info { "Mottok behovsmelding ${data.behovsmeldingId} med vedlegg ${data.vedlegg}" }
-
         if (data.behovsmeldingId in skip) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
             return
@@ -54,6 +52,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 sakstype = data.sakstype,
                 dokumenttittel = data.behovsmeldingGjelder!!,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
+                vedleggMetadata = data.vedleggMetadata
             )
 
             context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))

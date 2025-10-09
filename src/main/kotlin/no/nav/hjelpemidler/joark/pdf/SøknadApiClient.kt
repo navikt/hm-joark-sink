@@ -32,9 +32,20 @@ class SøknadApiClient(
         }
     }
 
-    suspend fun hentPdf(id: UUID): ByteArray {
+    private val baseUrl = "/hm/hm-joark-sink/pdf"
+
+    suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray {
         log.info { "Henter PDF fra hm-soknad-api for id: $id" }
-        val response = client.get("/hm/hm-joark-sink/pdf/$id")
+        return hentPdf("$baseUrl/$id")
+    }
+
+    suspend fun hentVedleggPdf(behovsmeldingId: UUID, vedleggId: UUID): ByteArray {
+        log.info { "Henter vedlegg-PDF fra hm-soknad-api for vedlegg $vedleggId på behovsmelding $behovsmeldingId" }
+        return hentPdf("$baseUrl/$behovsmeldingId/vedlegg/$vedleggId")
+    }
+
+    suspend private fun hentPdf(url: String): ByteArray {
+        val response = client.get(url)
         return when (response.status) {
             HttpStatusCode.OK -> response.body()
             else -> {

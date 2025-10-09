@@ -18,6 +18,8 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.joark.domain.Vedlegg
+import no.nav.hjelpemidler.joark.domain.VedleggMetadata
 import no.nav.hjelpemidler.joark.metrics.Prometheus
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
@@ -43,7 +45,15 @@ class JournalpostService(
     private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
 ) {
-    suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentPdf(id)
+    suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
+
+    suspend fun hentBehovsmeldingVedleggPdfer(behovsmeldingId: UUID, vedleggMetadata: List<VedleggMetadata>): List<Vedlegg> {
+        return vedleggMetadata.map { metadata ->
+            val pdf = søknadApiClient.hentVedleggPdf(behovsmeldingId, metadata.id)
+            metadata.tilVedlegg(pdf)
+        }
+    }
+
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
         val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
@@ -179,12 +189,14 @@ class JournalpostService(
         dokumenttittel: String,
         eksternReferanseId: String,
         datoMottatt: LocalDateTime? = null,
+        vedleggMetadata: List<VedleggMetadata>,
     ): String = withCorrelationId {
         log.info {
             "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
 
-        val fysiskDokument = hentBehovsmeldingPdf(behovsmeldingId)
+        val behovsmeldingPdf = hentBehovsmeldingPdf(behovsmeldingId)
+        val vedlegg = hentBehovsmeldingVedleggPdfer(behovsmeldingId, vedleggMetadata)
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker,
             dokumenttype = sakstype.dokumenttype,
@@ -192,11 +204,19 @@ class JournalpostService(
             forsøkFerdigstill = false,
         ) {
             dokument(
-                fysiskDokument = fysiskDokument,
+                fysiskDokument = behovsmeldingPdf,
                 dokumenttittel = dokumenttittel,
             )
             this.datoMottatt = datoMottatt
             this.journalførendeEnhet = null
+
+            // Vedlegg. Må ligge etter hoveddokumentet i listen med dokumenter. Ref: Joark doc (https://confluence.adeo.no/spaces/BOA/pages/313346837/opprettJournalpost#opprettJournalpost-Payload%3A)
+            vedlegg.forEach {
+                dokument(
+                    fysiskDokument = it.pdf,
+                    dokumenttittel = it.type.name.capitalize() // TODO deprecated. Hva skal vi bruke som tittel?
+                )
+            }
         }.journalpostId
 
         log.info {
