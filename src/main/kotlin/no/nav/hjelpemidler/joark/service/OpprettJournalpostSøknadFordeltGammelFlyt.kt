@@ -27,7 +27,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 )
             }
             validate {
-                it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType")
+                it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType", "vedlegg")
                 it.interestedIn("soknadGjelder")
             }
         }.register(this)
@@ -35,6 +35,8 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data: BehovsmeldingData = jsonToValue(packet.toJson())
+
+        log.info { "Mottok behovsmelding ${data.behovsmeldingId} med vedlegg ${data.vedlegg}" }
 
         if (data.behovsmeldingId in skip) {
             log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
