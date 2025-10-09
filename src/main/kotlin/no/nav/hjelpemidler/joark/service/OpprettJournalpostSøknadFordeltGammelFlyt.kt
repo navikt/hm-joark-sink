@@ -42,7 +42,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
         }
 
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}"
+            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}, vedlegg: ${data.vedleggMetadata}"
         }
 
         try {
