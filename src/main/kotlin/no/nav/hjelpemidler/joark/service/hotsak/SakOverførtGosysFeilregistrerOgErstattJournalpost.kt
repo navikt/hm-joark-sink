@@ -118,7 +118,7 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
 }
 
 private val skipJournalpostId = setOf<String>()
-private val skipSakId = setOf<String>("206197")
+private val skipSakId = setOf<String>()
 
 @KafkaEvent("hm-opprettetMottattJournalpost")
 private data class MottattJournalpostData(
