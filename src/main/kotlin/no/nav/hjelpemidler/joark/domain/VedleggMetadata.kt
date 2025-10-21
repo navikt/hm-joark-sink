@@ -11,7 +11,7 @@ data class VedleggMetadata (
 }
 
 enum class VedleggType {
-    LEGEERKLÆRING
+    LEGEERKLÆRING_FOR_VARMEHJELPEMIDDEL
 }
 
 data class Vedlegg(
