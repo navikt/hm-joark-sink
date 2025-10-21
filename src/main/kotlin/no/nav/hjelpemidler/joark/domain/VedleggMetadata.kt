@@ -5,8 +5,9 @@ import java.util.UUID
 data class VedleggMetadata (
     val id: UUID,
     val type: VedleggType,
+    val navn: String,
 ) {
-    fun tilVedlegg(pdf: ByteArray) = Vedlegg(id, type, pdf)
+    fun tilVedlegg(pdf: ByteArray) = Vedlegg(id, type, navn, pdf)
 }
 
 enum class VedleggType {
@@ -16,5 +17,6 @@ enum class VedleggType {
 data class Vedlegg(
     val id: UUID,
     val type: VedleggType,
+    val navn: String,
     val pdf: ByteArray,
 )

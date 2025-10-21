@@ -214,7 +214,7 @@ class JournalpostService(
             vedlegg.forEach { v->
                 dokument(
                     fysiskDokument = v.pdf,
-                    dokumenttittel = v.type.name.lowercase().replaceFirstChar { it.uppercase() },
+                    dokumenttittel = v.navn,
                 )
             }
         }.journalpostId
