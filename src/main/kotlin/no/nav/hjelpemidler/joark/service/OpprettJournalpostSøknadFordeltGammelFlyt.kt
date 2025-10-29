@@ -27,7 +27,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 )
             }
             validate {
-                it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType")
+                it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType", "vedlegg")
                 it.interestedIn("soknadGjelder")
             }
         }.register(this)
@@ -42,7 +42,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
         }
 
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}"
+            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}, vedlegg: ${data.vedleggMetadata}"
         }
 
         try {
@@ -52,6 +52,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
                 sakstype = data.sakstype,
                 dokumenttittel = data.behovsmeldingGjelder!!,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
+                vedleggMetadata = data.vedleggMetadata
             )
 
             context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))

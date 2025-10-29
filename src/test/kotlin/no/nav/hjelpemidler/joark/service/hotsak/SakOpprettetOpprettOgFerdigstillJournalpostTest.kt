@@ -17,7 +17,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpostTest : AbstractListenerTest(::S
     @BeforeTest
     fun setUp() {
         coEvery {
-            søknadApiClientMock.hentPdf(any())
+            søknadApiClientMock.hentBehovsmeldingPdf(any())
         } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(
