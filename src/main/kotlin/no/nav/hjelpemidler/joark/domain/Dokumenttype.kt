@@ -56,13 +56,18 @@ enum class Dokumenttype(
     ),
     INNHENTE_OPPLYSNINGER_BARNEBRILLER(
         brevkode = "innhente_opplysninger_barnebriller",
-        tittel = "Briller til barn: NAV etterspør opplysninger",
-        dokumenttittel = "Briller til barn: NAV etterspør opplysninger",
+        tittel = "Briller til barn: Nav etterspør opplysninger",
+        dokumenttittel = "Briller til barn: Nav etterspør opplysninger",
     ),
     NOTAT(
         brevkode = "HJE_NOT_001",
         tittel = "Journalført notat i sak",
         dokumenttittel = "Journalført notat i sak",
+    ),
+    BREVEDITOR_VEDTAKSBREV(
+        brevkode = "vedtaksbrev_hotsak_breveditor",
+        tittel = "Vedtak for søknad om hjelpemidler",
+        dokumenttittel = "Vedtak for søknad om hjelpemidler",
     ),
     ;
 }

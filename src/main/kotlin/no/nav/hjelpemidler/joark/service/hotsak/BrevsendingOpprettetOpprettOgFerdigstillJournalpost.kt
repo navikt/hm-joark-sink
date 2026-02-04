@@ -34,8 +34,9 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "dokumenttittel",
                         "dokumenttype",
                         "språkkode",
+                        "brevsendingId",
                     )
-                    it.interestedIn("brevsendingId", "opprettetAv")
+                    it.interestedIn("opprettetAv")
                 }
             }
             .register(this)
@@ -62,7 +63,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.språkkode: Språkkode
         get() = this["språkkode"].textValue().let(Språkkode::valueOf)
 
-    private val JsonMessage.brevsendingId: String?
+    private val JsonMessage.brevsendingId: String
         get() = this["brevsendingId"].textValue()
 
     private val JsonMessage.opprettetAv: String?
@@ -94,7 +95,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             eksternReferanseId = "${sakId}_${brevsendingId}",
             forsøkFerdigstill = true,
         ) {
-            dokument(fysiskDokument = fysiskDokument)
+            // TODO: Må kanskje legge til: tittel = dokumenttittel
+            dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
             hotsak(sakId)
             this.opprettetAv = opprettetAv
         }
@@ -107,7 +109,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
-            val brevsendingId: String?,
+            val brevsendingId: String,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
         ) : KafkaMessage
