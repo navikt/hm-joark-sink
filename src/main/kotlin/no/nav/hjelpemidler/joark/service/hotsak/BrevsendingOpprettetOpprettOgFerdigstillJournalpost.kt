@@ -95,7 +95,6 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             eksternReferanseId = "${sakId}_${brevsendingId}",
             forsøkFerdigstill = true,
         ) {
-            // TODO: Må kanskje legge til: tittel = dokumenttittel
             dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
             hotsak(sakId)
             this.opprettetAv = opprettetAv
