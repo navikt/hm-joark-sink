@@ -28,6 +28,7 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             }
             validate {
                 it.requireKey("fodselNrBruker", "soknadId", "erHast", "behovsmeldingType", "vedlegg")
+                it.interestedIn("soknadGjelder")
             }
         }.register(this)
     }
