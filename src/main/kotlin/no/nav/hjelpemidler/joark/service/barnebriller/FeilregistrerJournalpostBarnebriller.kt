@@ -2,13 +2,13 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.serialization.jackson.uuidValue
+import no.nav.hjelpemidler.rapids_and_rivers.eventId
+import no.nav.hjelpemidler.serialization.jackson.localDateTimeValue
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -31,10 +31,9 @@ class FeilregistrerJournalpostBarnebriller(
         }.register(this)
     }
 
-    private val JsonMessage.eventId get() = this["eventId"].uuidValue()
-    private val JsonMessage.sakId get() = this["sakId"].textValue()
-    private val JsonMessage.journalpostId get() = this["joarkRef"].textValue()
-    private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
+    private val JsonMessage.sakId get() = this["sakId"].stringValue()
+    private val JsonMessage.journalpostId get() = this["joarkRef"].stringValue()
+    private val JsonMessage.opprettet get() = this["opprettet"].localDateTimeValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val eventId = packet.eventId

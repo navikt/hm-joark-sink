@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -12,6 +11,9 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.publish
+import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
+import no.nav.hjelpemidler.serialization.jackson.localDateTimeValue
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -43,13 +45,13 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
         }.register(this)
     }
 
-    private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
-    private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
-    private val JsonMessage.sakId get() = this["saksnummer"].textValue()
+    private val JsonMessage.fnrBruker get() = this["fnrBruker"].stringValue()
+    private val JsonMessage.opprettet get() = this["opprettet"].localDateTimeValue()
+    private val JsonMessage.sakId get() = this["saksnummer"].stringValue()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
-    private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].textValue()?.let(Vedtaksstatus::valueOf)
-    private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].textValue()
-    private val JsonMessage.brevsendingId: String? get() = this["brevsendingId"].textValue()
+    private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].enumValueOrNull<Vedtaksstatus>()
+    private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].stringValueOrNull()
+    private val JsonMessage.brevsendingId: String? get() = this["brevsendingId"].stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId

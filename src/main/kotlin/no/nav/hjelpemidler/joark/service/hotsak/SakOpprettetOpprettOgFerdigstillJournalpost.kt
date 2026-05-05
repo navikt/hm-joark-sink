@@ -36,9 +36,9 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     }
 
     private val JsonMessage.søknadId get() = this["soknadId"].uuidValue()
-    private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].textValue()
-    private val JsonMessage.sakId get() = this["sakId"].textValue()
-    private val JsonMessage.fnrBruker get() = this["fnrBruker"].textValue()
+    private val JsonMessage.søknadGjelder get() = this["soknadGjelder"].stringValue()
+    private val JsonMessage.sakId get() = this["sakId"].stringValue()
+    private val JsonMessage.fnrBruker get() = this["fnrBruker"].stringValue()
     private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValueOrNull<Sakstype>()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {

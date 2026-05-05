@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.dokarkiv
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -43,12 +42,14 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.ktor.navUserId
 import no.nav.hjelpemidler.logging.teamInfo
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
+import tools.jackson.databind.JsonNode
 
 private val log = KotlinLogging.logger {}
 
 class DokarkivClient(
-    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    tokenSetProvider: TokenSetProvider,
     baseUrl: String = Configuration.JOARK_BASE_URL,
 ) {
     private val client = createHttpClient(engine) {
@@ -158,9 +159,8 @@ class DokarkivClient(
             HttpStatusCode.BadRequest -> {
                 val body = response.body<JsonNode>()
                 when {
-                    body.at("/message").textValue() == "Saksrelasjonen er allerede feilregistrert" -> {
+                    body.at("/message").stringValueOrNull() == "Saksrelasjonen er allerede feilregistrert" -> {
                         log.info { "Forsøkte å feilregistrere en journalpost som allerede er feilregistrert, journalpostId: $journalpostId" }
-                        return
                     }
 
                     else -> response.feilmelding()

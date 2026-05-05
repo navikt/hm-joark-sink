@@ -47,7 +47,10 @@ class JournalpostService(
 ) {
     suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
 
-    suspend fun hentBehovsmeldingVedleggPdfer(behovsmeldingId: UUID, vedleggMetadata: List<VedleggMetadata>): List<Vedlegg> {
+    suspend fun hentBehovsmeldingVedleggPdfer(
+        behovsmeldingId: UUID,
+        vedleggMetadata: List<VedleggMetadata>,
+    ): List<Vedlegg> {
         return vedleggMetadata.map { metadata ->
             val pdf = søknadApiClient.hentVedleggPdf(behovsmeldingId, metadata.id)
             metadata.tilVedlegg(pdf)
@@ -211,10 +214,10 @@ class JournalpostService(
             this.journalførendeEnhet = null
 
             // Vedlegg. Må ligge etter hoveddokumentet i listen med dokumenter. Ref: Joark doc (https://confluence.adeo.no/spaces/BOA/pages/313346837/opprettJournalpost#opprettJournalpost-Payload%3A)
-            vedlegg.forEach { v->
+            vedlegg.forEach {
                 dokument(
-                    fysiskDokument = v.pdf,
-                    dokumenttittel = v.navn,
+                    fysiskDokument = it.pdf,
+                    dokumenttittel = it.navn,
                 )
             }
         }.journalpostId
@@ -292,7 +295,7 @@ class JournalpostService(
         val journalstatus = journalpost.journalstatus
 
         log.info {
-            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}"
+            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
         val dokumenter = when {
@@ -362,7 +365,7 @@ class JournalpostService(
             Journalstatus.JOURNALFOERT,
                 -> {
                 log.info {
-                    "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId"
+                    "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
                 }
 
                 val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
@@ -378,10 +381,10 @@ class JournalpostService(
                 )
 
                 val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
-                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sakId: $sakId"
+                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
                 }.toString()
 
-                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, sakId: $sakId" }
+                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}" }
 
                 if (dokumenter != null) {
                     dokarkivClient.oppdaterJournalpost(

@@ -2,9 +2,6 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
-import com.github.navikt.tbd_libs.rapids_and_rivers.asOptionalLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -17,7 +14,11 @@ import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.localization.LOCALE_NORWEGIAN_BOKMÅL
-import no.nav.hjelpemidler.serialization.jackson.uuidValue
+import no.nav.hjelpemidler.rapids_and_rivers.eventId
+import no.nav.hjelpemidler.serialization.jackson.localDateTimeValue
+import no.nav.hjelpemidler.serialization.jackson.localDateValue
+import no.nav.hjelpemidler.serialization.jackson.localDateValueOrNull
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import no.nav.hjelpemidler.serialization.jackson.value
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -53,16 +54,15 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
         }.register(this)
     }
 
-    private val JsonMessage.eventId get() = this["eventId"].uuidValue()
-    private val JsonMessage.opprettet get() = this["opprettet"].asLocalDateTime()
-    private val JsonMessage.fnrBarn get() = this["fnrBarn"].textValue()
-    private val JsonMessage.navnBarn get() = this["navnBarn"].textValue()
-    private val JsonMessage.orgnr get() = this["orgnr"].textValue()
-    private val JsonMessage.orgNavn get() = this["orgNavn"].textValue()
+    private val JsonMessage.opprettet get() = this["opprettet"].localDateTimeValue()
+    private val JsonMessage.fnrBarn get() = this["fnrBarn"].stringValue()
+    private val JsonMessage.navnBarn get() = this["navnBarn"].stringValue()
+    private val JsonMessage.orgnr get() = this["orgnr"].stringValue()
+    private val JsonMessage.orgNavn get() = this["orgNavn"].stringValue()
     private val JsonMessage.brilleseddel get() = this["brilleseddel"].value<Brilleseddel>()
-    private val JsonMessage.bestillingsdato get() = this["bestillingsdato"].asLocalDate()
-    private val JsonMessage.eksisterendeVedtakDato get() = this["eksisterendeVedtakDato"].asOptionalLocalDate()
-    private val JsonMessage.årsaker get() = this["årsaker"].let { it.toList().mapNotNull { it.textValue() } }
+    private val JsonMessage.bestillingsdato get() = this["bestillingsdato"].localDateValue()
+    private val JsonMessage.eksisterendeVedtakDato get() = this["eksisterendeVedtakDato"].localDateValueOrNull()
+    private val JsonMessage.årsaker get() = this["årsaker"].let { årsaker -> årsaker.mapNotNull { it.stringValueOrNull() } }  // fixme -> deserialiser direkte
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         log.info { "Oppretter og journalfører avvisningsbrev for direkteoppgjørsløsningen (eventId: ${packet.eventId})" }

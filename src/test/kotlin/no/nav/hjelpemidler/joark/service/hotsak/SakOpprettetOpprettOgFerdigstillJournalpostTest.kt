@@ -13,7 +13,8 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class SakOpprettetOpprettOgFerdigstillJournalpostTest : AbstractListenerTest(::SakOpprettetOpprettOgFerdigstillJournalpost) {
+class SakOpprettetOpprettOgFerdigstillJournalpostTest :
+    AbstractListenerTest(::SakOpprettetOpprettOgFerdigstillJournalpost) {
     @BeforeTest
     fun setUp() {
         coEvery {

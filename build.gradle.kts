@@ -32,7 +32,17 @@ dependencies {
     implementation(libs.graphql.client.jackson)
 }
 
-java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+    }
+}
 
 @Suppress("UnstableApiUsage")
 testing {
@@ -41,7 +51,7 @@ testing {
             useKotlinTest(libs.versions.kotlin.asProvider())
             dependencies {
                 implementation(libs.hotlibs.test)
-                implementation(libs.tbdLibs.rapidsAndRivers.test)
+                implementation(libs.rapidsAndRivers.test)
             }
         }
     }
@@ -64,8 +74,8 @@ val openApiGenerated: Provider<Directory> = layout.buildDirectory.dir("generated
 openApiGenerate {
     generatorName.set("kotlin")
     skipValidateSpec.set(true)
-    inputSpec.set(layout.projectDirectory.file("src/main/resources/dokarkiv/openapi.yaml").toString())
-    outputDir.set(openApiGenerated.map { it.dir("dokarkiv").toString() })
+    inputSpec.set(layout.projectDirectory.file("src/main/resources/dokarkiv/openapi.yaml"))
+    outputDir.set(openApiGenerated.map { it.dir("dokarkiv") })
     packageName.set("no.nav.hjelpemidler.joark.dokarkiv")
     globalProperties.set(
         mapOf(
@@ -88,8 +98,8 @@ openApiGenerate {
 val førstesidegenerator by tasks.registering(GenerateTask::class) {
     generatorName.set("kotlin")
     skipValidateSpec.set(true)
-    inputSpec.set(layout.projectDirectory.file("src/main/resources/førstesidegenerator/openapi.yaml").toString())
-    outputDir.set(openApiGenerated.map { it.dir("førstesidegenerator").toString() })
+    inputSpec.set(layout.projectDirectory.file("src/main/resources/førstesidegenerator/openapi.yaml"))
+    outputDir.set(openApiGenerated.map { it.dir("førstesidegenerator") })
     packageName.set("no.nav.hjelpemidler.joark.førstesidegenerator")
     globalProperties.set(
         mapOf(

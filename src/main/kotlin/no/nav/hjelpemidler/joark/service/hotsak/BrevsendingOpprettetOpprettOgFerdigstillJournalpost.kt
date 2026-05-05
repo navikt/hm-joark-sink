@@ -13,6 +13,8 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.publish
+import no.nav.hjelpemidler.serialization.jackson.enumValue
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -43,31 +45,31 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     }
 
     private val JsonMessage.sakId: String
-        get() = this["sakId"].textValue()
+        get() = this["sakId"].stringValue()
 
     private val JsonMessage.fnrMottaker: String
-        get() = this["fnrMottaker"].textValue()
+        get() = this["fnrMottaker"].stringValue()
 
     private val JsonMessage.fnrBruker: String
-        get() = this["fnrBruker"].textValue()
+        get() = this["fnrBruker"].stringValue()
 
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
 
     private val JsonMessage.dokumenttittel: String
-        get() = this["dokumenttittel"].textValue()
+        get() = this["dokumenttittel"].stringValue()
 
     private val JsonMessage.dokumenttype: Dokumenttype
-        get() = this["dokumenttype"].textValue().let(Dokumenttype::valueOf)
+        get() = this["dokumenttype"].enumValue<Dokumenttype>()
 
     private val JsonMessage.språkkode: Språkkode
-        get() = this["språkkode"].textValue().let(Språkkode::valueOf)
+        get() = this["språkkode"].enumValue<Språkkode>()
 
     private val JsonMessage.brevsendingId: String
-        get() = this["brevsendingId"].textValue()
+        get() = this["brevsendingId"].stringValue()
 
     private val JsonMessage.opprettetAv: String?
-        get() = this["opprettetAv"].textValue()
+        get() = this["opprettetAv"].stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId

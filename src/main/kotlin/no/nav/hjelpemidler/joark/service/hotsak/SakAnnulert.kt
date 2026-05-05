@@ -21,8 +21,8 @@ class SakAnnulert(
         }.register(this)
     }
 
-    private val JsonMessage.sakId get() = this["sakId"].textValue()
-    private val JsonMessage.journalpostId get() = this["journalpostId"].textValue()
+    private val JsonMessage.sakId get() = this["sakId"].stringValue()
+    private val JsonMessage.journalpostId get() = this["journalpostId"].stringValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId

@@ -17,8 +17,8 @@ import java.net.URI
 private val log = KotlinLogging.logger {}
 
 class SafClient(
-    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    tokenSetProvider: TokenSetProvider,
     baseUrlGraphQL: String = Configuration.SAF_GRAPHQL_URL,
 ) {
     private val clientGraphQL = GraphQLKtorClient(

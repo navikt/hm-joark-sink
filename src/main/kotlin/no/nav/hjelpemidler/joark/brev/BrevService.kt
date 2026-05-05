@@ -12,7 +12,12 @@ class BrevService(val pdfGeneratorClient: PdfGeneratorClient) {
         målform: Målform = Målform.BOKMÅL,
     ): ByteArray {
         log.info { "Lager stansetbrev for optiker" }
-        return pdfGeneratorClient.lagBrev("brille-api", Brevmal.BARNEBRILLER_VEDTAK_OPTIKER_AVVISNING.apiNavn, målform, data)
+        return pdfGeneratorClient.lagBrev(
+            "brille-api",
+            Brevmal.BARNEBRILLER_VEDTAK_OPTIKER_AVVISNING.apiNavn,
+            målform,
+            data
+        )
     }
 }
 
@@ -29,7 +34,7 @@ enum class Målform {
     NYNORSK,
 }
 
-data class BarnebrillerAvvisningDirekteoppgjorBegrunnelser (
+data class BarnebrillerAvvisningDirekteoppgjorBegrunnelser(
     val stansetEksisterendeVedtak: Boolean? = false,
     val stansetOver18: Boolean? = false,
     val stansetIkkeMedlem: Boolean? = false,

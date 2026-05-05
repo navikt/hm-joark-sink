@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.joark.domain
 
 import java.util.UUID
 
-data class VedleggMetadata (
+data class VedleggMetadata(
     val id: UUID,
     val type: VedleggType,
     val navn: String,

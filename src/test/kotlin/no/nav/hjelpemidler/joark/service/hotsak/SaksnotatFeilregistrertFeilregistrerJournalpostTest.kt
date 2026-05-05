@@ -46,7 +46,7 @@ class SaksnotatFeilregistrertFeilregistrerJournalpostTest : AbstractListenerTest
                 "eventId" to UUID.randomUUID(),
                 "eventName" to SaksnotatFeilregistrertMessage.EVENT_NAME,
             )
-        } shouldHaveMessage "Validering av melding feilet, se secureLog for detaljer"
+        } shouldHaveMessage "Validering av melding feilet, se Team Logs for detaljer"
 
         verify { dokarkivClientMock wasNot Called }
     }

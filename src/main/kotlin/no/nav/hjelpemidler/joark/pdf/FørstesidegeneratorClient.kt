@@ -28,8 +28,8 @@ typealias FørstesideResponse = no.nav.hjelpemidler.joark.førstesidegenerator.m
 private val log = KotlinLogging.logger {}
 
 class FørstesidegeneratorClient(
-    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    tokenSetProvider: TokenSetProvider,
     baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
 ) {
     private val client = createHttpClient(engine) {

@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.dokarkiv
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.hjelpemidler.joark.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
@@ -11,6 +10,7 @@ import no.nav.hjelpemidler.saf.enums.Kanal
 import no.nav.hjelpemidler.saf.enums.Tema
 import no.nav.hjelpemidler.saf.enums.Variantformat
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import tools.jackson.databind.JsonNode
 import java.time.LocalDateTime
 
 class OpprettJournalpostRequestConfigurer(

@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -17,6 +16,8 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
 import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
+import tools.jackson.databind.JsonNode
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -33,7 +34,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ): Boolean {
-        val saksnotatId = message["saksnotatId"].textValue()
+        val saksnotatId = message["saksnotatId"].stringValueOrNull()
         return saksnotatId in setOf("340", "341", "342", "343") && Environment.current.isDev
     }
 

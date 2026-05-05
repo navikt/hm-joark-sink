@@ -14,7 +14,8 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class OpprettOgFerdigstillJournalpostBarnebrillerTest : AbstractListenerTest(::OpprettOgFerdigstillJournalpostBarnebriller) {
+class OpprettOgFerdigstillJournalpostBarnebrillerTest :
+    AbstractListenerTest(::OpprettOgFerdigstillJournalpostBarnebriller) {
     @BeforeTest
     fun setUp() {
         coEvery {

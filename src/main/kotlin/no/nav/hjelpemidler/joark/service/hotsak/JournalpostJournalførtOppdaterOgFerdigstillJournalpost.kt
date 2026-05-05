@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.publish
+import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -35,25 +36,25 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     }
 
     private val JsonMessage.journalpostId: String
-        get() = get("journalpostId").textValue()
+        get() = get("journalpostId").stringValue()
 
     private val JsonMessage.journalførendeEnhet: String
-        get() = get("journalførendeEnhet").textValue()
+        get() = get("journalførendeEnhet").stringValue()
 
     private val JsonMessage.fnrBruker: String
-        get() = get("fnrBruker").textValue()
+        get() = get("fnrBruker").stringValue()
 
     private val JsonMessage.sakId: String
-        get() = get("sakId").textValue()
+        get() = get("sakId").stringValue()
 
     private val JsonMessage.dokumentId: String?
-        get() = get("dokumentId").textValue()
+        get() = get("dokumentId").stringValueOrNull()
 
     private val JsonMessage.dokumenttittel: String?
-        get() = get("dokumenttittel").textValue()
+        get() = get("dokumenttittel").stringValueOrNull()
 
     private val JsonMessage.oppgaveId: String?
-        get() = get("oppgaveId").textValue()
+        get() = get("oppgaveId").stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val journalpostId = packet.journalpostId

@@ -34,16 +34,16 @@ class KnyttJournalposterTilNySak(
     }
 
     private val JsonMessage.fraSakId: String
-        get() = get("fraSakId").textValue()
+        get() = get("fraSakId").stringValue()
 
     private val JsonMessage.tilSakId: String
-        get() = get("tilSakId").textValue()
+        get() = get("tilSakId").stringValue()
 
     private val JsonMessage.fnrBruker: String
-        get() = get("fnrBruker").textValue()
+        get() = get("fnrBruker").stringValue()
 
     private val JsonMessage.journalførendeEnhet: String
-        get() = get("journalførendeEnhet").textValue()
+        get() = get("journalførendeEnhet").stringValue()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val fraSakId = packet.fraSakId

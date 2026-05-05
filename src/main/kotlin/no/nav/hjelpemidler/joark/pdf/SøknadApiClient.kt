@@ -19,8 +19,8 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 
 class SøknadApiClient(
-    tokenSetProvider: TokenSetProvider,
     engine: HttpClientEngine = CIO.create(),
+    tokenSetProvider: TokenSetProvider,
     baseUrl: String = Configuration.SOKNAD_API_URL,
 ) {
     private val client = createHttpClient(engine) {

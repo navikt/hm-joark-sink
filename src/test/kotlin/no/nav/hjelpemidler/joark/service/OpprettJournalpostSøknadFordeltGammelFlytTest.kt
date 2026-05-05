@@ -13,7 +13,8 @@ import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-class OpprettJournalpostSøknadFordeltGammelFlytTest : AbstractListenerTest(::OpprettJournalpostSøknadFordeltGammelFlyt) {
+class OpprettJournalpostSøknadFordeltGammelFlytTest :
+    AbstractListenerTest(::OpprettJournalpostSøknadFordeltGammelFlyt) {
     @BeforeTest
     fun setUp() {
         coEvery {

@@ -51,8 +51,8 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
     }
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
-        val kildeJournalpostId = packet["joarkRef"].textValue()
-        val sakId = packet["saksnummer"].textValue()
+        val kildeJournalpostId = packet["joarkRef"].stringValue()
+        val sakId = packet["saksnummer"].stringValue()
         if (kildeJournalpostId in skipJournalpostId) {
             log.warn { "Hopper over feilregistrering av journalpost med journalpostId: $kildeJournalpostId, sakId: $sakId" }
             return
