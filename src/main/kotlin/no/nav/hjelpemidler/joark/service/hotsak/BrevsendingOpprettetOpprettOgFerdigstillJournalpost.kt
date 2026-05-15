@@ -31,6 +31,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                     it.requireKey(
                         "sakId",
                         "fnrMottaker",
+                        "mottakertype",
                         "fnrBruker",
                         "fysiskDokument",
                         "dokumenttittel",
@@ -49,6 +50,9 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
 
     private val JsonMessage.fnrMottaker: String
         get() = this["fnrMottaker"].stringValue()
+
+    private val JsonMessage.mottakertype: String
+        get() = this["mottakertype"].stringValue()
 
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].stringValue()
@@ -74,13 +78,14 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val fnrMottaker = packet.fnrMottaker
+        val mottakertype = packet.mottakertype
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
         val brevsendingId = packet.brevsendingId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId" }
+        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId, mottakertype: $mottakertype" }
 
         val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
             null -> packet.fysiskDokument
@@ -94,7 +99,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
-            eksternReferanseId = "${sakId}_${brevsendingId}",
+            eksternReferanseId = "${sakId}_${brevsendingId}_${mottakertype}",
             forsøkFerdigstill = true,
         ) {
             dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
