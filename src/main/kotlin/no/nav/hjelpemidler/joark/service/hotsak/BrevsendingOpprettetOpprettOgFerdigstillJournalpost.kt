@@ -5,6 +5,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
@@ -39,7 +40,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "språkkode",
                         "brevsendingId",
                     )
-                    it.interestedIn("opprettetAv")
+                    it.interestedIn("opprettetAv", "brevId")
                 }
             }
             .register(this)
@@ -72,6 +73,9 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.brevsendingId: String
         get() = this["brevsendingId"].stringValue()
 
+    private val JsonMessage.brevId: String?
+        get() = this["brevId"].stringValueOrNull()
+
     private val JsonMessage.opprettetAv: String?
         get() = this["opprettetAv"].stringValueOrNull()
 
@@ -83,9 +87,10 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
         val brevsendingId = packet.brevsendingId
+        val brevId = packet.brevId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId, mottakertype: $mottakertype" }
+        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId, brevId: $brevId, mottakertype: $mottakertype" }
 
         val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
             null -> packet.fysiskDokument
@@ -104,6 +109,11 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         ) {
             dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
             hotsak(sakId)
+            tilleggsopplysninger(
+                "sakId" to sakId,
+                "brevId" to brevId,
+                prefix = HotsakApplicationId.application,
+            )
             this.opprettetAv = opprettetAv
         }
 
@@ -116,6 +126,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
             val brevsendingId: String,
+            val brevId: String?,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
         ) : KafkaMessage
@@ -130,6 +141,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,
                 brevsendingId = brevsendingId,
+                brevId = brevId,
                 opprettetAv = opprettetAv,
             )
         )

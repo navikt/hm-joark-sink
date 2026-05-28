@@ -5,6 +5,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -39,7 +40,8 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 it.interestedIn(
                     "vedtaksstatus",
                     "opprettetAv",
-                    "brevsendingId"
+                    "brevsendingId",
+                    "brevId"
                 )
             }
         }.register(this)
@@ -52,9 +54,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].enumValueOrNull<Vedtaksstatus>()
     private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].stringValueOrNull()
     private val JsonMessage.brevsendingId: String? get() = this["brevsendingId"].stringValueOrNull()
+    private val JsonMessage.brevId: String? get() = this["brevId"].stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
+        val brevId = packet.brevId
         val data = JournalpostBarnebrillevedtakData(
             fnr = packet.fnrBruker,
             sakId = sakId,
@@ -78,6 +82,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             ) {
                 dokument(fysiskDokument = packet.fysiskDokument)
                 hotsak(sakId)
+                tilleggsopplysninger(
+                    "sakId" to sakId,
+                    "brevId" to brevId,
+                    prefix = HotsakApplicationId.application,
+                )
                 opprettetAv = packet.opprettetAv
             }
 
@@ -85,12 +94,13 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 data.fnr,
                 data.copy(
                     joarkRef = journalpostId,
-                    brevsendingId = packet.brevsendingId
+                    brevsendingId = packet.brevsendingId,
+                    brevId = brevId,
                 ),
             )
-            log.info { "Opprettet og ferdigstilte journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
+            log.info { "Opprettet og ferdigstilte journalpost for vedtak om barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprettet og ferdigstille journalpost for barnebrillevedtak i joark for sakId: ${data.sakId}" }
+            log.error(e) { "Klarte ikke å opprette og ferdigstille journalpost for vedtak om barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
             throw e
         }
     }
@@ -104,6 +114,7 @@ data class JournalpostBarnebrillevedtakData(
     val opprettet: LocalDateTime,
     val joarkRef: String? = null,
     val brevsendingId: String? = null,
+    val brevId: String? = null,
     override val eventId: UUID = UUID.randomUUID(),
 ) : KafkaMessage
 
