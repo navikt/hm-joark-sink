@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM gcr.io/distroless/java25-debian13:nonroot
 WORKDIR /app
 COPY build/libs/hm-joark-sink-all.jar app.jar
 ENV TZ="Europe/Oslo"
