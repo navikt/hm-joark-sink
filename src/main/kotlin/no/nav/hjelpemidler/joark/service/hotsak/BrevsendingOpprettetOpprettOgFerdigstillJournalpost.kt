@@ -13,6 +13,7 @@ import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.logging.logStatement
 import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.enumValue
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
@@ -40,7 +41,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "språkkode",
                         "brevsendingId",
                     )
-                    it.interestedIn("opprettetAv", "brevId")
+                    it.interestedIn("opprettetAv", "brevId", "brevdistribusjonId")
                 }
             }
             .register(this)
@@ -48,6 +49,12 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
 
     private val JsonMessage.sakId: String
         get() = this["sakId"].stringValue()
+
+    private val JsonMessage.brevId: String?
+        get() = this["brevId"].stringValueOrNull()
+
+    private val JsonMessage.brevdistribusjonId: String?
+        get() = this["brevdistribusjonId"].stringValueOrNull()
 
     private val JsonMessage.fnrMottaker: String
         get() = this["fnrMottaker"].stringValue()
@@ -70,27 +77,36 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.språkkode: Språkkode
         get() = this["språkkode"].enumValue<Språkkode>()
 
+    @Deprecated("Fjernes")
     private val JsonMessage.brevsendingId: String
         get() = this["brevsendingId"].stringValue()
-
-    private val JsonMessage.brevId: String?
-        get() = this["brevId"].stringValueOrNull()
 
     private val JsonMessage.opprettetAv: String?
         get() = this["opprettetAv"].stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
+        val brevId = packet.brevId
+        val brevdistribusjonId = packet.brevdistribusjonId
         val fnrMottaker = packet.fnrMottaker
         val mottakertype = packet.mottakertype
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
         val brevsendingId = packet.brevsendingId
-        val brevId = packet.brevId
         val opprettetAv = packet.opprettetAv
 
-        log.info { "Mottok melding om at brevsending er opprettet, sakId: $sakId, dokumenttype: $dokumenttype, brevsendingId: $brevsendingId, brevId: $brevId, mottakertype: $mottakertype" }
+        log.info {
+            logStatement(
+                "Mottok melding om at brevsending er opprettet",
+                "sakId" to sakId,
+                "brevId" to brevId,
+                "brevdistribusjonId" to brevdistribusjonId,
+                "brevsendingId" to brevsendingId,
+                "mottakertype" to mottakertype,
+                "dokumenttype" to dokumenttype,
+            )
+        }
 
         val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
             null -> packet.fysiskDokument
@@ -112,6 +128,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             tilleggsopplysninger(
                 "sakId" to sakId,
                 "brevId" to brevId,
+                "brevdistribusjonId" to brevdistribusjonId,
                 prefix = HotsakApplicationId.application,
             )
             this.opprettetAv = opprettetAv
@@ -121,12 +138,14 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         data class BrevsendingJournalførtHendelse(
             val journalpostId: String,
             val sakId: String,
+            val brevId: String?,
+            val brevdistribusjonId: String?,
             val fnrMottaker: String,
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
+            @Deprecated("Fjernes")
             val brevsendingId: String,
-            val brevId: String?,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
         ) : KafkaMessage
@@ -136,12 +155,13 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             message = BrevsendingJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
+                brevId = brevId,
+                brevdistribusjonId = brevdistribusjonId,
                 fnrMottaker = fnrMottaker,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,
                 brevsendingId = brevsendingId,
-                brevId = brevId,
                 opprettetAv = opprettetAv,
             )
         )
