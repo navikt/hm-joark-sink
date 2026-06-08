@@ -82,8 +82,8 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         get() = this["språkkode"].enumValue<Språkkode>()
 
     @Deprecated("Fjernes")
-    private val JsonMessage.brevsendingId: String
-        get() = this["brevsendingId"].stringValue()
+    private val JsonMessage.brevsendingId: String?
+        get() = this["brevsendingId"].stringValueOrNull()
 
     private val JsonMessage.opprettetAv: String?
         get() = this["opprettetAv"].stringValueOrNull()
@@ -149,7 +149,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
             @Deprecated("Fjernes")
-            val brevsendingId: String,
+            val brevsendingId: String?,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
         ) : KafkaMessage
