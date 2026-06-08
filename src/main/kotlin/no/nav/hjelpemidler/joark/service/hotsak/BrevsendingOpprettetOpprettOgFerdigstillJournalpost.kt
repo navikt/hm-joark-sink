@@ -44,7 +44,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "opprettetAv",
                         "brevId",
                         "brevdistribusjonId",
-                        "brevsendingId"
+                        "brevsendingId",
                     ) // todo -> "brevsendingId" på sikt
                 }
             }
