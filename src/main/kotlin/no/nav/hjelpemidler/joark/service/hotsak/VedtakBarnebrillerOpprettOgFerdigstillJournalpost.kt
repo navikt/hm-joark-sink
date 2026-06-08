@@ -45,7 +45,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "brevsendingId",
                     "vedtaksstatus",
                     "opprettetAv",
-                )
+                ) // todo -> "brevsendingId" på sikt
             }
         }.register(this)
     }

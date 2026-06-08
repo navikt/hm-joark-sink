@@ -39,9 +39,13 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "dokumenttittel",
                         "dokumenttype",
                         "språkkode",
-                        "brevsendingId",
                     )
-                    it.interestedIn("opprettetAv", "brevId", "brevdistribusjonId")
+                    it.interestedIn(
+                        "opprettetAv",
+                        "brevId",
+                        "brevdistribusjonId",
+                        "brevsendingId"
+                    ) // todo -> "brevsendingId" på sikt
                 }
             }
             .register(this)
