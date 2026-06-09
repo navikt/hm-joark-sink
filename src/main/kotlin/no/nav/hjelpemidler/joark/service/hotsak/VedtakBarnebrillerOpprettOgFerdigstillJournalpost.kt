@@ -100,9 +100,9 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 dokument(fysiskDokument = packet.fysiskDokument)
                 hotsak(sakId)
                 tilleggsopplysninger(
+                    "id" to data.brevdistribusjonId,
                     "sakId" to sakId,
                     "brevId" to brevId,
-                    "brevdistribusjonId" to "brevdistribusjonId",
                     prefix = HotsakApplicationId.application,
                 )
                 opprettetAv = packet.opprettetAv

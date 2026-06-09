@@ -66,11 +66,14 @@ class OpprettJournalpostRequestConfigurer(
 
     private var tilleggsopplysninger: List<Tilleggsopplysning>? = null
     fun tilleggsopplysninger(vararg tilleggsopplysninger: Pair<String, String?>, prefix: String? = null) {
+        val maxKeyLength = 20
         this.tilleggsopplysninger = tilleggsopplysninger.mapNotNull { (nøkkel, verdi) ->
             if (verdi == null) {
                 null
             } else {
-                Tilleggsopplysning(listOfNotNull(prefix, nøkkel).joinToString("_"), verdi)
+                val key = listOfNotNull(prefix, nøkkel).joinToString("_")
+                require(key.length <= maxKeyLength) { "Joark støtter maksimalt $maxKeyLength tegn i nøkkel for tilleggsopplysning" }
+                Tilleggsopplysning(key, verdi)
             }
         }
     }

@@ -124,15 +124,15 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             fnrMottaker = fnrMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
-            eksternReferanseId = "${sakId}_${brevsendingId}_${mottakertype}",
+            eksternReferanseId = "${sakId}_${brevdistribusjonId}_${mottakertype}",
             forsøkFerdigstill = true,
         ) {
             dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
             hotsak(sakId)
             tilleggsopplysninger(
+                "id" to brevdistribusjonId,
                 "sakId" to sakId,
                 "brevId" to brevId,
-                "brevdistribusjonId" to brevdistribusjonId,
                 prefix = HotsakApplicationId.application,
             )
             this.opprettetAv = opprettetAv
