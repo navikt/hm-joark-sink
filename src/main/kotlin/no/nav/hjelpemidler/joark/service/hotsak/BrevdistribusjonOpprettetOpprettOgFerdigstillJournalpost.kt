@@ -21,20 +21,25 @@ import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
-class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
+class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
     private val journalpostService: JournalpostService,
 ) : AsyncPacketListener {
     init {
         River(rapidsConnection)
             .apply {
-                precondition { it.requireValue("eventName", "hm-brevsending-opprettet") }
+                precondition {
+                    it.requireAny(
+                        "eventName",
+                        listOf("hm-brevsending-opprettet", "hm-brevdistribusjon-opprettet")
+                    )
+                }
                 validate {
                     it.requireKey(
                         "sakId",
+                        "fnrBruker",
                         "fnrMottaker",
                         "mottakertype",
-                        "fnrBruker",
                         "fysiskDokument",
                         "dokumenttittel",
                         "dokumenttype",
@@ -45,7 +50,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
                         "brevId",
                         "brevdistribusjonId",
                         "brevsendingId",
-                    ) // todo -> "brevsendingId" på sikt
+                    ) // todo -> fjern "brevsendingId" på sikt
                 }
             }
             .register(this)
@@ -81,7 +86,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.språkkode: Språkkode
         get() = this["språkkode"].enumValue<Språkkode>()
 
-    @Deprecated("Fjernes")
+    @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
     private val JsonMessage.brevsendingId: String?
         get() = this["brevsendingId"].stringValueOrNull()
 
@@ -102,11 +107,11 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
 
         log.info {
             logStatement(
-                "Mottok melding om at brevsending er opprettet",
+                "Mottok melding om at brevdistribusjon er opprettet",
                 "sakId" to sakId,
                 "brevId" to brevId,
                 "brevdistribusjonId" to brevdistribusjonId,
-                "brevsendingId" to brevsendingId,
+                "brevsendingId" to brevsendingId, // todo -> fjern "brevsendingId" på sikt
                 "mottakertype" to mottakertype,
                 "dokumenttype" to dokumenttype,
             )
@@ -139,7 +144,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
         }
 
         @KafkaEvent("hm-brevsending-journalført")
-        data class BrevsendingJournalførtHendelse(
+        data class BrevJournalførtHendelse(
             val journalpostId: String,
             val sakId: String,
             val brevId: String?,
@@ -148,7 +153,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
-            @Deprecated("Fjernes")
+            @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
             val brevsendingId: String?,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
@@ -156,7 +161,7 @@ class BrevsendingOpprettetOpprettOgFerdigstillJournalpost(
 
         context.publish(
             key = fnrBruker,
-            message = BrevsendingJournalførtHendelse(
+            message = BrevJournalførtHendelse(
                 journalpostId = journalpostId,
                 sakId = sakId,
                 brevId = brevId,

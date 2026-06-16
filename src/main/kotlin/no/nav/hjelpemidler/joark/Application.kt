@@ -20,7 +20,7 @@ import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJourna
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebrillerAvvisning
 import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.BrevsendingOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.service.hotsak.BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
@@ -83,7 +83,7 @@ fun main() {
 
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
-            BrevsendingOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
             KnyttJournalposterTilNySak(this, journalpostService)
             SakAnnulert(this, journalpostService)

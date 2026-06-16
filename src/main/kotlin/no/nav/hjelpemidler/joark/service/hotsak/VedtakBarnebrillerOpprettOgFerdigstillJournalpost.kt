@@ -23,7 +23,7 @@ import java.util.UUID
 private val log = KotlinLogging.logger {}
 
 /**
- * Vedtak for barnebrillesak er fattet i Hotsak, journalfør utgående vedtaksbrev
+ * Det er fattet vedtak i sak for barnebriller i Hotsak, journalfør utgående vedtaksbrev.
  */
 class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     rapidsConnection: RapidsConnection,
@@ -45,7 +45,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "brevsendingId",
                     "vedtaksstatus",
                     "opprettetAv",
-                ) // todo -> "brevsendingId" på sikt
+                ) // todo -> fjern "brevsendingId" på sikt
             }
         }.register(this)
     }
@@ -59,13 +59,13 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.opprettet get() = this["opprettet"].localDateTimeValue()
     private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].stringValueOrNull()
 
-    @Deprecated("Fjernes")
+    @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
     private val JsonMessage.brevsendingId: String? get() = this["brevsendingId"].stringValueOrNull()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val sakId = packet.sakId
         val brevId = packet.brevId
-        val data = JournalpostBarnebrillevedtakData(
+        val data = VedtaksbrevBarnebrillerJournalførtHendelse(
             sakId = sakId,
             brevId = brevId,
             brevdistribusjonId = packet.brevdistribusjonId,
@@ -114,28 +114,28 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             )
             log.info { "Opprettet og ferdigstilte journalpost for vedtaksbrev for barnebriller i Joark for sakId: $sakId, brevId: $brevId, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprette og ferdigstille journalpost for vedtak om barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
+            log.error(e) { "Klarte ikke å opprette og ferdigstille journalpost for vedtaksbrev om barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
             throw e
         }
     }
-}
 
-@KafkaEvent("hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost")
-data class JournalpostBarnebrillevedtakData(
-    val sakId: String,
-    val brevId: String? = null, // todo -> ikke nullable
-    val brevdistribusjonId: String? = null, // todo -> ikke nullable
-    @JsonProperty("joarkRef")
-    val journalpostId: String? = null,
-    val fnr: String,
-    val dokumentTittel: String,
-    @Deprecated("Fjernes")
-    val brevsendingId: String? = null,
-    override val eventId: UUID = UUID.randomUUID(),
-    val opprettet: LocalDateTime,
-) : KafkaMessage
+    @KafkaEvent("hm-opprettetOgFerdigstiltBarnebrillevedtakJournalpost")
+    private data class VedtaksbrevBarnebrillerJournalførtHendelse(
+        val sakId: String,
+        val brevId: String? = null, // todo -> ikke nullable
+        val brevdistribusjonId: String? = null, // todo -> ikke nullable
+        @JsonProperty("joarkRef")
+        val journalpostId: String? = null,
+        val fnr: String,
+        val dokumentTittel: String,
+        @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
+        val brevsendingId: String? = null,
+        override val eventId: UUID = UUID.randomUUID(),
+        val opprettet: LocalDateTime,
+    ) : KafkaMessage
 
-enum class Vedtaksstatus {
-    INNVILGET,
-    AVSLÅTT
+    enum class Vedtaksstatus {
+        INNVILGET,
+        AVSLÅTT
+    }
 }
