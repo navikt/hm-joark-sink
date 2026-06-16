@@ -114,7 +114,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             )
             log.info { "Opprettet og ferdigstilte journalpost for vedtaksbrev for barnebriller i Joark for sakId: $sakId, brevId: $brevId, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
-            log.error(e) { "Klarte ikke å opprette og ferdigstille journalpost for vedtaksbrev om barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
+            log.error(e) { "Klarte ikke å opprette og ferdigstille journalpost for vedtaksbrev for barnebriller i Joark for sakId: ${data.sakId}, brevId: $brevId" }
             throw e
         }
     }
