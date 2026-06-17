@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark
 
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -22,7 +21,6 @@ import no.nav.hjelpemidler.joark.service.barnebriller.ResendJournalpostBarnebril
 import no.nav.hjelpemidler.joark.service.hotsak.BestillingAvvistOppdaterJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
-import no.nav.hjelpemidler.joark.service.hotsak.KnyttJournalposterTilNySak
 import no.nav.hjelpemidler.joark.service.hotsak.SakAnnulert
 import no.nav.hjelpemidler.joark.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
 import no.nav.hjelpemidler.joark.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
@@ -78,14 +76,12 @@ fun main() {
 
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration)
         .apply {
-            register(statusListener)
             OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
 
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
             BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
-            KnyttJournalposterTilNySak(this, journalpostService)
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
@@ -103,9 +99,4 @@ fun main() {
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
         }
         .start()
-}
-
-val statusListener = object : RapidsConnection.StatusListener {
-    override fun onReady(rapidsConnection: RapidsConnection) {
-    }
 }
