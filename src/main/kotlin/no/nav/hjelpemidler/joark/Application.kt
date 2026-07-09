@@ -8,12 +8,14 @@ import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.openid.TexasClient
 import no.nav.hjelpemidler.joark.brev.BrevService
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.pdf.DelbestillingPdfClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
+import no.nav.hjelpemidler.joark.service.OpprettManuellDelbestilling
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebrillerAvvisning
@@ -58,6 +60,11 @@ fun main() {
         tokenSetProvider = texasClient.entraIdApplication(Configuration.SOKNAD_API_SCOPE),
     )
 
+    val delbestillingPdfClient = DelbestillingPdfClient(
+        engine,
+        tokenSetProvider = texasClient.entraIdApplication(Configuration.DELBESTILLING_API_SCOPE),
+    )
+
     val pdfGeneratorClient = PdfGeneratorClient(engine)
     val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
 
@@ -69,14 +76,19 @@ fun main() {
         pdfGeneratorClient = pdfGeneratorClient,
         safClient = safClient,
         søknadApiClient = søknadApiClient,
+        delbestillingPdfClient = delbestillingPdfClient,
     )
     val brevService = BrevService(
         pdfGeneratorClient = pdfGeneratorClient,
     )
 
+    // Registrer kafka-lyttere
     RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration)
         .apply {
             OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
+
+            // Delbestilling
+            OpprettManuellDelbestilling(this, journalpostService)
 
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)

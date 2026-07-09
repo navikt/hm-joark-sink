@@ -86,7 +86,7 @@ class SakOverførtGosysFeilregistrerOgErstattJournalpost(
                     nyEksternReferanseId = nyEksternReferanseId
                 )
 
-                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE -> error("Uventet sakstype: ${data.sakstype}")
+                Sakstype.BYTTE, Sakstype.BRUKERPASSBYTTE, Sakstype.DELBESTILLING -> error("Uventet sakstype: ${data.sakstype}")
             }
             if (nyJournalpostId == null) {
                 log.warn { "Stopper behandling av kopiert journalpost fordi den allerede er behandlet, journalpostId: $kildeJournalpostId, eksternReferanseId: $nyEksternReferanseId" }

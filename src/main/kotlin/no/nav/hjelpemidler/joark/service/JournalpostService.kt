@@ -21,6 +21,7 @@ import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.domain.Vedlegg
 import no.nav.hjelpemidler.joark.domain.VedleggMetadata
 import no.nav.hjelpemidler.joark.metrics.Prometheus
+import no.nav.hjelpemidler.joark.pdf.DelbestillingPdfClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
@@ -44,6 +45,7 @@ class JournalpostService(
     private val pdfGeneratorClient: PdfGeneratorClient,
     private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
+    private val delbestillingPdfClient: DelbestillingPdfClient
 ) {
     suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
 
@@ -231,6 +233,42 @@ class JournalpostService(
         journalpostId
     }
 
+    suspend fun arkiverDelbestilling(
+        saksnummer: Long,
+        fnrBruker: String,
+        datoMottatt: LocalDateTime,
+        dokumenttittel: String,
+        eksternReferanseId: String,
+        sakstype: Sakstype = Sakstype.DELBESTILLING,
+    ): String = withCorrelationId {
+        log.info {
+            "Arkiverer delbestilling, saksnummer: $saksnummer,  eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
+        }
+
+        val delbestillingPdf = delbestillingPdfClient.hendDelbestillingPdf(saksnummer)
+
+        val journalpostId = opprettInngåendeJournalpost(
+            fnrAvsender = fnrBruker, // TODO: Høre med trygve om det skal være tekniker her, eller bruker
+            dokumenttype = sakstype.dokumenttype,
+            eksternReferanseId = eksternReferanseId,
+            forsøkFerdigstill = false, // Todo: Undersøk hva dette innebærer.
+        ) {
+            dokument(
+                fysiskDokument = delbestillingPdf,
+                dokumenttittel = dokumenttittel,
+            )
+            this.datoMottatt = datoMottatt
+            this.journalførendeEnhet = null
+        }.journalpostId
+
+        log.info {
+            "${sakstype} ble arkivert, saksnummer: $saksnummer, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
+        }
+
+        journalpostId
+    }
+
+
     suspend fun feilregistrerSakstilknytning(journalpostId: String) =
         withCorrelationId {
             log.info { "Feilregistrerer sakstilknytning for journalpostId: $journalpostId" }
@@ -404,4 +442,6 @@ class JournalpostService(
         checkNotNull(safClient.hentJournalpost(journalpostId)) {
             "Fant ikke journalpost med journalpostId: $journalpostId"
         }
+
+
 }

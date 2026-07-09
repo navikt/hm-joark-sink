@@ -6,6 +6,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.pdf.DelbestillingPdfClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
@@ -26,6 +27,7 @@ abstract class AbstractListenerTest() {
     protected val pdfGeneratorClientMock = mockk<PdfGeneratorClient>()
     protected val safClientMock = mockk<SafClient>()
     protected val søknadApiClientMock = mockk<SøknadApiClient>()
+    protected val delbestillingPdfClientMock = mockk<DelbestillingPdfClient>()
 
     protected val journalpostService = JournalpostService(
         dokarkivClient = dokarkivClientMock,
@@ -34,6 +36,7 @@ abstract class AbstractListenerTest() {
         pdfGeneratorClient = pdfGeneratorClientMock,
         safClient = safClientMock,
         søknadApiClient = søknadApiClientMock,
+        delbestillingPdfClient = delbestillingPdfClientMock,
     )
 
     constructor(block: (RapidsConnection, JournalpostService) -> Unit) : this() {
