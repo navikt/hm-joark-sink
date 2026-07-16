@@ -72,7 +72,7 @@ class PdfGeneratorClient(
     }
 
     suspend fun genererPdfBarnebriller(@Language("JSON") søknadJson: String): ByteArray =
-        genererPdf(søknadJson, "barnebrille/barnebrille")
+        genererPdf(søknadJson, "barnebrille")
 
     private suspend fun genererPdf(@Language("JSON") søknadJson: String, path: String): ByteArray {
         log.info { "Genererer PDF for path: '$path'" }
