@@ -13,9 +13,6 @@ object Configuration {
     val FORSTESIDEGENERATOR_BASE_URL by EnvironmentVariable
     val FORSTESIDEGENERATOR_SCOPE by EnvironmentVariable
 
-    // Søknad PDF-generator
-    val SOKNAD_PDFGEN_BASE_URL by EnvironmentVariable
-
     // hm-soknad-api
     val SOKNAD_API_URL by EnvironmentVariable
     val SOKNAD_API_SCOPE by EnvironmentVariable

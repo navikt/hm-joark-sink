@@ -16,9 +16,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.brev.Målform
+import org.intellij.lang.annotations.Language
 
 private val log = KotlinLogging.logger {}
 
@@ -62,6 +64,24 @@ class PdfGeneratorClient(
         }
         return when (response.status) {
             HttpStatusCode.OK -> response.body<ByteArray>()
+            else -> {
+                val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
+                throw PdfClientException("Uventet status: '${response.status}', body: '$body'")
+            }
+        }
+    }
+
+    suspend fun genererPdfBarnebriller(@Language("JSON") søknadJson: String): ByteArray =
+        genererPdf(søknadJson, "barnebrille/barnebrille")
+
+    private suspend fun genererPdf(@Language("JSON") søknadJson: String, path: String): ByteArray {
+        log.info { "Genererer PDF for path: '$path'" }
+        val response = client.post(path) {
+            accept(ContentType.Application.Pdf)
+            setBody(søknadJson)
+        }
+        return when (response.status) {
+            HttpStatusCode.OK -> response.body()
             else -> {
                 val body = runCatching { response.bodyAsText() }.getOrElse { it.message }
                 throw PdfClientException("Uventet status: '${response.status}', body: '$body'")

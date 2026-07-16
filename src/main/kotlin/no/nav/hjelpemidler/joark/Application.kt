@@ -11,7 +11,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.OpprettJournalpostSøknadFordeltGammelFlyt
 import no.nav.hjelpemidler.joark.service.barnebriller.FeilregistrerJournalpostBarnebriller
@@ -59,13 +58,11 @@ fun main() {
     )
 
     val pdfGeneratorClient = PdfGeneratorClient(engine)
-    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
 
     // Services
     val journalpostService = JournalpostService(
         dokarkivClient = dokarkivClient,
         førstesidegeneratorClient = førstesidegeneratorClient,
-        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
         pdfGeneratorClient = pdfGeneratorClient,
         safClient = safClient,
         søknadApiClient = søknadApiClient,

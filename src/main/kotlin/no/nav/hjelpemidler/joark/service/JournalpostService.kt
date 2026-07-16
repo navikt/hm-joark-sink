@@ -25,7 +25,6 @@ import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.saf.enums.Journalstatus
@@ -40,7 +39,6 @@ private val log = KotlinLogging.logger {}
 class JournalpostService(
     private val dokarkivClient: DokarkivClient,
     private val førstesidegeneratorClient: FørstesidegeneratorClient,
-    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
     private val pdfGeneratorClient: PdfGeneratorClient,
     private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
@@ -59,7 +57,7 @@ class JournalpostService(
 
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
-        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
+        val fysiskDokument = pdfGeneratorClient.genererPdfBarnebriller(
             jsonMapper.writeValueAsString(data),
         )
 

@@ -9,7 +9,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.saf.SafClient
 import no.nav.hjelpemidler.serialization.jackson.valueToJson
@@ -22,7 +21,6 @@ abstract class AbstractListenerTest() {
 
     protected val dokarkivClientMock = mockk<DokarkivClient>()
     protected val førstesidegeneratorClientMock = mockk<FørstesidegeneratorClient>()
-    protected val søknadPdfGeneratorClientMock = mockk<SøknadPdfGeneratorClient>()
     protected val pdfGeneratorClientMock = mockk<PdfGeneratorClient>()
     protected val safClientMock = mockk<SafClient>()
     protected val søknadApiClientMock = mockk<SøknadApiClient>()
@@ -30,7 +28,6 @@ abstract class AbstractListenerTest() {
     protected val journalpostService = JournalpostService(
         dokarkivClient = dokarkivClientMock,
         førstesidegeneratorClient = førstesidegeneratorClientMock,
-        søknadPdfGeneratorClient = søknadPdfGeneratorClientMock,
         pdfGeneratorClient = pdfGeneratorClientMock,
         safClient = safClientMock,
         søknadApiClient = søknadApiClientMock,

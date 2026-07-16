@@ -4,7 +4,6 @@
   "KAFKA_RAPID_TOPIC": "teamdigihot.hm-soknadsbehandling-v1",
   "KAFKA_CONSUMER_GROUP_ID": "hm-joark-sink-q1-v2",
   "KAFKA_RESET_POLICY": "LATEST",
-  "SOKNAD_PDFGEN_BASE_URL": "http://hm-soknad-pdfgen.teamdigihot.svc.cluster.local/api/v1/genpdf/",
   "PDF_GENERATOR_BASE_URL": "http://hm-pdf-generator.teamdigihot.svc.cluster.local/api/",
   "SOKNAD_API_URL": "http://hm-soknad-api.teamdigihot.svc.cluster.local",
   "SOKNAD_API_SCOPE": "api://dev-gcp.teamdigihot.hm-soknad-api/.default",

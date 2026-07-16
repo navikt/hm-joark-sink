@@ -19,7 +19,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerTest :
     @BeforeTest
     fun setUp() {
         coEvery {
-            søknadPdfGeneratorClientMock.genererPdfBarnebriller(any())
+            pdfGeneratorClientMock.genererPdfBarnebriller(any())
         } returns pdf
         coEvery {
             dokarkivClientMock.opprettJournalpost(
