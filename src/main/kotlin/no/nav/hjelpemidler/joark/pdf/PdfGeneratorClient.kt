@@ -78,6 +78,7 @@ class PdfGeneratorClient(
         log.info { "Genererer PDF for path: '$path'" }
         val response = client.post(path) {
             accept(ContentType.Application.Pdf)
+            contentType(ContentType.Application.Json)
             setBody(søknadJson)
         }
         return when (response.status) {
