@@ -1,5 +1,3 @@
-val hotlibsKatalogVersion: String by settings
-
 fun RepositoryHandler.github(repository: String) {
     maven("https://maven.pkg.github.com/$repository") {
         credentials {
@@ -20,6 +18,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
+            val hotlibsKatalogVersion = providers.gradleProperty("hotlibsKatalogVersion").get()
             from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
         }
     }
