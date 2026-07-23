@@ -13,7 +13,8 @@ dependencyResolutionManagement {
         mavenCentral()
         github("navikt/hotlibs")
         github("navikt/rapids-and-rivers")
-        // plassert under github som fallback
+
+        // Plassert under GitHub-repositories (med authentication) for å unngå unødvendige kostnader.
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
     versionCatalogs {
