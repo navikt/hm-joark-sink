@@ -18,9 +18,10 @@ jobs:
       packages: write
       contents: write
       id-token: write
+    secrets: inherit
     uses: navikt/hm-workflows/.github/workflows/deploy-dev.yaml@main
     with:
+      environment: 'dev-gcp:teamdigihot'
       manifest: .nais/nais-dev.yaml
       vars: .nais/dev-q2.json
       java-version: '25'
-    secrets: inherit
