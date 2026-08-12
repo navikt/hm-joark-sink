@@ -5,5 +5,5 @@ data class EndretDokument(
     val tittel: String,
     val annetInnhold: Set<String> = emptySet(),
 ) {
-    fun tilDokumentInfo(): DokumentInfo = DokumentInfo(dokumentInfoId = dokumentId, brevkode = tittel)
+    fun tilDokumentInfo(): DokumentInfo = DokumentInfo(dokumentInfoId = dokumentId, tittel = tittel)
 }
