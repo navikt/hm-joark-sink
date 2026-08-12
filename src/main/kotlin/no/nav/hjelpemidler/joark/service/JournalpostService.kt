@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
@@ -152,16 +151,15 @@ class JournalpostService(
 
     suspend fun opprettNotat(
         fnrBruker: Fødselsnummer,
-        eksternReferanseId: URN,
+        eksternReferanseId: String,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): JournalpostOpprettet = withCorrelationId {
-        eksternReferanseId.validerEksternReferanseId()
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker.toString(),
             fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
-            eksternReferanseId = eksternReferanseId.toString(),
+            eksternReferanseId = eksternReferanseId,
         ).apply(block).apply {
             kanal = null // Ref. dokumentasjon for OpprettJournalpostRequest: "Kanal skal ikke settes for notater"
         }

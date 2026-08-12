@@ -5,7 +5,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.configuration.HotsakApplicationId
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
@@ -138,7 +137,7 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                 "id" to brevdistribusjonId,
                 "sakId" to sakId,
                 "brevId" to brevId,
-                prefix = HotsakApplicationId.application,
+                prefix = "hotsak",
             )
             this.opprettetAv = opprettetAv
         }
