@@ -1,10 +1,12 @@
 package no.nav.hjelpemidler.joark.service.hotsak
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost.IncomingMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
@@ -49,8 +51,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             journalførendeEnhet = message.journalførendeEnhet,
             fnrBruker = fnrBruker,
             sakId = sakId,
-            dokumentId = message.dokumentId,
-            dokumenttittel = message.dokumenttittel,
+            endredeDokumenter = message.endredeDokumenter,
         )
 
         context.publish(
@@ -75,14 +76,16 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val sakId: String,
         val dokumentId: String?,
         val dokumenttittel: String?,
-        val dokumenter: List<Dokument>?,
+        val dokumenter: List<EndretDokument>?,
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage {
-        data class Dokument(
-            val dokumentId: String,
-            val tittel: String,
-            val annetInnhold: Set<String> = emptySet(),
-        )
+        val endredeDokumenter
+            @JsonIgnore
+            get() = if (dokumentId == null || dokumenttittel == null) {
+                dokumenter
+            } else {
+                listOf(EndretDokument(dokumentId, dokumenttittel))
+            }
 
         companion object {
             const val EVENT_NAME = "hm-journalpost-journalført"
