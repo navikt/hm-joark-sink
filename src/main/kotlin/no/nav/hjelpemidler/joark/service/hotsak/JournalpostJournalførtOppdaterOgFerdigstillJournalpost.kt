@@ -42,8 +42,9 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     ) {
         val journalpostId = message.journalpostId
         val oppgaveId = message.oppgaveId
+        val oppgavegrunnlagId = message.oppgavegrunnlagId
         val sakId = message.sakId
-        log.info { "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId, oppgaveId: $oppgaveId" }
+        log.info { "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId" }
 
         val fnrBruker = message.fnrBruker.toString()
         val nyJournalpostId = journalpostService.ferdigstillJournalpost(
@@ -63,6 +64,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 fnrBruker = fnrBruker,
                 sakId = sakId,
                 oppgaveId = oppgaveId,
+                oppgavegrunnlagId = oppgavegrunnlagId,
             )
         )
     }
@@ -72,7 +74,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val journalpostId: String,
         val journalførendeEnhet: String,
         val fnrBruker: Fødselsnummer,
-        val oppgaveId: String,
+        val oppgaveId: String?,
+        val oppgavegrunnlagId: UUID?,
         val sakId: String,
         val dokumentId: String?,
         val dokumenttittel: String?,
@@ -100,6 +103,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val fnrBruker: String,
         val sakId: String,
         val oppgaveId: String?,
+        val oppgavegrunnlagId: UUID?,
         val opprettet: LocalDateTime = LocalDateTime.now(),
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage {
