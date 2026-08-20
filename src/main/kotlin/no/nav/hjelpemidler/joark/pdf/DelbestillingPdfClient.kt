@@ -14,7 +14,6 @@ import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
-import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -34,7 +33,7 @@ class DelbestillingPdfClient(
 
     private val pdf_endepunkt = "delbestilling/pdf"
 
-    suspend fun hendDelbestillingPdf(saksnr: Long) : ByteArray {
+    suspend fun hentDelbestillingPdf(saksnr: Long) : ByteArray {
         log.info { "Henter PDF fra hm-delbestilling-api for saksnr: $saksnr" }
         return hentPdf("$pdf_endepunkt/$saksnr")
     }

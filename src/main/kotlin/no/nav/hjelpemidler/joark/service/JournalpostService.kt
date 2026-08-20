@@ -245,7 +245,7 @@ class JournalpostService(
             "Arkiverer delbestilling, saksnummer: $saksnummer,  eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
         }
 
-        val delbestillingPdf = delbestillingPdfClient.hendDelbestillingPdf(saksnummer)
+        val delbestillingPdf = delbestillingPdfClient.hentDelbestillingPdf(saksnummer)
 
         val journalpostId = opprettInngåendeJournalpost(
             fnrAvsender = fnrBruker, // TODO: Høre med trygve om det skal være tekniker her, eller bruker
