@@ -11,8 +11,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    secrets: inherit
     uses: navikt/hm-workflows/.github/workflows/deploy-prod.yaml@main
     with:
+      environment: 'prod-gcp:teamdigihot'
       manifest: .nais/nais-prod.yaml
       vars: .nais/prod.json
-    secrets: inherit

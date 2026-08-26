@@ -29,6 +29,7 @@ import no.nav.hjelpemidler.http.openid.openID
 import no.nav.hjelpemidler.joark.Configuration
 import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
+import no.nav.hjelpemidler.joark.dokarkiv.models.BulkOppdaterLogiskVedleggRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
@@ -216,6 +217,14 @@ class DokarkivClient(
 
             else -> response.feilmelding()
         }
+    }
+
+    suspend fun oppdaterLogiskeVedlegg(dokumentId: String, annetInnhold: Set<String>) {
+        log.info { "Oppdaterer logiske vedlegg for dokument, dokumentId: $dokumentId" }
+        val response = client.put("dokumentInfo/$dokumentId/logiskVedlegg") {
+            setBody(BulkOppdaterLogiskVedleggRequest(titler = annetInnhold.toList()))
+        }
+        if (response.status != HttpStatusCode.NoContent) response.feilmelding()
     }
 
     private suspend fun HttpResponse.feilmelding(): Nothing {

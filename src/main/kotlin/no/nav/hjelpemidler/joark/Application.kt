@@ -93,7 +93,7 @@ fun main() {
             // Hotsak
             BestillingAvvistOppdaterJournalpost(this, journalpostService)
             BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
-            JournalpostJournalførtOppdaterOgFerdigstillJournalpost(this, journalpostService)
+            register(JournalpostJournalførtOppdaterOgFerdigstillJournalpost(journalpostService))
             SakAnnulert(this, journalpostService)
             SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
             SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)

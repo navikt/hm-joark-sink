@@ -1,5 +1,3 @@
-val hotlibsKatalogVersion: String by settings
-
 fun RepositoryHandler.github(repository: String) {
     maven("https://maven.pkg.github.com/$repository") {
         credentials {
@@ -15,11 +13,13 @@ dependencyResolutionManagement {
         mavenCentral()
         github("navikt/hotlibs")
         github("navikt/rapids-and-rivers")
-        // plassert under github som fallback
+
+        // Plassert under GitHub-repositories (med authentication) for å unngå unødvendige kostnader.
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
     versionCatalogs {
         create("libs") {
+            val hotlibsKatalogVersion = providers.gradleProperty("hotlibsKatalogVersion").get()
             from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
         }
     }

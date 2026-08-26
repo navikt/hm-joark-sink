@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.joark.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
@@ -10,6 +9,7 @@ import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
+import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
@@ -154,16 +154,15 @@ class JournalpostService(
 
     suspend fun opprettNotat(
         fnrBruker: Fødselsnummer,
-        eksternReferanseId: URN,
+        eksternReferanseId: String,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): JournalpostOpprettet = withCorrelationId {
-        eksternReferanseId.validerEksternReferanseId()
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker.toString(),
             fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
-            eksternReferanseId = eksternReferanseId.toString(),
+            eksternReferanseId = eksternReferanseId,
         ).apply(block).apply {
             kanal = null // Ref. dokumentasjon for OpprettJournalpostRequest: "Kanal skal ikke settes for notater"
         }
@@ -326,8 +325,7 @@ class JournalpostService(
         journalførendeEnhet: String,
         fnrBruker: String,
         sakId: String,
-        dokumentId: String?,
-        dokumenttittel: String?,
+        endredeDokumenter: List<EndretDokument>?,
     ): String {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
@@ -336,15 +334,7 @@ class JournalpostService(
             "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
-        val dokumenter = when {
-            dokumentId == null || dokumenttittel == null -> null
-            else -> listOf(
-                DokumentInfo(
-                    dokumentInfoId = dokumentId,
-                    tittel = dokumenttittel,
-                ),
-            )
-        }
+        val dokumenter = endredeDokumenter?.map(EndretDokument::tilDokumentInfo)
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
@@ -386,6 +376,10 @@ class JournalpostService(
                             dokumenter = dokumenter,
                         ),
                     )
+                }
+
+                endredeDokumenter?.forEach {
+                    dokarkivClient.oppdaterLogiskeVedlegg(it.dokumentId, it.annetInnhold)
                 }
 
                 dokarkivClient.ferdigstillJournalpost(

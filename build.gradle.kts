@@ -34,7 +34,7 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -44,10 +44,10 @@ kotlin {
     }
 }
 
-@Suppress("UnstableApiUsage")
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        @Suppress("UnstableApiUsage")
+        val test = named<JvmTestSuite>("test") {
             useKotlinTest(libs.versions.kotlin.asProvider())
             dependencies {
                 implementation(libs.hotlibs.test)
@@ -95,7 +95,8 @@ openApiGenerate {
     )
 }
 
-val førstesidegenerator by tasks.registering(GenerateTask::class) {
+val førstesidegenerator = tasks.register<GenerateTask>("førstesidegenerator") {
+    description = "Generer modell for førstesidegenerator"
     generatorName.set("kotlin")
     skipValidateSpec.set(true)
     inputSpec.set(layout.projectDirectory.file("src/main/resources/førstesidegenerator/openapi.yaml"))

@@ -6,8 +6,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.collections.joinToString
 import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.HotsakApplicationId
-import no.nav.hjelpemidler.domain.id.URN
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.service.JournalpostService
@@ -61,11 +59,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
 
         val journalpost = journalpostService.opprettNotat(
             fnrBruker = fnrBruker,
-            eksternReferanseId = URN(
-                applicationId = HotsakApplicationId,
-                resource = "saksnotat",
-                id = saksnotatId,
-            ),
+            eksternReferanseId = "urn:hotsak:saksnotat:$saksnotatId"
         ) {
             this.tittel = dokumenttittel
             this.opprettetAv = opprettetAv
@@ -78,7 +72,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
             tilleggsopplysninger(
                 "sakId" to sakId,
                 "saksnotatId" to saksnotatId,
-                prefix = HotsakApplicationId.application,
+                prefix = "hotsak",
             )
         }
 
