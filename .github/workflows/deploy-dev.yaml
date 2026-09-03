@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - vedlegg
+      - manuell-delbestilling
 
 jobs:
   build:

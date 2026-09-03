@@ -8,11 +8,14 @@
   "PDF_GENERATOR_BASE_URL": "http://hm-pdf-generator.teamdigihot.svc.cluster.local/api/",
   "SOKNAD_API_URL": "http://hm-soknad-api.teamdigihot.svc.cluster.local",
   "SOKNAD_API_SCOPE": "api://prod-gcp.teamdigihot.hm-soknad-api/.default",
+  "DELBESTILLING_API_URL": "http://hm-delbestilling-api.teamdigihot.svc.cluster.local/api/",
+  "DELBESTILLING_API_SCOPE": "api://prod-gcp.teamdigihot.hm-delbestilling-api/.default",
   "JOARK_BASE_URL": "https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1/",
   "JOARK_SCOPE": "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
   "FORSTESIDEGENERATOR_BASE_URL": "https://foerstesidegenerator.prod-fss-pub.nais.io/api/foerstesidegenerator/v1/",
   "FORSTESIDEGENERATOR_SCOPE": "api://prod-fss.teamdokumenthandtering.foerstesidegenerator/.default",
   "SAF_GRAPHQL_URL": "https://saf.prod-fss-pub.nais.io/graphql",
   "SAF_SCOPE": "api://prod-fss.teamdokumenthandtering.saf/.default",
-  "EVENT_NAME": "hm-SøknadArkivert"
+  "EVENT_NAME": "hm-SøknadArkivert",
+  "DELBESTILLING_EVENT_NAME": "hm-DelbestillingArkivert"
 }

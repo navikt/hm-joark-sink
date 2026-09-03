@@ -43,6 +43,7 @@ spec:
         - application: hm-soknad-pdfgen
         - application: hm-pdf-generator
         - application: hm-soknad-api
+        - application: hm-delbestilling-api
         - application: logging
           namespace: nais-system
       external:

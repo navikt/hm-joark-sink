@@ -4,6 +4,7 @@ import no.nav.hjelpemidler.configuration.EnvironmentVariable
 
 object Configuration {
     val EVENT_NAME by EnvironmentVariable
+    val DELBESTILLING_EVENT_NAME by EnvironmentVariable
 
     // Joark
     val JOARK_BASE_URL by EnvironmentVariable
@@ -15,6 +16,10 @@ object Configuration {
 
     // Søknad PDF-generator
     val SOKNAD_PDFGEN_BASE_URL by EnvironmentVariable
+
+    // Delbestilling API for PDF til Manuell Delbestilling
+    val DELBESTILLING_API_URL by EnvironmentVariable
+    val DELBESTILLING_API_SCOPE by EnvironmentVariable
 
     // hm-soknad-api
     val SOKNAD_API_URL by EnvironmentVariable
