@@ -5,8 +5,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
+import no.nav.hjelpemidler.joark.dokarkiv.models.Sak.Fagsaksystem
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost.IncomingMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
@@ -46,23 +48,25 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val sakId = message.sakId
         log.info { "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId" }
 
-        val fnrBruker = message.fnrBruker.toString()
+        val fnrBruker = message.fnrBruker
         val nyJournalpostId = journalpostService.ferdigstillJournalpost(
             journalpostId = journalpostId,
             journalførendeEnhet = message.journalførendeEnhet,
             fnrBruker = fnrBruker,
             sakId = sakId,
+            fagsaksystem = message.fagsaksystem ?: Fagsaksystem.HJELPEMIDLER.toString(),
             endredeDokumenter = message.endredeDokumenter,
         )
 
         context.publish(
-            key = fnrBruker,
+            key = fnrBruker.toString(),
             message = OutgoingMessage(
                 journalpostId = journalpostId,
                 journalførendeEnhet = message.journalførendeEnhet,
                 nyJournalpostId = nyJournalpostId,
                 fnrBruker = fnrBruker,
                 sakId = sakId,
+                fagsaksystem = message.fagsaksystem,
                 oppgaveId = oppgaveId,
                 oppgavegrunnlagId = oppgavegrunnlagId,
             )
@@ -72,15 +76,16 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     @KafkaEvent(IncomingMessage.EVENT_NAME)
     data class IncomingMessage(
         val journalpostId: String,
-        val journalførendeEnhet: String,
+        val journalførendeEnhet: Enhetsnummer,
         val fnrBruker: Fødselsnummer,
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
-        val sakId: String,
+        val sakId: String?,
+        val fagsaksystem: String?,
         val dokumentId: String?,
         val dokumenttittel: String?,
         val dokumenter: List<EndretDokument>?,
-        override val eventId: UUID = UUID.randomUUID(),
+        override val eventId: UUID,
     ) : KafkaMessage {
         val endredeDokumenter
             @JsonIgnore
@@ -98,10 +103,11 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     @KafkaEvent(OutgoingMessage.EVENT_NAME)
     data class OutgoingMessage(
         val journalpostId: String,
-        val journalførendeEnhet: String,
+        val journalførendeEnhet: Enhetsnummer,
         val nyJournalpostId: String,
-        val fnrBruker: String,
-        val sakId: String,
+        val fnrBruker: Fødselsnummer,
+        val sakId: String?,
+        val fagsaksystem: String?,
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
         val opprettet: LocalDateTime = LocalDateTime.now(),

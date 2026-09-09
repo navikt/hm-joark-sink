@@ -1,13 +1,15 @@
 package no.nav.hjelpemidler.joark.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.core.asEnum
+import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
-import no.nav.hjelpemidler.joark.dokarkiv.fagsakHjelpemidler
+import no.nav.hjelpemidler.joark.dokarkiv.generellSak
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
@@ -273,20 +275,12 @@ class JournalpostService(
         dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
     }
 
-    suspend fun hentJournalposterForSak(
-        sakId: String,
-    ): List<no.nav.hjelpemidler.saf.hentdokumentoversiktsak.Journalpost> = withCorrelationId {
-        log.info {
-            "Henter journalposter for sakId: $sakId"
-        }
-        safClient.hentJournalposterForSak(sakId)
-    }
-
     suspend fun ferdigstillJournalpost(
         journalpostId: String,
-        journalførendeEnhet: String,
-        fnrBruker: String,
-        sakId: String,
+        journalførendeEnhet: Enhetsnummer,
+        fnrBruker: Fødselsnummer,
+        sakId: String?,
+        fagsaksystem: String,
         endredeDokumenter: List<EndretDokument>?,
     ): String {
         val journalpost = hentJournalpost(journalpostId)
@@ -296,49 +290,30 @@ class JournalpostService(
             "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
+        val sak = if (fagsaksystem == Sak.Sakstype.GENERELL_SAK.toString()) {
+            generellSak()
+        } else {
+            Sak(
+                fagsakId = sakId ?: error("Mangler fagsakId for sak, journalpostId: $journalpostId"),
+                fagsaksystem = enumValueOf(fagsaksystem),
+                sakstype = Sak.Sakstype.FAGSAK,
+            )
+        }
+
         val dokumenter = endredeDokumenter?.map(EndretDokument::tilDokumentInfo)
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
-                if (journalpost.tittel == null && journalpostId in setOf(
-                        "626556692",
-                        "626442819",
-                        "626419519",
-                        "627280086",
-                        "627777403",
-                        "627911450",
-                    )
-                ) {
-                    log.info { "Patcher tittel på journalposter uten tittel, journalpostId: $journalpostId" }
-                    val nyTittel = "NAV 10-07.34 Tilskudd ved kjøp av briller til barn"
-                    dokarkivClient.oppdaterJournalpost(
-                        journalpostId = journalpostId,
-                        oppdaterJournalpostRequest = OppdaterJournalpostRequest(
-                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                            bruker = brukerMedFnr(fnrBruker),
-                            sak = fagsakHjelpemidler(sakId),
-                            tema = Tema.HJE.toString(),
-                            dokumenter = dokumenter?.map { dokument ->
-                                when {
-                                    dokument.tittel.isNullOrBlank() -> dokument.copy(tittel = nyTittel)
-                                    else -> dokument
-                                }
-                            },
-                            tittel = nyTittel,
-                        ),
-                    )
-                } else {
-                    dokarkivClient.oppdaterJournalpost(
-                        journalpostId = journalpostId,
-                        oppdaterJournalpostRequest = OppdaterJournalpostRequest(
-                            avsenderMottaker = avsenderMottakerMedFnr(fnrBruker),
-                            bruker = brukerMedFnr(fnrBruker),
-                            sak = fagsakHjelpemidler(sakId),
-                            tema = Tema.HJE.toString(),
-                            dokumenter = dokumenter,
-                        ),
-                    )
-                }
+                dokarkivClient.oppdaterJournalpost(
+                    journalpostId = journalpostId,
+                    oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                        tema = Tema.HJE.toString(),
+                        bruker = brukerMedFnr(fnrBruker.toString()),
+                        avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
+                        sak = sak,
+                        dokumenter = dokumenter,
+                    ),
+                )
 
                 endredeDokumenter?.forEach {
                     dokarkivClient.oppdaterLogiskeVedlegg(it.dokumentId, it.annetInnhold)
@@ -347,7 +322,7 @@ class JournalpostService(
                 dokarkivClient.ferdigstillJournalpost(
                     journalpostId = journalpostId,
                     ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
-                        journalfoerendeEnhet = journalførendeEnhet,
+                        journalfoerendeEnhet = journalførendeEnhet.toString(),
                     ),
                 )
 
@@ -365,12 +340,12 @@ class JournalpostService(
                 val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
                     journalpostId = journalpostId,
                     knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
-                        bruker = brukerMedFnr(fnrBruker),
-                        fagsakId = sakId,
-                        fagsaksystem = Sak.Fagsaksystem.HJELPEMIDLER.toString(),
-                        journalfoerendeEnhet = journalførendeEnhet,
-                        sakstype = KnyttTilAnnenSakRequest.Sakstype.FAGSAK,
                         tema = Tema.HJE.toString(),
+                        bruker = brukerMedFnr(fnrBruker.toString()),
+                        fagsakId = sak.fagsakId,
+                        fagsaksystem = sak.fagsaksystem?.toString(),
+                        sakstype = sak.sakstype?.asEnum(),
+                        journalfoerendeEnhet = journalførendeEnhet.toString(),
                     ),
                 )
 
@@ -390,7 +365,7 @@ class JournalpostService(
                 nyJournalpostId
             }
 
-            else -> error("Mangler støtte for å ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
+            else -> error("Kan ikke ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
         }
     }
 
