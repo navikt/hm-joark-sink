@@ -295,7 +295,11 @@ class JournalpostService(
         } else {
             Sak(
                 fagsakId = sakId ?: error("Mangler fagsakId for sak, journalpostId: $journalpostId"),
-                fagsaksystem = enumValueOf(fagsaksystem),
+                fagsaksystem = if (fagsaksystem == "HOTSAK") {
+                    Sak.Fagsaksystem.HJELPEMIDLER
+                } else {
+                    enumValueOf(fagsaksystem)
+                },
                 sakstype = Sak.Sakstype.FAGSAK,
             )
         }
