@@ -74,28 +74,26 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             return
         }
 
-        if (sak is JournalpostSak.Fagsak && !sak.isFagsaksystemHotsak) {
+        if (!sak.isFagsaksystemHotsak) {
             log.info {
                 "Journalpost ferdigstilt og tilknyttet ekstern sak, journalpostId: $nyJournalpostId, $sak"
             }
             return
         }
 
-        if (sak.isFagsaksystemHotsak) {
-            context.publish(
-                key = fnrBruker.toString(),
-                message = OutgoingMessage(
-                    journalpostId = journalpostId,
-                    nyJournalpostId = nyJournalpostId,
-                    fnrBruker = fnrBruker,
-                    sakId = sak.fagsakId,
-                    sak = sak,
-                    journalførendeEnhet = message.journalførendeEnhet,
-                    oppgaveId = oppgaveId,
-                    oppgavegrunnlagId = oppgavegrunnlagId,
-                )
+        context.publish(
+            key = fnrBruker.toString(),
+            message = OutgoingMessage(
+                journalpostId = journalpostId,
+                nyJournalpostId = nyJournalpostId,
+                fnrBruker = fnrBruker,
+                sakId = sak.fagsakId,
+                sak = sak,
+                journalførendeEnhet = message.journalførendeEnhet,
+                oppgaveId = oppgaveId,
+                oppgavegrunnlagId = oppgavegrunnlagId,
             )
-        }
+        )
     }
 
     @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_NAME])

@@ -285,14 +285,13 @@ class JournalpostService(
     ): String {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
+        val sakId = if (sak is JournalpostSak.Fagsak) sak.fagsakId else null
 
         log.info {
-            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, eksternReferanseId: ${journalpost.eksternReferanseId}"
+            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
         val dokumenter = endredeDokumenter?.map(EndretDokument::tilDokumentInfo)
-        val sak = sak.tilSak()
-        val sakId = sak.fagsakId
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
@@ -300,10 +299,10 @@ class JournalpostService(
                     journalpostId = journalpostId,
                     oppdaterJournalpostRequest = OppdaterJournalpostRequest(
                         tema = Tema.HJE.toString(),
+                        dokumenter = dokumenter,
                         bruker = brukerMedFnr(fnrBruker.toString()),
                         avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
-                        dokumenter = dokumenter,
-                        sak = sak,
+                        sak = sak.tilSak(),
                     ),
                 )
 
@@ -334,9 +333,9 @@ class JournalpostService(
                     knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
                         tema = Tema.HJE.toString(),
                         bruker = brukerMedFnr(fnrBruker.toString()),
-                        fagsakId = sak.fagsakId,
-                        fagsaksystem = sak.fagsaksystem?.toString(),
-                        sakstype = sak.sakstype?.asEnum<KnyttTilAnnenSakRequest.Sakstype>(),
+                        fagsakId = (sak as? JournalpostSak.Fagsak)?.fagsakId,
+                        fagsaksystem = (sak as? JournalpostSak.Fagsak)?.fagsaksystem?.name,
+                        sakstype = sak.sakstype.asEnum(),
                         journalfoerendeEnhet = journalførendeEnhet.toString(),
                     ),
                 )
