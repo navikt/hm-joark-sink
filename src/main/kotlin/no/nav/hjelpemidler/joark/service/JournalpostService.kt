@@ -4,13 +4,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.core.asEnum
 import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
 import no.nav.hjelpemidler.domain.joark.EndretDokument
-import no.nav.hjelpemidler.domain.joark.Fagsak
+import no.nav.hjelpemidler.domain.joark.JournalpostSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.joark.dokarkiv.generellSak
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
@@ -279,7 +280,7 @@ class JournalpostService(
         journalpostId: String,
         journalførendeEnhet: Enhetsnummer,
         fnrBruker: Fødselsnummer,
-        sak: Fagsak,
+        sak: JournalpostSak,
         endredeDokumenter: List<EndretDokument>?,
     ): String {
         val journalpost = hentJournalpost(journalpostId)
@@ -366,11 +367,10 @@ class JournalpostService(
         }
 }
 
-private fun Fagsak.tilSak(): Sak = Sak(
-    fagsakId = fagsakId,
-    fagsaksystem = fagsaksystem?.asEnum<Sak.Fagsaksystem>(),
-    sakstype = sakstype?.asEnum<Sak.Sakstype>(),
-)
+private fun JournalpostSak.tilSak(): Sak = when (this) {
+    is JournalpostSak.Fagsak -> Sak(fagsakId = fagsakId, fagsaksystem = fagsaksystem.asEnum())
+    is JournalpostSak.GenerellSak -> generellSak()
+}
 
 private fun EndretDokument.tilDokumentInfo(): DokumentInfo = DokumentInfo(
     dokumentInfoId = dokumentId,

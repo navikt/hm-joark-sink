@@ -7,9 +7,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
 import no.nav.hjelpemidler.domain.joark.EndretDokument
-import no.nav.hjelpemidler.domain.joark.Fagsak
+import no.nav.hjelpemidler.domain.joark.JournalpostSak
+import no.nav.hjelpemidler.domain.joark.isFagsaksystemHotsak
 import no.nav.hjelpemidler.domain.kodeverk.Fagsaksystem
-import no.nav.hjelpemidler.domain.kodeverk.Fagsaktype
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost.IncomingMessage
@@ -47,35 +47,55 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val journalpostId = message.journalpostId
         val oppgaveId = message.oppgaveId
         val oppgavegrunnlagId = message.oppgavegrunnlagId
-        val sakId = message.sakId
-        log.info { "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, sakId: $sakId, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId" }
+
+        val sak = message.sak ?: JournalpostSak.Fagsak(
+            fagsakId = message.sakId
+                ?: error("Mangler sakId for journalføring, journalpostId: $journalpostId, oppgaveId: $oppgaveId"),
+            fagsaksystem = Fagsaksystem.HJELPEMIDLER,
+        )
+
+        log.info {
+            "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId"
+        }
 
         val fnrBruker = message.fnrBruker
         val nyJournalpostId = journalpostService.ferdigstillJournalpost(
             journalpostId = journalpostId,
             journalførendeEnhet = message.journalførendeEnhet,
             fnrBruker = fnrBruker,
-            sak = message.sak ?: Fagsak(
-                fagsakId = message.sakId,
-                fagsaksystem = Fagsaksystem.HJELPEMIDLER,
-                sakstype = Fagsaktype.FAGSAK,
-            ),
+            sak = sak,
             endredeDokumenter = message.endredeDokumenter,
         )
 
-        context.publish(
-            key = fnrBruker.toString(),
-            message = OutgoingMessage(
-                journalpostId = journalpostId,
-                nyJournalpostId = nyJournalpostId,
-                fnrBruker = fnrBruker,
-                sakId = sakId,
-                sak = null,
-                journalførendeEnhet = message.journalførendeEnhet,
-                oppgaveId = oppgaveId,
-                oppgavegrunnlagId = oppgavegrunnlagId,
+        if (sak is JournalpostSak.GenerellSak) {
+            log.info {
+                "Journalpost ferdigstilt og tilknyttet generell sak, journalpostId: $nyJournalpostId"
+            }
+            return
+        }
+
+        if (sak is JournalpostSak.Fagsak && !sak.isFagsaksystemHotsak) {
+            log.info {
+                "Journalpost ferdigstilt og tilknyttet ekstern sak, journalpostId: $nyJournalpostId, $sak"
+            }
+            return
+        }
+
+        if (sak.isFagsaksystemHotsak) {
+            context.publish(
+                key = fnrBruker.toString(),
+                message = OutgoingMessage(
+                    journalpostId = journalpostId,
+                    nyJournalpostId = nyJournalpostId,
+                    fnrBruker = fnrBruker,
+                    sakId = sak.fagsakId,
+                    sak = sak,
+                    journalførendeEnhet = message.journalførendeEnhet,
+                    oppgaveId = oppgaveId,
+                    oppgavegrunnlagId = oppgavegrunnlagId,
+                )
             )
-        )
+        }
     }
 
     @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_NAME])
@@ -89,7 +109,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val fnrBruker: Fødselsnummer,
         @Deprecated("Byttes med sak")
         val sakId: String?,
-        val sak: Fagsak?,
+        val sak: JournalpostSak?,
         val journalførendeEnhet: Enhetsnummer,
         /**
          * Id for journalføringsoppgaven.
@@ -118,8 +138,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val nyJournalpostId: String,
         val fnrBruker: Fødselsnummer,
         @Deprecated("Byttes med sak")
-        val sakId: String?,
-        val sak: Fagsak?,
+        val sakId: String,
+        val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
         /**
          * Id for journalføringsoppgaven.
