@@ -367,7 +367,11 @@ class JournalpostService(
 }
 
 private fun JournalpostSak.tilSak(): Sak = when (this) {
-    is JournalpostSak.Fagsak -> Sak(fagsakId = fagsakId, fagsaksystem = fagsaksystem.asEnum())
+    is JournalpostSak.Fagsak -> Sak(
+        fagsakId = fagsakId,
+        fagsaksystem = fagsaksystem.asEnum(),
+        sakstype = sakstype.asEnum(),
+    )
     is JournalpostSak.GenerellSak -> generellSak()
 }
 
