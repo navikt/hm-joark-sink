@@ -3,15 +3,15 @@ package no.nav.hjelpemidler.joark.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.core.asEnum
 import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
+import no.nav.hjelpemidler.domain.joark.EndretDokument
+import no.nav.hjelpemidler.domain.joark.Fagsak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.joark.dokarkiv.avsenderMottakerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
-import no.nav.hjelpemidler.joark.dokarkiv.generellSak
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
-import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
@@ -279,8 +279,7 @@ class JournalpostService(
         journalpostId: String,
         journalførendeEnhet: Enhetsnummer,
         fnrBruker: Fødselsnummer,
-        sakId: String?,
-        fagsaksystem: String,
+        sak: Fagsak,
         endredeDokumenter: List<EndretDokument>?,
     ): String {
         val journalpost = hentJournalpost(journalpostId)
@@ -290,21 +289,9 @@ class JournalpostService(
             "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
-        val sak = if (fagsaksystem == Sak.Sakstype.GENERELL_SAK.toString()) {
-            generellSak()
-        } else {
-            Sak(
-                fagsakId = sakId ?: error("Mangler fagsakId for sak, journalpostId: $journalpostId"),
-                fagsaksystem = if (fagsaksystem == "HOTSAK") {
-                    Sak.Fagsaksystem.HJELPEMIDLER
-                } else {
-                    enumValueOf(fagsaksystem)
-                },
-                sakstype = Sak.Sakstype.FAGSAK,
-            )
-        }
-
         val dokumenter = endredeDokumenter?.map(EndretDokument::tilDokumentInfo)
+        val sak = sak.tilSak()
+        val sakId = sak.fagsakId
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
@@ -314,8 +301,8 @@ class JournalpostService(
                         tema = Tema.HJE.toString(),
                         bruker = brukerMedFnr(fnrBruker.toString()),
                         avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
-                        sak = sak,
                         dokumenter = dokumenter,
+                        sak = sak,
                     ),
                 )
 
@@ -348,7 +335,7 @@ class JournalpostService(
                         bruker = brukerMedFnr(fnrBruker.toString()),
                         fagsakId = sak.fagsakId,
                         fagsaksystem = sak.fagsaksystem?.toString(),
-                        sakstype = sak.sakstype?.asEnum(),
+                        sakstype = sak.sakstype?.asEnum<KnyttTilAnnenSakRequest.Sakstype>(),
                         journalfoerendeEnhet = journalførendeEnhet.toString(),
                     ),
                 )
@@ -378,3 +365,14 @@ class JournalpostService(
             "Fant ikke journalpost med journalpostId: $journalpostId"
         }
 }
+
+private fun Fagsak.tilSak(): Sak = Sak(
+    fagsakId = fagsakId,
+    fagsaksystem = fagsaksystem?.asEnum<Sak.Fagsaksystem>(),
+    sakstype = sakstype?.asEnum<Sak.Sakstype>(),
+)
+
+private fun EndretDokument.tilDokumentInfo(): DokumentInfo = DokumentInfo(
+    dokumentInfoId = dokumentId,
+    tittel = tittel,
+)

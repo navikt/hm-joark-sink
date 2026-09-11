@@ -6,9 +6,11 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
+import no.nav.hjelpemidler.domain.joark.EndretDokument
+import no.nav.hjelpemidler.domain.joark.Fagsak
+import no.nav.hjelpemidler.domain.kodeverk.Fagsaksystem
+import no.nav.hjelpemidler.domain.kodeverk.Fagsaktype
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
-import no.nav.hjelpemidler.joark.dokarkiv.models.EndretDokument
-import no.nav.hjelpemidler.joark.dokarkiv.models.Sak.Fagsaksystem
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost.IncomingMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
@@ -53,8 +55,11 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             journalpostId = journalpostId,
             journalførendeEnhet = message.journalførendeEnhet,
             fnrBruker = fnrBruker,
-            sakId = sakId,
-            fagsaksystem = message.fagsaksystem ?: Fagsaksystem.HJELPEMIDLER.toString(),
+            sak = message.sak ?: Fagsak(
+                fagsakId = message.sakId,
+                fagsaksystem = Fagsaksystem.HJELPEMIDLER,
+                sakstype = Fagsaktype.FAGSAK,
+            ),
             endredeDokumenter = message.endredeDokumenter,
         )
 
@@ -62,29 +67,35 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             key = fnrBruker.toString(),
             message = OutgoingMessage(
                 journalpostId = journalpostId,
-                journalførendeEnhet = message.journalførendeEnhet,
                 nyJournalpostId = nyJournalpostId,
                 fnrBruker = fnrBruker,
                 sakId = sakId,
-                fagsaksystem = message.fagsaksystem,
+                sak = null,
+                journalførendeEnhet = message.journalførendeEnhet,
                 oppgaveId = oppgaveId,
                 oppgavegrunnlagId = oppgavegrunnlagId,
             )
         )
     }
 
-    @KafkaEvent(IncomingMessage.EVENT_NAME)
+    @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_NAME])
     data class IncomingMessage(
         val journalpostId: String,
-        val journalførendeEnhet: Enhetsnummer,
-        val fnrBruker: Fødselsnummer,
-        val oppgaveId: String?,
-        val oppgavegrunnlagId: UUID?,
-        val sakId: String?,
-        val fagsaksystem: String?,
+        @Deprecated("Byttes med dokumenter")
         val dokumentId: String?,
+        @Deprecated("Byttes med dokumenter")
         val dokumenttittel: String?,
         val dokumenter: List<EndretDokument>?,
+        val fnrBruker: Fødselsnummer,
+        @Deprecated("Byttes med sak")
+        val sakId: String?,
+        val sak: Fagsak?,
+        val journalførendeEnhet: Enhetsnummer,
+        /**
+         * Id for journalføringsoppgaven.
+         */
+        val oppgaveId: String?,
+        val oppgavegrunnlagId: UUID?,
         override val eventId: UUID,
     ) : KafkaMessage {
         val endredeDokumenter
@@ -97,17 +108,22 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
 
         companion object {
             const val EVENT_NAME = "hm-journalpost-journalført"
+            const val ALTERNATIVE_NAME = "hm-journalpost-journalført-ekstern-sak"
         }
     }
 
     @KafkaEvent(OutgoingMessage.EVENT_NAME)
     data class OutgoingMessage(
         val journalpostId: String,
-        val journalførendeEnhet: Enhetsnummer,
         val nyJournalpostId: String,
         val fnrBruker: Fødselsnummer,
+        @Deprecated("Byttes med sak")
         val sakId: String?,
-        val fagsaksystem: String?,
+        val sak: Fagsak?,
+        val journalførendeEnhet: Enhetsnummer,
+        /**
+         * Id for journalføringsoppgaven.
+         */
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
         val opprettet: LocalDateTime = LocalDateTime.now(),
