@@ -45,14 +45,10 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val journalpostId = message.journalpostId
-        val oppgaveId = message.oppgaveId
-        val oppgavegrunnlagId = message.oppgavegrunnlagId
-
         log.info { "Oppdaterer og ferdigstiller journalpost, $message" }
 
         val journalpostFerdigstilt = journalpostService.ferdigstillJournalpost(
-            journalpostId = journalpostId,
+            journalpostId = message.journalpostId,
             tittel = message.tittel,
             endredeDokumenter = message.endredeDokumenter,
             fnrBruker = message.fnrBruker,
@@ -71,9 +67,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
 
         log.info { "Journalpost ferdigstilt og tilknyttet Hotsak-sak, $journalpostFerdigstilt" }
 
-        val fnrBruker = journalpostFerdigstilt.fnrBruker
         context.publish(
-            key = fnrBruker.toString(),
+            key = journalpostFerdigstilt.fnrBruker.toString(),
             message = OutgoingMessage(
                 journalpostId = journalpostFerdigstilt.journalpostId,
                 nyJournalpostId = journalpostFerdigstilt.nyJournalpostId,
@@ -83,8 +78,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 sak = sak,
                 journalførendeEnhet = journalpostFerdigstilt.journalførendeEnhet,
                 journalførtAv = message.journalførtAv,
-                oppgaveId = oppgaveId,
-                oppgavegrunnlagId = oppgavegrunnlagId,
+                oppgaveId = message.oppgaveId,
+                oppgavegrunnlagId = message.oppgavegrunnlagId,
             )
         )
     }
