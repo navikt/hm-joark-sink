@@ -287,10 +287,10 @@ class JournalpostService(
     ): JournalpostFerdigstilt {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
-        val sakId = if (sak is JournalpostSak.Fagsak) sak.fagsakId else null
+        val eksternReferanseId = journalpost.eksternReferanseId
 
         log.info {
-            "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
+            "Ferdigstiller journalpost, journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: '${journalpost.tittel}', eksternReferanseId: $eksternReferanseId, $sak"
         }
 
         val dokumenter = endredeDokumenter
@@ -299,7 +299,6 @@ class JournalpostService(
 
         val hoveddokumentTittel = dokumenter?.firstOrNull()?.tittel
             ?: journalpost.dokumenter?.firstOrNull()?.tittel
-            ?: tittel
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
@@ -326,7 +325,14 @@ class JournalpostService(
                     ),
                 )
 
-                JournalpostFerdigstilt(journalpostId, hoveddokumentTittel)
+                JournalpostFerdigstilt(
+                    journalpostId = journalpostId,
+                    nyJournalpostId = journalpostId,
+                    hoveddokumentTittel = hoveddokumentTittel,
+                    fnrBruker = fnrBruker,
+                    sak = sak,
+                    journalførendeEnhet = journalførendeEnhet
+                )
             }
 
             Journalstatus.FEILREGISTRERT,
@@ -334,7 +340,7 @@ class JournalpostService(
             Journalstatus.JOURNALFOERT,
                 -> {
                 log.info {
-                    "Journalpost har status: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
+                    "Journalpost har journalstatus: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, $sak"
                 }
 
                 val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
@@ -350,10 +356,12 @@ class JournalpostService(
                 )
 
                 val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
-                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
+                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sak, eksternReferanseId: $eksternReferanseId, $sak"
                 }.toString()
 
-                log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}" }
+                log.info {
+                    "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, eksternReferanseId: $eksternReferanseId, $sak"
+                }
 
                 if (!tittel.isNullOrBlank() || dokumenter != null) {
                     dokarkivClient.oppdaterJournalpost(
@@ -365,10 +373,17 @@ class JournalpostService(
                     )
                 }
 
-                JournalpostFerdigstilt(nyJournalpostId, hoveddokumentTittel)
+                JournalpostFerdigstilt(
+                    journalpostId = journalpostId,
+                    nyJournalpostId = nyJournalpostId,
+                    hoveddokumentTittel = hoveddokumentTittel,
+                    fnrBruker = fnrBruker,
+                    sak = sak,
+                    journalførendeEnhet = journalførendeEnhet
+                )
             }
 
-            else -> error("Kan ikke ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")
+            else -> error("Kan ikke ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId, $sak")
         }
     }
 

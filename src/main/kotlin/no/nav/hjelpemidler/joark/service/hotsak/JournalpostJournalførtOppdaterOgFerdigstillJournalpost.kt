@@ -49,50 +49,39 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val oppgaveId = message.oppgaveId
         val oppgavegrunnlagId = message.oppgavegrunnlagId
 
-        val sak = message.sak ?: JournalpostSak.Fagsak(
-            fagsakId = message.sakId
-                ?: error("Mangler sakId for journalføring, journalpostId: $journalpostId, oppgaveId: $oppgaveId"),
-            fagsaksystem = Fagsaksystem.HJELPEMIDLER,
-        )
+        log.info { "Oppdaterer og ferdigstiller journalpost, $message" }
 
-        log.info {
-            "Oppdaterer og ferdigstiller journalpost, journalpostId: $journalpostId, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId"
-        }
-
-        val fnrBruker = message.fnrBruker
-        val nyJournalpostId = journalpostService.ferdigstillJournalpost(
+        val journalpostFerdigstilt = journalpostService.ferdigstillJournalpost(
             journalpostId = journalpostId,
             tittel = message.tittel,
             endredeDokumenter = message.endredeDokumenter,
-            fnrBruker = fnrBruker,
-            sak = sak,
+            fnrBruker = message.fnrBruker,
+            sak = message.sak ?: JournalpostSak.Fagsak(
+                fagsakId = message.sakId ?: error("Mangler sakId for journalføring, $message"),
+                fagsaksystem = Fagsaksystem.HJELPEMIDLER,
+            ),
             journalførendeEnhet = message.journalførendeEnhet,
         )
 
-        if (sak is JournalpostSak.GenerellSak) {
-            log.info {
-                "Journalpost ferdigstilt og tilknyttet generell sak, journalpostId: $nyJournalpostId"
-            }
+        val sak = journalpostFerdigstilt.sak
+        if (sak is JournalpostSak.GenerellSak || !sak.isFagsaksystemHotsak) {
+            log.info { "Journalpost ferdigstilt og tilknyttet ekstern sak, $journalpostFerdigstilt" }
             return
         }
 
-        if (!sak.isFagsaksystemHotsak) {
-            log.info {
-                "Journalpost ferdigstilt og tilknyttet ekstern sak, journalpostId: $nyJournalpostId, $sak"
-            }
-            return
-        }
+        log.info { "Journalpost ferdigstilt og tilknyttet Hotsak-sak, $journalpostFerdigstilt" }
 
+        val fnrBruker = journalpostFerdigstilt.fnrBruker
         context.publish(
             key = fnrBruker.toString(),
             message = OutgoingMessage(
-                journalpostId = journalpostId,
-                nyJournalpostId = nyJournalpostId.journalpostId,
-                hoveddokumentTittel = nyJournalpostId.hoveddokumentTittel,
-                fnrBruker = fnrBruker,
+                journalpostId = journalpostFerdigstilt.journalpostId,
+                nyJournalpostId = journalpostFerdigstilt.nyJournalpostId,
+                hoveddokumentTittel = journalpostFerdigstilt.hoveddokumentTittel,
+                fnrBruker = journalpostFerdigstilt.fnrBruker,
                 sakId = sak.fagsakId,
                 sak = sak,
-                journalførendeEnhet = message.journalførendeEnhet,
+                journalførendeEnhet = journalpostFerdigstilt.journalførendeEnhet,
                 journalførtAv = message.journalførtAv,
                 oppgaveId = oppgaveId,
                 oppgavegrunnlagId = oppgavegrunnlagId,
@@ -132,6 +121,12 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             } else {
                 listOf(EndretDokument(dokumentId, dokumenttittel))
             }
+
+        override fun toString(): String = if (sak == null) {
+            "journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId, sakId: $sakId"
+        } else {
+            "journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId, $sak"
+        }
 
         companion object {
             const val EVENT_NAME = "hm-journalpost-journalført"
