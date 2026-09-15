@@ -3,9 +3,9 @@ package no.nav.hjelpemidler.joark.service.hotsak
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured

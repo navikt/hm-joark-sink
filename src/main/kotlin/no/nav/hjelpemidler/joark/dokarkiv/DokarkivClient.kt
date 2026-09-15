@@ -31,7 +31,6 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.joark.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.dokarkiv.models.BulkOppdaterLogiskVedleggRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.KopierJournalpostRequest
@@ -41,6 +40,7 @@ import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.ktor.navUserId
 import no.nav.hjelpemidler.logging.teamInfo
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull

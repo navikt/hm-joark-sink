@@ -3,9 +3,9 @@ package no.nav.hjelpemidler.joark.service.hotsak
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost.Vedtaksstatus
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly

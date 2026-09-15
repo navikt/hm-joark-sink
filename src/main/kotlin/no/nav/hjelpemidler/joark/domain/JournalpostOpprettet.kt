@@ -1,4 +1,7 @@
-package no.nav.hjelpemidler.joark.dokarkiv.models
+package no.nav.hjelpemidler.joark.domain
+
+import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfoId
+import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostResponse
 
 data class JournalpostOpprettet(
     val journalpostId: String,

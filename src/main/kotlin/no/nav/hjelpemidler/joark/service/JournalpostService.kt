@@ -14,12 +14,13 @@ import no.nav.hjelpemidler.joark.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.joark.dokarkiv.generellSak
 import no.nav.hjelpemidler.joark.dokarkiv.models.DokumentInfo
 import no.nav.hjelpemidler.joark.dokarkiv.models.FerdigstillJournalpostRequest
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.domain.JournalpostFerdigstilt
+import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.domain.Sakstype
 import no.nav.hjelpemidler.joark.domain.Vedlegg
 import no.nav.hjelpemidler.joark.domain.VedleggMetadata
@@ -278,11 +279,12 @@ class JournalpostService(
 
     suspend fun ferdigstillJournalpost(
         journalpostId: String,
-        journalførendeEnhet: Enhetsnummer,
+        tittel: String?,
+        endredeDokumenter: List<EndretDokument>?,
         fnrBruker: Fødselsnummer,
         sak: JournalpostSak,
-        endredeDokumenter: List<EndretDokument>?,
-    ): String {
+        journalførendeEnhet: Enhetsnummer,
+    ): JournalpostFerdigstilt {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
         val sakId = if (sak is JournalpostSak.Fagsak) sak.fagsakId else null
@@ -291,7 +293,13 @@ class JournalpostService(
             "Ferdigstiller journalpost med journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: ${journalpost.tittel}, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}"
         }
 
-        val dokumenter = endredeDokumenter?.map(EndretDokument::tilDokumentInfo)
+        val dokumenter = endredeDokumenter
+            ?.map(EndretDokument::tilDokumentInfo)
+            ?.filterNot { it.tittel.isNullOrBlank() }
+
+        val hoveddokumentTittel = dokumenter?.firstOrNull()?.tittel
+            ?: journalpost.dokumenter?.firstOrNull()?.tittel
+            ?: tittel
 
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
@@ -299,6 +307,7 @@ class JournalpostService(
                     journalpostId = journalpostId,
                     oppdaterJournalpostRequest = OppdaterJournalpostRequest(
                         tema = Tema.HJE.toString(),
+                        tittel = tittel.takeUnless { it.isNullOrBlank() },
                         dokumenter = dokumenter,
                         bruker = brukerMedFnr(fnrBruker.toString()),
                         avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
@@ -317,7 +326,7 @@ class JournalpostService(
                     ),
                 )
 
-                journalpostId
+                JournalpostFerdigstilt(journalpostId, hoveddokumentTittel)
             }
 
             Journalstatus.FEILREGISTRERT,
@@ -346,14 +355,17 @@ class JournalpostService(
 
                 log.info { "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, sakId: $sakId, eksternReferanseId: ${journalpost.eksternReferanseId}" }
 
-                if (dokumenter != null) {
+                if (!tittel.isNullOrBlank() || dokumenter != null) {
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
-                        OppdaterJournalpostRequest(dokumenter = dokumenter),
+                        OppdaterJournalpostRequest(
+                            tittel = tittel.takeUnless { it.isNullOrBlank() },
+                            dokumenter = dokumenter,
+                        ),
                     )
                 }
 
-                nyJournalpostId
+                JournalpostFerdigstilt(nyJournalpostId, hoveddokumentTittel)
             }
 
             else -> error("Kan ikke ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId")

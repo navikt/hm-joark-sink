@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.domain.joark.JournalpostSak
 import no.nav.hjelpemidler.domain.joark.isFagsaksystemHotsak
 import no.nav.hjelpemidler.domain.kodeverk.Fagsaksystem
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.tilgang.UtførtAvId
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.joark.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost.IncomingMessage
 import no.nav.hjelpemidler.kafka.KafkaEvent
@@ -61,10 +62,11 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val fnrBruker = message.fnrBruker
         val nyJournalpostId = journalpostService.ferdigstillJournalpost(
             journalpostId = journalpostId,
-            journalførendeEnhet = message.journalførendeEnhet,
+            tittel = message.tittel,
+            endredeDokumenter = message.endredeDokumenter,
             fnrBruker = fnrBruker,
             sak = sak,
-            endredeDokumenter = message.endredeDokumenter,
+            journalførendeEnhet = message.journalførendeEnhet,
         )
 
         if (sak is JournalpostSak.GenerellSak) {
@@ -85,30 +87,37 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             key = fnrBruker.toString(),
             message = OutgoingMessage(
                 journalpostId = journalpostId,
-                nyJournalpostId = nyJournalpostId,
+                nyJournalpostId = nyJournalpostId.journalpostId,
+                hoveddokumentTittel = nyJournalpostId.hoveddokumentTittel,
                 fnrBruker = fnrBruker,
                 sakId = sak.fagsakId,
                 sak = sak,
                 journalførendeEnhet = message.journalførendeEnhet,
+                journalførtAv = message.journalførtAv,
                 oppgaveId = oppgaveId,
                 oppgavegrunnlagId = oppgavegrunnlagId,
             )
         )
     }
 
-    @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_NAME])
+    @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_EVENT_NAME])
     data class IncomingMessage(
         val journalpostId: String,
         @Deprecated("Byttes med dokumenter")
         val dokumentId: String?,
         @Deprecated("Byttes med dokumenter")
         val dokumenttittel: String?,
+        /**
+         * Tittel som beskriver journalposten samlet.
+         */
+        val tittel: String?,
         val dokumenter: List<EndretDokument>?,
         val fnrBruker: Fødselsnummer,
         @Deprecated("Byttes med sak")
         val sakId: String?,
         val sak: JournalpostSak?,
         val journalførendeEnhet: Enhetsnummer,
+        val journalførtAv: UtførtAvId?,
         /**
          * Id for journalføringsoppgaven.
          */
@@ -126,7 +135,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
 
         companion object {
             const val EVENT_NAME = "hm-journalpost-journalført"
-            const val ALTERNATIVE_NAME = "hm-journalpost-journalført-ekstern-sak"
+            const val ALTERNATIVE_EVENT_NAME = "hm-journalpost-journalført-ekstern-sak"
         }
     }
 
@@ -134,11 +143,13 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     data class OutgoingMessage(
         val journalpostId: String,
         val nyJournalpostId: String,
+        val hoveddokumentTittel: String?,
         val fnrBruker: Fødselsnummer,
         @Deprecated("Byttes med sak")
         val sakId: String,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
+        val journalførtAv: UtførtAvId?,
         /**
          * Id for journalføringsoppgaven.
          */

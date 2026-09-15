@@ -6,7 +6,7 @@ import io.mockk.coEvery
 import io.mockk.slot
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.år
-import no.nav.hjelpemidler.joark.dokarkiv.models.JournalpostOpprettet
+import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.SaksnotatOpprettetMessage
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
