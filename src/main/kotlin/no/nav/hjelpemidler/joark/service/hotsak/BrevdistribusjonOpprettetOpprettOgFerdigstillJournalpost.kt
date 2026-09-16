@@ -7,7 +7,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.joark.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.domain.Språkkode
-import no.nav.hjelpemidler.joark.domain.brevkodeForEttersendelse
+import no.nav.hjelpemidler.joark.domain.navSkjemaEttersendelseByDokumenttype
 import no.nav.hjelpemidler.joark.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.service.JournalpostService
 import no.nav.hjelpemidler.kafka.KafkaEvent
@@ -116,11 +116,13 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
             )
         }
 
-        val fysiskDokument = when (val brevkode = brevkodeForEttersendelse[dokumenttype]) {
-            null -> packet.fysiskDokument
-            else -> journalpostService.genererFørsteside(packet.dokumenttittel, fnrBruker, packet.fysiskDokument) {
+        val navSkjemaEttersendelse = navSkjemaEttersendelseByDokumenttype[dokumenttype]
+        val fysiskDokument = if (navSkjemaEttersendelse == null) {
+            packet.fysiskDokument
+        } else {
+            journalpostService.genererFørsteside(packet.dokumenttittel, fnrBruker, packet.fysiskDokument) {
                 this.språkkode = packet.språkkode
-                this.brevkode = brevkode
+                this.navSkjema = navSkjemaEttersendelse
             }
         }
 

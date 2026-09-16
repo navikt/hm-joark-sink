@@ -43,7 +43,7 @@ class OpprettJournalpostRequestConfigurer(
         }
         dokumenter.add(
             Dokument(
-                brevkode = dokumenttype.brevkode,
+                brevkode = dokumenttype.kode,
                 dokumentvarianter = varianter,
                 tittel = dokumenttittel ?: dokumenttype.dokumenttittel,
             )

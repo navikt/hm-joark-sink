@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.pdf
 
+import no.nav.hjelpemidler.domain.kodeverk.NavSkjema
 import no.nav.hjelpemidler.joark.domain.Språkkode
 import no.nav.hjelpemidler.joark.førstesidegenerator.models.Adresse
 import no.nav.hjelpemidler.joark.førstesidegenerator.models.Bruker
@@ -13,7 +14,7 @@ class OpprettFørstesideRequestConfigurer(
 ) {
     var språkkode: Språkkode = Språkkode.NB
     var adresse: Adresse = defaultAdresse
-    var brevkode: String? = null
+    var navSkjema: NavSkjema? = null
     var arkivtittel: String? =
         "Briller til barn: Ettersendelse" // TODO Midlertidig hardkodet til problemene i hm-saksbehandling er løst. På grunn av litt ustabil oppførsel, er det litt risikabelt å prodsette nye endringer på hm-saksbehandling. Når det er løst, kan arkivtittel leses fra et eget felt i kafka meldingen
     var enhetsnummer: String? = null
@@ -30,7 +31,7 @@ class OpprettFørstesideRequestConfigurer(
         behandlingstema = null,
         arkivtittel = arkivtittel,
         vedleggsliste = vedlegg[språkkode],
-        navSkjemaId = brevkode,
+        navSkjemaId = navSkjema?.kode,
         dokumentlisteFoersteside = vedlegg[språkkode],
         enhetsnummer = enhetsnummer,
     )

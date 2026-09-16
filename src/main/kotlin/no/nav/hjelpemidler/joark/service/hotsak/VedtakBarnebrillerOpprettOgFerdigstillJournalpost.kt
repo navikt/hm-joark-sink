@@ -36,13 +36,13 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                     "saksnummer",
                     "fnrBruker",
                     "opprettet",
-                    "pdf"
+                    "pdf",
+                    "vedtaksstatus",
                 )
                 it.interestedIn(
                     "brevId",
                     "brevdistribusjonId",
                     "brevsendingId",
-                    "vedtaksstatus",
                     "opprettetAv",
                 ) // todo -> fjern "brevsendingId" på sikt
             }
@@ -82,12 +82,11 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
                 "brevsendingId" to data.brevsendingId,
             )
         }
-        val dokumenttype =
-            when (packet.vedtaksstatus) {
-                Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
-                Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
-                null -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK
-            }
+        val dokumenttype = when (packet.vedtaksstatus) {
+            Vedtaksstatus.INNVILGET -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_INNVILGELSE
+            Vedtaksstatus.AVSLÅTT -> Dokumenttype.VEDTAKSBREV_BARNEBRILLER_HOTSAK_AVSLAG
+            else -> error("Ukjent vedtaksstatus: ${packet.vedtaksstatus}, sakId: ${data.sakId}")
+        }
 
         try {
             val journalpostId = journalpostService.opprettUtgåendeJournalpost(

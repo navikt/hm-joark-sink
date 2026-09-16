@@ -80,7 +80,7 @@ class JournalpostService(
     ): ByteArray {
         val lagRequest = OpprettFørstesideRequestConfigurer(tittel, fnrBruker).apply(block)
 
-        log.info { "Lager førsteside til dokument, tittel: '${lagRequest.tittel}', brevkode: ${lagRequest.brevkode}" }
+        log.info { "Lager førsteside til dokument, tittel: '${lagRequest.tittel}', brevkode: ${lagRequest.navSkjema}" }
 
         val førsteside = førstesidegeneratorClient.lagFørsteside(lagRequest())
 
