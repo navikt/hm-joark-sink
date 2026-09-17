@@ -4,14 +4,14 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.mockk.mockk
 import io.mockk.slot
-import no.nav.hjelpemidler.joark.dokarkiv.DokarkivClient
-import no.nav.hjelpemidler.joark.dokarkiv.models.OpprettJournalpostRequest
-import no.nav.hjelpemidler.joark.pdf.FørstesidegeneratorClient
-import no.nav.hjelpemidler.joark.pdf.PdfGeneratorClient
-import no.nav.hjelpemidler.joark.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.pdf.SøknadPdfGeneratorClient
-import no.nav.hjelpemidler.joark.service.JournalpostService
-import no.nav.hjelpemidler.saf.SafClient
+import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.saf.SafClient
+import no.nav.hjelpemidler.joark.sink.service.JournalpostService
 import no.nav.hjelpemidler.serialization.jackson.valueToJson
 import kotlin.random.Random
 

@@ -1,0 +1,102 @@
+package no.nav.hjelpemidler.joark.sink
+
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.engine.cio.CIO
+import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
+import no.nav.hjelpemidler.http.openid.TexasClient
+import no.nav.hjelpemidler.joark.sink.brev.BrevService
+import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.saf.SafClient
+import no.nav.hjelpemidler.joark.sink.service.JournalpostService
+import no.nav.hjelpemidler.joark.sink.service.OpprettJournalpostSøknadFordeltGammelFlyt
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.FeilregistrerJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebrillerAvvisning
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.ResendJournalpostBarnebriller
+import no.nav.hjelpemidler.joark.sink.service.hotsak.BestillingAvvistOppdaterJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.JournalpostJournalførtOppdaterOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SakAnnulert
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SakOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatOverstyrInnsynForJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.VedtakBarnebrillerOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.rapids_and_rivers.register
+
+private val log = KotlinLogging.logger {}
+
+fun main() {
+    TILLAT_SYNTETISKE_FØDSELSNUMRE = !Environment.current.isProd
+
+    log.info { "Gjeldende miljø: ${Environment.current}, eventName: ${Configuration.EVENT_NAME}, TILLAT_SYNTETISKE_FØDSELSNUMRE: $TILLAT_SYNTETISKE_FØDSELSNUMRE" }
+
+    // Clients
+    val engine = CIO.create()
+    val texasClient = TexasClient(engine)
+    val dokarkivClient = DokarkivClient(
+        engine,
+        tokenSetProvider = texasClient.entraIdApplication(Configuration.JOARK_SCOPE)
+    )
+    val førstesidegeneratorClient = FørstesidegeneratorClient(
+        engine,
+        tokenSetProvider = texasClient.entraIdApplication(Configuration.FORSTESIDEGENERATOR_SCOPE)
+    )
+    val safClient = SafClient(
+        engine,
+        tokenSetProvider = texasClient.entraIdApplication(Configuration.SAF_SCOPE)
+    )
+    val søknadApiClient = SøknadApiClient(
+        engine,
+        tokenSetProvider = texasClient.entraIdApplication(Configuration.SOKNAD_API_SCOPE),
+    )
+
+    val pdfGeneratorClient = PdfGeneratorClient(engine)
+    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
+
+    // Services
+    val journalpostService = JournalpostService(
+        dokarkivClient = dokarkivClient,
+        førstesidegeneratorClient = førstesidegeneratorClient,
+        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
+        pdfGeneratorClient = pdfGeneratorClient,
+        safClient = safClient,
+        søknadApiClient = søknadApiClient,
+    )
+    val brevService = BrevService(
+        pdfGeneratorClient = pdfGeneratorClient,
+    )
+
+    RapidApplication.create(no.nav.hjelpemidler.configuration.Configuration)
+        .apply {
+            OpprettJournalpostSøknadFordeltGammelFlyt(this, journalpostService)
+
+            // Hotsak
+            BestillingAvvistOppdaterJournalpost(this, journalpostService)
+            BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            register(JournalpostJournalførtOppdaterOgFerdigstillJournalpost(journalpostService))
+            SakAnnulert(this, journalpostService)
+            SakOpprettetOpprettOgFerdigstillJournalpost(this, journalpostService)
+            SakOverførtGosysFeilregistrerOgErstattJournalpost(this, journalpostService)
+
+            // Saksnotater
+            register(SaksnotatFeilregistrertFeilregistrerJournalpost(journalpostService))
+            register(SaksnotatOpprettetOpprettOgFerdigstillJournalpost(journalpostService))
+            register(SaksnotatOverstyrInnsynForJournalpost(journalpostService))
+
+            // Barnebriller
+            FeilregistrerJournalpostBarnebriller(this, journalpostService)
+            OpprettOgFerdigstillJournalpostBarnebriller(this, journalpostService)
+            OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
+            ResendJournalpostBarnebriller(this, journalpostService)
+            VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
+        }
+        .start()
+}

@@ -3,8 +3,9 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
-import no.nav.hjelpemidler.joark.domain.Dokumenttype
-import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
+import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured

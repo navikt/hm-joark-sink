@@ -5,6 +5,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.fullPath
 import kotlinx.coroutines.test.runTest
+import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
 import kotlin.test.Test
 
 class PdfGeneratorClientTest {

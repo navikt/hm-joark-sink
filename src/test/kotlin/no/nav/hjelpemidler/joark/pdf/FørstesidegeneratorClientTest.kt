@@ -8,6 +8,10 @@ import io.ktor.http.fullPath
 import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.http.openid.TokenSet
 import no.nav.hjelpemidler.http.openid.TokenSetProvider
+import no.nav.hjelpemidler.joark.sink.pdf.FørstesideResponse
+import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideRequestConfigurer
+import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideResponse
 import no.nav.hjelpemidler.joark.test.respondJson
 import kotlin.test.Test
 import kotlin.test.fail

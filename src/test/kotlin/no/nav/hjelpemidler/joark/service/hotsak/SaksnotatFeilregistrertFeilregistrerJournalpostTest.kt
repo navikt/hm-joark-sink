@@ -6,7 +6,8 @@ import io.mockk.Called
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.verify
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.SaksnotatFeilregistrertMessage
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatFeilregistrertFeilregistrerJournalpost.SaksnotatFeilregistrertMessage
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.rapids_and_rivers.register
 import java.util.UUID

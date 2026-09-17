@@ -1,0 +1,410 @@
+package no.nav.hjelpemidler.joark.sink.service
+
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.core.asEnum
+import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
+import no.nav.hjelpemidler.domain.joark.EndretDokument
+import no.nav.hjelpemidler.domain.joark.JournalpostSak
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.http.withCorrelationId
+import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
+import no.nav.hjelpemidler.joark.sink.dokarkiv.OpprettJournalpostRequestConfigurer
+import no.nav.hjelpemidler.joark.sink.dokarkiv.avsenderMottakerMedFnr
+import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerMedFnr
+import no.nav.hjelpemidler.joark.sink.dokarkiv.generellSak
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.DokumentInfo
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.FerdigstillJournalpostRequest
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.KnyttTilAnnenSakRequest
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OppdaterJournalpostRequest
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
+import no.nav.hjelpemidler.joark.sink.domain.JournalpostFerdigstilt
+import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
+import no.nav.hjelpemidler.joark.sink.domain.Sakstype
+import no.nav.hjelpemidler.joark.sink.domain.Vedlegg
+import no.nav.hjelpemidler.joark.sink.domain.VedleggMetadata
+import no.nav.hjelpemidler.joark.sink.metrics.Prometheus
+import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideRequestConfigurer
+import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
+import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
+import no.nav.hjelpemidler.joark.sink.saf.SafClient
+import no.nav.hjelpemidler.joark.sink.saf.enums.Journalstatus
+import no.nav.hjelpemidler.joark.sink.saf.enums.Tema
+import no.nav.hjelpemidler.joark.sink.saf.hentjournalpost.Journalpost
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.JournalpostBarnebrillevedtakData
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import java.time.LocalDateTime
+import java.util.UUID
+
+private val log = KotlinLogging.logger {}
+
+class JournalpostService(
+    private val dokarkivClient: DokarkivClient,
+    private val førstesidegeneratorClient: FørstesidegeneratorClient,
+    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
+    private val pdfGeneratorClient: PdfGeneratorClient,
+    private val safClient: SafClient,
+    private val søknadApiClient: SøknadApiClient,
+) {
+    suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
+
+    suspend fun hentBehovsmeldingVedleggPdfer(
+        behovsmeldingId: UUID,
+        vedleggMetadata: List<VedleggMetadata>,
+    ): List<Vedlegg> {
+        return vedleggMetadata.map { metadata ->
+            val pdf = søknadApiClient.hentVedleggPdf(behovsmeldingId, metadata.id)
+            metadata.tilVedlegg(pdf)
+        }
+    }
+
+
+    suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
+        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
+            jsonMapper.writeValueAsString(data),
+        )
+
+        Prometheus.pdfGenerertCounter.increment()
+
+        return fysiskDokument
+    }
+
+    suspend fun genererFørsteside(
+        tittel: String,
+        fnrBruker: String,
+        dokument: ByteArray,
+        block: OpprettFørstesideRequestConfigurer.() -> Unit = {},
+    ): ByteArray {
+        val lagRequest = OpprettFørstesideRequestConfigurer(tittel, fnrBruker).apply(block)
+
+        log.info { "Lager førsteside til dokument, tittel: '${lagRequest.tittel}', brevkode: ${lagRequest.navSkjema}" }
+
+        val førsteside = førstesidegeneratorClient.lagFørsteside(lagRequest())
+
+        return pdfGeneratorClient.kombinerPdf(dokument, førsteside.fysiskDokument)
+    }
+
+    suspend fun opprettInngåendeJournalpost(
+        fnrAvsender: String,
+        fnrBruker: String = fnrAvsender,
+        dokumenttype: Dokumenttype,
+        eksternReferanseId: String,
+        forsøkFerdigstill: Boolean = false,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ) = withCorrelationId {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker,
+            fnrAvsenderMottaker = fnrAvsender,
+            dokumenttype = dokumenttype,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
+            eksternReferanseId = eksternReferanseId
+        ).apply(block)
+
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = forsøkFerdigstill,
+        )
+
+        val journalpostId = journalpost.journalpostId
+        val ferdigstilt = journalpost.ferdigstilt
+        val datoMottatt = lagOpprettJournalpostRequest.datoMottatt
+
+        log.info {
+            "Inngående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt, datoMottatt: $datoMottatt"
+        }
+
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
+
+        journalpost
+    }
+
+    suspend fun opprettUtgåendeJournalpost(
+        fnrMottaker: String,
+        fnrBruker: String = fnrMottaker,
+        dokumenttype: Dokumenttype,
+        eksternReferanseId: String,
+        forsøkFerdigstill: Boolean = false,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ): String = withCorrelationId {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker,
+            fnrAvsenderMottaker = fnrMottaker,
+            dokumenttype = dokumenttype,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
+            eksternReferanseId = eksternReferanseId,
+        ).apply(block)
+
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = forsøkFerdigstill,
+            opprettetAv = lagOpprettJournalpostRequest.opprettetAv,
+        )
+
+        val journalpostId = journalpost.journalpostId
+
+        log.info {
+            "Utgående journalpost opprettet, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, ferdigstilt: ${journalpost.ferdigstilt}"
+        }
+
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
+
+        journalpostId
+    }
+
+    suspend fun opprettNotat(
+        fnrBruker: Fødselsnummer,
+        eksternReferanseId: String,
+        block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
+    ): JournalpostOpprettet = withCorrelationId {
+        val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
+            fnrBruker = fnrBruker.toString(),
+            fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
+            dokumenttype = Dokumenttype.NOTAT,
+            journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
+            eksternReferanseId = eksternReferanseId,
+        ).apply(block).apply {
+            kanal = null // Ref. dokumentasjon for OpprettJournalpostRequest: "Kanal skal ikke settes for notater"
+        }
+
+        val journalpost = dokarkivClient.opprettJournalpost(
+            opprettJournalpostRequest = lagOpprettJournalpostRequest(),
+            forsøkFerdigstill = true,
+            opprettetAv = lagOpprettJournalpostRequest.opprettetAv,
+        )
+
+        val journalpostId = journalpost.journalpostId
+        val dokumentIder = journalpost.dokumentIder
+        val ferdigstilt = journalpost.ferdigstilt
+
+        log.info {
+            "Notat opprettet, journalpostId: $journalpostId, dokumentIder: $dokumentIder, eksternReferanseId: $eksternReferanseId, ferdigstilt: $ferdigstilt"
+        }
+
+        Prometheus.opprettetOgFerdigstiltJournalpostCounter.increment()
+
+        journalpost
+    }
+
+    suspend fun arkiverBehovsmelding(
+        fnrBruker: String,
+        behovsmeldingId: UUID,
+        sakstype: Sakstype,
+        dokumenttittel: String,
+        eksternReferanseId: String,
+        datoMottatt: LocalDateTime? = null,
+        vedleggMetadata: List<VedleggMetadata>,
+    ): String = withCorrelationId {
+        log.info {
+            "Arkiverer søknad, søknadId: $behovsmeldingId, sakstype: $sakstype, eksternReferanseId: $eksternReferanseId, datoMottatt: $datoMottatt"
+        }
+
+        val behovsmeldingPdf = hentBehovsmeldingPdf(behovsmeldingId)
+        val vedlegg = hentBehovsmeldingVedleggPdfer(behovsmeldingId, vedleggMetadata)
+        val journalpostId = opprettInngåendeJournalpost(
+            fnrAvsender = fnrBruker,
+            dokumenttype = sakstype.dokumenttype,
+            eksternReferanseId = eksternReferanseId,
+            forsøkFerdigstill = false,
+        ) {
+            dokument(
+                fysiskDokument = behovsmeldingPdf,
+                dokumenttittel = dokumenttittel,
+            )
+            this.datoMottatt = datoMottatt
+            this.journalførendeEnhet = null
+
+            // Vedlegg. Må ligge etter hoveddokumentet i listen med dokumenter. Ref: Joark doc (https://confluence.adeo.no/spaces/BOA/pages/313346837/opprettJournalpost#opprettJournalpost-Payload%3A)
+            vedlegg.forEach {
+                dokument(
+                    fysiskDokument = it.pdf,
+                    dokumenttittel = it.navn,
+                )
+            }
+        }.journalpostId
+
+        log.info {
+            "${sakstype.name} ble arkivert, id: $behovsmeldingId, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId"
+        }
+
+        Prometheus.søknadArkivertCounter.increment()
+
+        journalpostId
+    }
+
+    suspend fun feilregistrerSakstilknytning(journalpostId: String) =
+        withCorrelationId {
+            log.info { "Feilregistrerer sakstilknytning for journalpostId: $journalpostId" }
+            dokarkivClient.feilregistrerSakstilknytning(journalpostId)
+            Prometheus.feilregistrerteSakstilknytningForJournalpostCounter.increment()
+        }
+
+    /**
+     * Brukes når vi vil at videre behandling av journalpost skal skje i Gosys / Infotrygd.
+     */
+    suspend fun kopierJournalpost(
+        kildeJournalpostId: String,
+        nyEksternReferanseId: String,
+    ): String? = withCorrelationId {
+        val nyJournalpostId = dokarkivClient.kopierJournalpost(kildeJournalpostId, nyEksternReferanseId)
+        log.info {
+            "Kopierte journalpost med journalpostId: $kildeJournalpostId, nyJournalpostId: $nyJournalpostId, nyEksternReferanseId: $nyEksternReferanseId"
+        }
+        nyJournalpostId
+    }
+
+    suspend fun leggTilPrefiksITitler(journalpostId: String, prefiks: String): String = withCorrelationId {
+        log.info {
+            "Legger til prefiks på tittel og dokumenttitler, journalpostId: $journalpostId, prefiks: '$prefiks'"
+        }
+
+        val journalpost = hentJournalpost(journalpostId)
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+            tittel = journalpost.tittel?.let { "$prefiks$it" },
+            dokumenter = journalpost.dokumenter?.mapNotNull { dokument ->
+                val dokumentInfoId = dokument?.dokumentInfoId ?: return@mapNotNull null
+                DokumentInfo(dokumentInfoId, dokument.brevkode, tittel = dokument.tittel?.let { "$prefiks$it" })
+            })
+        val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+
+        oppdaterJournalpostResponse.journalpostId
+    }
+
+    suspend fun overstyrInnsynForBruker(journalpostId: String) = withCorrelationId {
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+            overstyrInnsynsregler = "VISES_MASKINELT_GODKJENT"
+        )
+        dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
+    }
+
+    suspend fun ferdigstillJournalpost(
+        journalpostId: String,
+        tittel: String?,
+        endredeDokumenter: List<EndretDokument>?,
+        fnrBruker: Fødselsnummer,
+        sak: JournalpostSak,
+        journalførendeEnhet: Enhetsnummer,
+    ): JournalpostFerdigstilt {
+        val journalpost = hentJournalpost(journalpostId)
+        val journalstatus = journalpost.journalstatus
+        val eksternReferanseId = journalpost.eksternReferanseId
+
+        log.info {
+            "Ferdigstiller journalpost, journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: '${journalpost.tittel}', eksternReferanseId: $eksternReferanseId, $sak"
+        }
+
+        val dokumenter = endredeDokumenter
+            ?.map(EndretDokument::tilDokumentInfo)
+            ?.filterNot { it.tittel.isNullOrBlank() }
+
+        val hoveddokumentTittel = dokumenter?.firstOrNull()?.tittel
+            ?: journalpost.dokumenter?.firstOrNull()?.tittel
+
+        return when (journalstatus) {
+            Journalstatus.MOTTATT -> {
+                dokarkivClient.oppdaterJournalpost(
+                    journalpostId = journalpostId,
+                    oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+                        tema = Tema.HJE.toString(),
+                        tittel = tittel.takeUnless { it.isNullOrBlank() },
+                        dokumenter = dokumenter,
+                        bruker = brukerMedFnr(fnrBruker.toString()),
+                        avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
+                        sak = sak.tilSak(),
+                    ),
+                )
+
+                endredeDokumenter?.forEach {
+                    dokarkivClient.oppdaterLogiskeVedlegg(it.dokumentId, it.annetInnhold)
+                }
+
+                dokarkivClient.ferdigstillJournalpost(
+                    journalpostId = journalpostId,
+                    ferdigstillJournalpostRequest = FerdigstillJournalpostRequest(
+                        journalfoerendeEnhet = journalførendeEnhet.toString(),
+                    ),
+                )
+
+                JournalpostFerdigstilt(
+                    journalpostId = journalpostId,
+                    nyJournalpostId = journalpostId,
+                    hoveddokumentTittel = hoveddokumentTittel,
+                    fnrBruker = fnrBruker,
+                    sak = sak,
+                    journalførendeEnhet = journalførendeEnhet
+                )
+            }
+
+            Journalstatus.FEILREGISTRERT,
+            Journalstatus.FERDIGSTILT,
+            Journalstatus.JOURNALFOERT,
+                -> {
+                log.info {
+                    "Journalpost har journalstatus: $journalstatus, knytter til annen sak, journalpostId: $journalpostId, eksternReferanseId: $eksternReferanseId, $sak"
+                }
+
+                val knyttTilAnnenSakResponse = dokarkivClient.knyttTilAnnenSak(
+                    journalpostId = journalpostId,
+                    knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
+                        tema = Tema.HJE.toString(),
+                        bruker = brukerMedFnr(fnrBruker.toString()),
+                        fagsakId = (sak as? JournalpostSak.Fagsak)?.fagsakId,
+                        fagsaksystem = (sak as? JournalpostSak.Fagsak)?.fagsaksystem?.name,
+                        sakstype = sak.sakstype.asEnum(),
+                        journalfoerendeEnhet = journalførendeEnhet.toString(),
+                    ),
+                )
+
+                val nyJournalpostId = checkNotNull(knyttTilAnnenSakResponse.nyJournalpostId) {
+                    "Mottok ikke nyJournalpostId etter å ha knyttet journalpostId: $journalpostId til sak, eksternReferanseId: $eksternReferanseId, $sak"
+                }.toString()
+
+                log.info {
+                    "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, eksternReferanseId: $eksternReferanseId, $sak"
+                }
+
+                if (!tittel.isNullOrBlank() || dokumenter != null) {
+                    dokarkivClient.oppdaterJournalpost(
+                        nyJournalpostId,
+                        OppdaterJournalpostRequest(
+                            tittel = tittel.takeUnless { it.isNullOrBlank() },
+                            dokumenter = dokumenter,
+                        ),
+                    )
+                }
+
+                JournalpostFerdigstilt(
+                    journalpostId = journalpostId,
+                    nyJournalpostId = nyJournalpostId,
+                    hoveddokumentTittel = hoveddokumentTittel,
+                    fnrBruker = fnrBruker,
+                    sak = sak,
+                    journalførendeEnhet = journalførendeEnhet
+                )
+            }
+
+            else -> error("Kan ikke ferdigstille journalpost med journalstatus: $journalstatus, journalpostId: $journalpostId, $sak")
+        }
+    }
+
+    private suspend fun hentJournalpost(journalpostId: String): Journalpost =
+        checkNotNull(safClient.hentJournalpost(journalpostId)) {
+            "Fant ikke journalpost med journalpostId: $journalpostId"
+        }
+}
+
+private fun JournalpostSak.tilSak(): Sak = when (this) {
+    is JournalpostSak.Fagsak -> Sak(
+        fagsakId = fagsakId,
+        fagsaksystem = fagsaksystem.asEnum(),
+        sakstype = sakstype.asEnum(),
+    )
+    is JournalpostSak.GenerellSak -> generellSak()
+}
+
+private fun EndretDokument.tilDokumentInfo(): DokumentInfo = DokumentInfo(
+    dokumentInfoId = dokumentId,
+    tittel = tittel,
+)

@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 
 import io.mockk.coEvery
 import io.mockk.coVerify
+import no.nav.hjelpemidler.joark.sink.service.barnebriller.FeilregistrerJournalpostBarnebriller
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import java.time.LocalDateTime
 import java.util.UUID

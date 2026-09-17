@@ -6,8 +6,9 @@ import io.mockk.coEvery
 import io.mockk.slot
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.år
-import no.nav.hjelpemidler.joark.domain.JournalpostOpprettet
-import no.nav.hjelpemidler.joark.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.SaksnotatOpprettetMessage
+import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SaksnotatOpprettetOpprettOgFerdigstillJournalpost.SaksnotatOpprettetMessage
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured

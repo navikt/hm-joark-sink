@@ -2,7 +2,8 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import no.nav.hjelpemidler.joark.domain.Sakstype
+import no.nav.hjelpemidler.joark.sink.domain.Sakstype
+import no.nav.hjelpemidler.joark.sink.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime

@@ -11,7 +11,7 @@ plugins {
 
 application {
     applicationName = "hm-joark-sink"
-    mainClass.set("no.nav.hjelpemidler.joark.ApplicationKt")
+    mainClass = "no.nav.hjelpemidler.joark.sink.ApplicationKt"
 }
 
 dependencies {
@@ -61,10 +61,14 @@ graphql {
     client {
         schemaFile = file("src/main/resources/saf/saf-api-sdl.graphqls")
         queryFileDirectory = "src/main/resources/saf"
-        packageName = "no.nav.hjelpemidler.saf"
+        packageName = "no.nav.hjelpemidler.joark.sink.saf"
         customScalars = listOf(
-            GraphQLScalar("Date", "java.time.LocalDate", "no.nav.hjelpemidler.saf.DateScalarConverter"),
-            GraphQLScalar("DateTime", "java.time.LocalDateTime", "no.nav.hjelpemidler.saf.DateTimeScalarConverter"),
+            GraphQLScalar("Date", "java.time.LocalDate", "no.nav.hjelpemidler.joark.sink.saf.DateScalarConverter"),
+            GraphQLScalar(
+                "DateTime",
+                "java.time.LocalDateTime",
+                "no.nav.hjelpemidler.joark.sink.saf.DateTimeScalarConverter"
+            ),
         )
         allowDeprecatedFields = true
     }
@@ -76,7 +80,7 @@ openApiGenerate {
     skipValidateSpec.set(true)
     inputSpec.set(layout.projectDirectory.file("src/main/resources/dokarkiv/openapi.yaml"))
     outputDir.set(openApiGenerated.map { it.dir("dokarkiv") })
-    packageName.set("no.nav.hjelpemidler.joark.dokarkiv")
+    packageName.set("no.nav.hjelpemidler.joark.sink.dokarkiv")
     globalProperties.set(
         mapOf(
             "apis" to "none",
@@ -101,7 +105,7 @@ val førstesidegenerator = tasks.register<GenerateTask>("førstesidegenerator") 
     skipValidateSpec.set(true)
     inputSpec.set(layout.projectDirectory.file("src/main/resources/førstesidegenerator/openapi.yaml"))
     outputDir.set(openApiGenerated.map { it.dir("førstesidegenerator") })
-    packageName.set("no.nav.hjelpemidler.joark.førstesidegenerator")
+    packageName.set("no.nav.hjelpemidler.joark.sink.førstesidegenerator")
     globalProperties.set(
         mapOf(
             "apis" to "none",

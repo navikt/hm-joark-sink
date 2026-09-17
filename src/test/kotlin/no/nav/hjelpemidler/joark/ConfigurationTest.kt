@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.joark
 
 import io.kotest.matchers.maps.shouldHaveKeys
 import no.nav.hjelpemidler.configuration.environmentVariablesIn
+import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.readValue
 import kotlin.io.path.Path
