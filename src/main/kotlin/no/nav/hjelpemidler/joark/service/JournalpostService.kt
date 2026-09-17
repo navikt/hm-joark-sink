@@ -255,16 +255,18 @@ class JournalpostService(
         nyJournalpostId
     }
 
-    suspend fun endreTittel(
-        journalpostId: String,
-        tittel: String,
-        dokumenter: List<DokumentInfo>,
-    ): String = withCorrelationId {
+    suspend fun leggTilPrefiksITitler(journalpostId: String, prefiks: String): String = withCorrelationId {
         log.info {
-            "Endrer tittel på journalpost med journalpostId: $journalpostId"
+            "Legger til prefiks på tittel og dokumenttitler, journalpostId: $journalpostId, prefiks: '$prefiks'"
         }
 
-        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(tittel = tittel, dokumenter = dokumenter)
+        val journalpost = hentJournalpost(journalpostId)
+        val oppdaterJournalpostRequest = OppdaterJournalpostRequest(
+            tittel = journalpost.tittel?.let { "$prefiks$it" },
+            dokumenter = journalpost.dokumenter?.mapNotNull { dokument ->
+                val dokumentInfoId = dokument?.dokumentInfoId ?: return@mapNotNull null
+                DokumentInfo(dokumentInfoId, dokument.brevkode, tittel = dokument.tittel?.let { "$prefiks$it" })
+            })
         val oppdaterJournalpostResponse = dokarkivClient.oppdaterJournalpost(journalpostId, oppdaterJournalpostRequest)
 
         oppdaterJournalpostResponse.journalpostId
