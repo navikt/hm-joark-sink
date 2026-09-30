@@ -223,6 +223,8 @@ class JournalpostService(
                     dokumenttittel = it.navn,
                 )
             }
+
+            tilleggsopplysninger("behovsmeldingId" to behovsmeldingId.toString())
         }.journalpostId
 
         log.info {

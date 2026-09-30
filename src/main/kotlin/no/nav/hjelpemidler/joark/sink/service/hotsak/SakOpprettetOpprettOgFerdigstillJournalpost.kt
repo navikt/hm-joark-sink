@@ -69,6 +69,9 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                     dokumenttittel = data.dokumentTittel
                 )
                 hotsak(data.sakId)
+                tilleggsopplysninger(
+                    "behovsmeldingId" to data.soknadId.toString(),
+                )
             }.journalpostId
 
             context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))
