@@ -408,5 +408,5 @@ private fun JournalpostSak.tilSak(): Sak = when (this) {
 
 private fun EndretDokument.tilDokumentInfo(): DokumentInfo = DokumentInfo(
     dokumentInfoId = dokumentId,
-    tittel = tittel,
+    tittel = tittel.trim(),
 )
