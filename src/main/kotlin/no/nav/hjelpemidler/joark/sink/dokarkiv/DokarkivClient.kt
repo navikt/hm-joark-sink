@@ -95,7 +95,7 @@ class DokarkivClient(
         val journalpost: OpprettJournalpostResponse = when (response.status) {
             HttpStatusCode.Created -> response.body()
             HttpStatusCode.Conflict -> {
-                // skjer ved opprettelse av ny journalpost med samme eksternReferanseId
+                // skjer ved opprettelse av ny journalpost med samme eksternReferanseId. OBS: denne er viktig for underveis brev som kan sende repeterende meldinger hvis feks Joark er nede
                 log.warn { "Duplikatvarsel ved opprettelse av journalpost, eksternReferanseId: $eksternReferanseId" }
                 response.body()
             }
