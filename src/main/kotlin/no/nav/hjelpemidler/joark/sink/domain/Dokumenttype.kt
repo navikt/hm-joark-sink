@@ -48,6 +48,14 @@ enum class Dokumenttype(
         kode = "vedtaksbrev_hotsak_breveditor",
         dokumenttittel = "Vedtak for søknad om hjelpemidler",
     ),
+    BREVEDITOR_SVARTIDSBREV(
+        kode = "svartidsbrev_hotsak_breveditor",
+        dokumenttittel = "Brev om forventet saksbehandlingstid",
+    ),
+    BREVEDITOR_INNHENTE_OPPLYSNINGER(
+        kode = "innhente_opplysninger_hotsak_breveditor",
+        dokumenttittel = "Brev om etterspørsel av opplysninger",
+    )
     ;
 
     constructor(skjema: NavSkjema, dokumenttittel: String = skjema.beskrivelse) : this(
