@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.joark.sink.service.hotsak
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -9,7 +8,6 @@ import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
 import no.nav.hjelpemidler.domain.joark.EndretDokument
 import no.nav.hjelpemidler.domain.joark.JournalpostSak
 import no.nav.hjelpemidler.domain.joark.isFagsaksystemHotsak
-import no.nav.hjelpemidler.domain.kodeverk.Fagsaksystem
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.tilgang.UtførtAvId
 import no.nav.hjelpemidler.joark.sink.service.JournalpostService
@@ -50,12 +48,10 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val journalpostFerdigstilt = journalpostService.ferdigstillJournalpost(
             journalpostId = message.journalpostId,
             tittel = message.tittel,
-            endredeDokumenter = message.endredeDokumenter,
+            endredeDokumenter = message.dokumenter,
             fnrBruker = message.fnrBruker,
-            sak = message.sak ?: JournalpostSak.Fagsak(
-                fagsakId = message.sakId ?: error("Mangler sakId for journalføring, $message"),
-                fagsaksystem = Fagsaksystem.HJELPEMIDLER,
-            ),
+            sak = message.sak,
+            søknadId = message.søknadId,
             journalførendeEnhet = message.journalførendeEnhet,
         )
 
@@ -87,19 +83,13 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
     @KafkaEvent(IncomingMessage.EVENT_NAME, alternativeNames = [IncomingMessage.ALTERNATIVE_EVENT_NAME])
     data class IncomingMessage(
         val journalpostId: String,
-        @Deprecated("Byttes med dokumenter")
-        val dokumentId: String?,
-        @Deprecated("Byttes med dokumenter")
-        val dokumenttittel: String?,
         /**
          * Tittel som beskriver journalposten samlet.
          */
         val tittel: String?,
         val dokumenter: List<EndretDokument>?,
         val fnrBruker: Fødselsnummer,
-        @Deprecated("Byttes med sak")
-        val sakId: String?,
-        val sak: JournalpostSak?,
+        val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
         val journalførtAv: UtførtAvId?,
         /**
@@ -107,21 +97,14 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
          */
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
+        /**
+         * Id for søknad generert i Hotsak ved opprettelse av sak.
+         */
+        val søknadId: UUID?,
         override val eventId: UUID,
     ) : KafkaMessage {
-        val endredeDokumenter
-            @JsonIgnore
-            get() = if (dokumentId == null || dokumenttittel == null) {
-                dokumenter
-            } else {
-                listOf(EndretDokument(dokumentId, dokumenttittel))
-            }
-
-        override fun toString(): String = if (sak == null) {
-            "journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId, sakId: $sakId"
-        } else {
-            "journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId, $sak"
-        }
+        override fun toString(): String =
+            "journalpostId: $journalpostId, journalførendeEnhet: $journalførendeEnhet, oppgaveId: $oppgaveId, oppgavegrunnlagId: $oppgavegrunnlagId, søknadId: $søknadId, $sak"
 
         companion object {
             const val EVENT_NAME = "hm-journalpost-journalført"
@@ -135,7 +118,6 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val nyJournalpostId: String,
         val hoveddokumentTittel: String?,
         val fnrBruker: Fødselsnummer,
-        @Deprecated("Byttes med sak")
         val sakId: String,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,

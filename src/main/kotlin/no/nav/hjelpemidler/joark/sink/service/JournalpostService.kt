@@ -18,6 +18,7 @@ import no.nav.hjelpemidler.joark.sink.dokarkiv.models.KnyttTilAnnenSakRequest
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OppdaterJournalpostRequest
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Sak
+import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Tilleggsopplysning
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.JournalpostFerdigstilt
 import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
@@ -287,6 +288,7 @@ class JournalpostService(
         endredeDokumenter: List<EndretDokument>?,
         fnrBruker: Fødselsnummer,
         sak: JournalpostSak,
+        søknadId: UUID?,
         journalførendeEnhet: Enhetsnummer,
     ): JournalpostFerdigstilt {
         val journalpost = hentJournalpost(journalpostId)
@@ -315,6 +317,9 @@ class JournalpostService(
                         bruker = brukerMedFnr(fnrBruker.toString()),
                         avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
                         sak = sak.tilSak(),
+                        tilleggsopplysninger = søknadId?.let {
+                            listOf(Tilleggsopplysning("søknadId", it.toString()))
+                        }
                     ),
                 )
 
