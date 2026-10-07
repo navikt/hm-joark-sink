@@ -225,7 +225,10 @@ class JournalpostService(
                 )
             }
 
-            tilleggsopplysninger("behovsmeldingId" to behovsmeldingId.toString())
+            tilleggsopplysninger(
+                "behovsmeldingId" to behovsmeldingId.toString(),
+                "sakstype" to sakstype.toString(),
+            )
         }.journalpostId
 
         log.info {

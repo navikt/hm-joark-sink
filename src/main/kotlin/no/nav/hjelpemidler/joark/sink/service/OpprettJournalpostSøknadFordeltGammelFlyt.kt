@@ -36,19 +36,20 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
         val data: BehovsmeldingData = jsonToValue(packet.toJson())
 
-        if (data.behovsmeldingId in skip) {
-            log.warn { "Hopper over søknad med søknadId: ${data.behovsmeldingId}" }
+        val behovsmeldingId = data.behovsmeldingId
+        if (behovsmeldingId in skip) {
+            log.warn { "Hopper over behovsmelding, id: $behovsmeldingId" }
             return
         }
 
         log.info {
-            "Søknad til arkivering mottatt, søknadId: ${data.behovsmeldingId}, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}, vedlegg: ${data.vedleggMetadata}"
+            "Søknad til arkivering mottatt, søknadId: $behovsmeldingId, sakstype: ${data.sakstype}, dokumenttittel: ${data.behovsmeldingGjelder}, erHast: ${data.erHast}, vedlegg: ${data.vedleggMetadata}"
         }
 
         try {
             val journalpostId = journalpostService.arkiverBehovsmelding(
                 fnrBruker = data.fnrBruker,
-                behovsmeldingId = data.behovsmeldingId,
+                behovsmeldingId = behovsmeldingId,
                 sakstype = data.sakstype,
                 dokumenttittel = data.behovsmeldingGjelder!!,
                 eksternReferanseId = "${data.behovsmeldingId}HJE-DIGITAL-SOKNAD",
@@ -56,9 +57,9 @@ class OpprettJournalpostSøknadFordeltGammelFlyt(
             )
 
             context.publish(data.fnrBruker, data.copy(joarkRef = journalpostId))
-            log.info { "Søknad ble arkivert i Joark, søknadId: ${data.behovsmeldingId}, journalpostId: $journalpostId" }
+            log.info { "Søknad ble arkivert i Joark, søknadId: $behovsmeldingId, journalpostId: $journalpostId" }
         } catch (e: Throwable) {
-            log.error(e) { "Søknad ble ikke arkivert i Joark, søknadId: ${data.behovsmeldingId}" }
+            log.error(e) { "Søknad ble ikke arkivert i Joark, søknadId: $behovsmeldingId" }
             throw e
         }
     }

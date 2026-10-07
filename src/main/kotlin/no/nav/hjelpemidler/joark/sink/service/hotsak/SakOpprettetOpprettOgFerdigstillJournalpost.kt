@@ -42,10 +42,11 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.sakstype get() = this["behovsmeldingType"].enumValueOrNull<Sakstype>()
 
     override suspend fun onPacketAsync(packet: JsonMessage, context: MessageContext) {
+        val sakId = packet.sakId
         val data = JournalpostData(
             fnrBruker = packet.fnrBruker,
             soknadId = packet.søknadId,
-            sakId = packet.sakId,
+            sakId = sakId,
             dokumentTittel = packet.søknadGjelder
         )
 
@@ -71,6 +72,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
                 hotsak(data.sakId)
                 tilleggsopplysninger(
                     "behovsmeldingId" to data.soknadId.toString(),
+                    "sakstype" to sakstype.toString(),
                 )
             }.journalpostId
 
