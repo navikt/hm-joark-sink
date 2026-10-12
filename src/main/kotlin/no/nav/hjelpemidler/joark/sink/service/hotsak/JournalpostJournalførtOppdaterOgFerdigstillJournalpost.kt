@@ -70,12 +70,14 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 nyJournalpostId = journalpostFerdigstilt.nyJournalpostId,
                 hoveddokumentTittel = journalpostFerdigstilt.hoveddokumentTittel,
                 fnrBruker = journalpostFerdigstilt.fnrBruker,
+                navnBruker = message.navnBruker,
                 sakId = sak.fagsakId,
                 sak = sak,
                 journalførendeEnhet = journalpostFerdigstilt.journalførendeEnhet,
                 journalførtAv = message.journalførtAv,
                 oppgaveId = message.oppgaveId,
                 oppgavegrunnlagId = message.oppgavegrunnlagId,
+                søknadId = message.søknadId,
             )
         )
     }
@@ -89,6 +91,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val tittel: String?,
         val dokumenter: List<EndretDokument>?,
         val fnrBruker: Fødselsnummer,
+        val navnBruker: String?,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
         val journalførtAv: UtførtAvId?,
@@ -118,6 +121,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val nyJournalpostId: String,
         val hoveddokumentTittel: String?,
         val fnrBruker: Fødselsnummer,
+        val navnBruker: String?,
         val sakId: String,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
@@ -127,6 +131,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
          */
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
+        val søknadId: UUID?,
         val opprettet: LocalDateTime = LocalDateTime.now(),
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage {
