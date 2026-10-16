@@ -14,8 +14,9 @@ import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.logging.logStatement
 import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
-import no.nav.hjelpemidler.serialization.jackson.localDateTimeValue
+import no.nav.hjelpemidler.serialization.jackson.instantValue
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
+import no.nav.hjelpemidler.time.toLocalDateTime
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -55,7 +56,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
     private val JsonMessage.fnrBruker get() = this["fnrBruker"].stringValue()
     private val JsonMessage.vedtaksstatus get() = this["vedtaksstatus"].enumValueOrNull<Vedtaksstatus>()
     private val JsonMessage.fysiskDokument get() = this["pdf"].binaryValue()
-    private val JsonMessage.opprettet get() = this["opprettet"].localDateTimeValue()
+    private val JsonMessage.opprettet get() = this["opprettet"].instantValue()
     private val JsonMessage.opprettetAv: String? get() = this["opprettetAv"].stringValueOrNull()
 
     @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
@@ -71,7 +72,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             fnr = packet.fnrBruker,
             dokumentTittel = "Journalføring barnebrillevedtak",
             brevsendingId = packet.brevsendingId,
-            opprettet = packet.opprettet,
+            opprettet = packet.opprettet.toLocalDateTime(),
         )
         log.info {
             logStatement(

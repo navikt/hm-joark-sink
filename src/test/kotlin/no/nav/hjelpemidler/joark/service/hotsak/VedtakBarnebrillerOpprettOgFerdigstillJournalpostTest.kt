@@ -11,7 +11,7 @@ import no.nav.hjelpemidler.joark.sink.service.hotsak.VedtakBarnebrillerOpprettOg
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
 import no.nav.hjelpemidler.joark.test.assertSoftly
 import no.nav.hjelpemidler.joark.test.shouldHaveCaptured
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -36,7 +36,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest :
             "fnrBruker" to "10101012345",
             "navnBruker" to "test",
             "navnAvsender" to "test",
-            "opprettet" to LocalDateTime.now(),
+            "opprettet" to Instant.now(),
             "pdf" to pdf,
             "vedtaksstatus" to Vedtaksstatus.INNVILGET,
         )
