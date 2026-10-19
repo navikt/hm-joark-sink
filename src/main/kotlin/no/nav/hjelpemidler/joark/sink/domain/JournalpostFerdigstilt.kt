@@ -8,7 +8,8 @@ data class JournalpostFerdigstilt(
     val journalpostId: String,
     val nyJournalpostId: String,
     val hoveddokumentTittel: String?,
-    val fnrBruker: Fødselsnummer,
+    val brukerFnr: Fødselsnummer,
+    val avsenderFnr: Fødselsnummer,
     val sak: JournalpostSak,
     val journalførendeEnhet: Enhetsnummer,
 ) {

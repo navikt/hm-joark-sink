@@ -1,5 +1,7 @@
 package no.nav.hjelpemidler.joark.sink.service.hotsak
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -49,7 +51,8 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             journalpostId = message.journalpostId,
             tittel = message.tittel,
             endredeDokumenter = message.dokumenter,
-            fnrBruker = message.fnrBruker,
+            brukerFnr = message.brukerFnr,
+            avsenderFnr = message.avsenderFnr ?: message.brukerFnr,
             sak = message.sak,
             søknadId = message.søknadId,
             journalførendeEnhet = message.journalførendeEnhet,
@@ -64,13 +67,14 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         log.info { "Journalpost ferdigstilt og tilknyttet Hotsak-sak, $journalpostFerdigstilt" }
 
         context.publish(
-            key = journalpostFerdigstilt.fnrBruker.toString(),
+            key = journalpostFerdigstilt.brukerFnr.toString(),
             message = OutgoingMessage(
                 journalpostId = journalpostFerdigstilt.journalpostId,
                 nyJournalpostId = journalpostFerdigstilt.nyJournalpostId,
                 hoveddokumentTittel = journalpostFerdigstilt.hoveddokumentTittel,
-                fnrBruker = journalpostFerdigstilt.fnrBruker,
-                navnBruker = message.navnBruker,
+                brukerFnr = journalpostFerdigstilt.brukerFnr,
+                brukerNavn = message.brukerNavn,
+                avsenderFnr = journalpostFerdigstilt.avsenderFnr,
                 sakId = sak.fagsakId,
                 sak = sak,
                 journalførendeEnhet = journalpostFerdigstilt.journalførendeEnhet,
@@ -90,8 +94,11 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
          */
         val tittel: String?,
         val dokumenter: List<EndretDokument>?,
-        val fnrBruker: Fødselsnummer,
-        val navnBruker: String?,
+        @JsonAlias("fnrBruker")
+        val brukerFnr: Fødselsnummer,
+        @JsonAlias("navnBruker")
+        val brukerNavn: String?,
+        val avsenderFnr: Fødselsnummer?,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,
         val journalførtAv: UtførtAvId?,
@@ -120,8 +127,11 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val journalpostId: String,
         val nyJournalpostId: String,
         val hoveddokumentTittel: String?,
-        val fnrBruker: Fødselsnummer,
-        val navnBruker: String?,
+        @JsonProperty("fnrBruker")
+        val brukerFnr: Fødselsnummer,
+        @JsonProperty("navnBruker")
+        val brukerNavn: String?,
+        val avsenderFnr: Fødselsnummer,
         val sakId: String,
         val sak: JournalpostSak,
         val journalførendeEnhet: Enhetsnummer,

@@ -32,6 +32,7 @@ import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
 import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.saf.SafClient
+import no.nav.hjelpemidler.joark.sink.saf.enums.Journalposttype
 import no.nav.hjelpemidler.joark.sink.saf.enums.Journalstatus
 import no.nav.hjelpemidler.joark.sink.saf.enums.Tema
 import no.nav.hjelpemidler.joark.sink.saf.hentjournalpost.Journalpost
@@ -289,7 +290,8 @@ class JournalpostService(
         journalpostId: String,
         tittel: String?,
         endredeDokumenter: List<EndretDokument>?,
-        fnrBruker: Fødselsnummer,
+        brukerFnr: Fødselsnummer,
+        avsenderFnr: Fødselsnummer,
         sak: JournalpostSak,
         søknadId: UUID?,
         journalførendeEnhet: Enhetsnummer,
@@ -300,6 +302,10 @@ class JournalpostService(
 
         log.info {
             "Ferdigstiller journalpost, journalpostId: $journalpostId, journalstatus: $journalstatus, journaltittel: '${journalpost.tittel}', eksternReferanseId: $eksternReferanseId, $sak"
+        }
+
+        check(journalpost.journalposttype == Journalposttype.I) {
+            "Journalpost er ikke inngående, journalpostId: $journalpostId, journalposttype: ${journalpost.journalposttype}"
         }
 
         val dokumenter = endredeDokumenter
@@ -317,8 +323,8 @@ class JournalpostService(
                         tema = Tema.HJE.toString(),
                         tittel = tittel.takeUnless { it.isNullOrBlank() },
                         dokumenter = dokumenter,
-                        bruker = brukerMedFnr(fnrBruker.toString()),
-                        avsenderMottaker = avsenderMottakerMedFnr(fnrBruker.toString()),
+                        bruker = brukerMedFnr(brukerFnr.toString()),
+                        avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()),
                         sak = sak.tilSak(),
                         tilleggsopplysninger = søknadId?.let {
                             listOf(Tilleggsopplysning("søknadId", it.toString()))
@@ -341,7 +347,8 @@ class JournalpostService(
                     journalpostId = journalpostId,
                     nyJournalpostId = journalpostId,
                     hoveddokumentTittel = hoveddokumentTittel,
-                    fnrBruker = fnrBruker,
+                    brukerFnr = brukerFnr,
+                    avsenderFnr = avsenderFnr,
                     sak = sak,
                     journalførendeEnhet = journalførendeEnhet
                 )
@@ -359,7 +366,7 @@ class JournalpostService(
                     journalpostId = journalpostId,
                     knyttTilAnnenSakRequest = KnyttTilAnnenSakRequest(
                         tema = Tema.HJE.toString(),
-                        bruker = brukerMedFnr(fnrBruker.toString()),
+                        bruker = brukerMedFnr(brukerFnr.toString()),
                         fagsakId = (sak as? JournalpostSak.Fagsak)?.fagsakId,
                         fagsaksystem = (sak as? JournalpostSak.Fagsak)?.fagsaksystem?.name,
                         sakstype = sak.sakstype.asEnum(),
@@ -379,6 +386,7 @@ class JournalpostService(
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
                         OppdaterJournalpostRequest(
+                            avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()),
                             tittel = tittel.takeUnless { it.isNullOrBlank() },
                             dokumenter = dokumenter,
                         ),
@@ -389,7 +397,8 @@ class JournalpostService(
                     journalpostId = journalpostId,
                     nyJournalpostId = nyJournalpostId,
                     hoveddokumentTittel = hoveddokumentTittel,
-                    fnrBruker = fnrBruker,
+                    brukerFnr = brukerFnr,
+                    avsenderFnr = avsenderFnr,
                     sak = sak,
                     journalførendeEnhet = journalførendeEnhet
                 )
