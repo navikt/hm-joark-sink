@@ -21,6 +21,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.domain.id.BrukerId
+import no.nav.hjelpemidler.domain.organisasjon.Organisasjonsnummer
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
@@ -240,6 +243,21 @@ fun dokarkivError(message: String?, cause: Throwable? = null): Nothing =
 
 fun avsenderMottakerMedFnr(fnr: String): AvsenderMottaker =
     AvsenderMottaker(fnr, AvsenderMottaker.IdType.FNR, null)
+
+fun avsenderMottakerMedPartId(partId: BrukerId?, navn: String? = null): AvsenderMottaker =
+    AvsenderMottaker(
+        partId?.value,
+        when (partId) {
+            null -> null
+            is Fødselsnummer -> AvsenderMottaker.IdType.FNR
+            is Organisasjonsnummer -> AvsenderMottaker.IdType.ORGNR
+            else -> error("Ugyldig id-type for avsender/mottaker: ${partId::class.simpleName}")
+        },
+        navn,
+    )
+
+fun brukerIdMedFnr(fnr: String?): BrukerId? =
+    if (fnr != null) Fødselsnummer(fnr) else null
 
 fun brukerMedFnr(fnr: String): Bruker =
     Bruker(fnr, Bruker.IdType.FNR)

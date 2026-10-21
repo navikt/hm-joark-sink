@@ -7,7 +7,7 @@ import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.Sakstype
 import no.nav.hjelpemidler.joark.sink.domain.VedleggMetadata
 import no.nav.hjelpemidler.kafka.KafkaMessage
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 data class BehovsmeldingData(
@@ -36,7 +36,7 @@ data class BehovsmeldingData(
     override val eventName: String = Configuration.EVENT_NAME
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    val opprettet: LocalDateTime = LocalDateTime.now()
+    override val opprettet: Instant = Instant.now()
 
     @Deprecated("Bruk fnrBruker")
     val fodselNrBruker by this::fnrBruker

@@ -6,6 +6,7 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import tools.jackson.databind.JsonNode
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -43,7 +44,7 @@ data class JournalpostBarnebrillevedtakData(
         val joarkRef: String,
         val dokumentIder: Set<String>,
         val dokumentTittel: String,
-        val opprettet: LocalDateTime = LocalDateTime.now(),
+        override val opprettet: Instant = Instant.now(),
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage
 

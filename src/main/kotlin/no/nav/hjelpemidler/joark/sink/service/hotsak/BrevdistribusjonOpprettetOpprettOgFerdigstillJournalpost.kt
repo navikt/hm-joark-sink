@@ -5,6 +5,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.domain.id.BrukerId
+import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerIdMedFnr
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.Språkkode
 import no.nav.hjelpemidler.joark.sink.domain.navSkjemaEttersendelseByDokumenttype
@@ -14,6 +16,7 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.logging.logStatement
 import no.nav.hjelpemidler.rapids_and_rivers.publish
+import no.nav.hjelpemidler.serialization.jackson.brukerIdValueOrNull
 import no.nav.hjelpemidler.serialization.jackson.enumValue
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import java.util.UUID
@@ -37,7 +40,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                     it.requireKey(
                         "sakId",
                         "fnrBruker",
-                        "fnrMottaker",
                         "mottakertype",
                         "fysiskDokument",
                         "dokumenttittel",
@@ -49,6 +51,9 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                         "brevId",
                         "brevdistribusjonId",
                         "brevsendingId",
+                        "partIdMottaker",
+                        "fnrMottaker",
+                        "navnMottaker",
                     ) // todo -> fjern "brevsendingId" på sikt
                 }
             }
@@ -64,14 +69,20 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.brevdistribusjonId: String?
         get() = this["brevdistribusjonId"].stringValueOrNull()
 
-    private val JsonMessage.fnrMottaker: String
-        get() = this["fnrMottaker"].stringValue()
+    private val JsonMessage.fnrMottaker: String?
+        get() = this["fnrMottaker"].stringValueOrNull()
 
     private val JsonMessage.mottakertype: String
         get() = this["mottakertype"].stringValue()
 
     private val JsonMessage.fnrBruker: String
         get() = this["fnrBruker"].stringValue()
+
+    private val JsonMessage.partIdMottaker: BrukerId?
+        get() = this["partIdMottaker"].brukerIdValueOrNull()
+
+    private val JsonMessage.navnMottaker: String?
+        get() = this["navnMottaker"].stringValueOrNull()
 
     private val JsonMessage.fysiskDokument: ByteArray
         get() = this["fysiskDokument"].binaryValue()
@@ -103,6 +114,8 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
         val dokumenttype = packet.dokumenttype
         val brevsendingId = packet.brevsendingId
         val opprettetAv = packet.opprettetAv
+        val partIdMottaker = packet.partIdMottaker
+        val navnMottaker = packet.navnMottaker
 
         log.info {
             logStatement(
@@ -127,11 +140,12 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
         }
 
         val journalpostId = journalpostService.opprettUtgåendeJournalpost(
-            fnrMottaker = fnrMottaker,
+            partIdMottaker = brukerIdMedFnr(fnrMottaker) ?: partIdMottaker,
             fnrBruker = fnrBruker,
             dokumenttype = dokumenttype,
             eksternReferanseId = "${sakId}_${brevdistribusjonId}_${mottakertype}",
             forsøkFerdigstill = true,
+            navnMottaker = navnMottaker,
         ) {
             dokument(fysiskDokument = fysiskDokument, dokumenttittel = dokumenttittel)
             hotsak(sakId)
@@ -150,7 +164,7 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
             val sakId: String,
             val brevId: String?,
             val brevdistribusjonId: String?,
-            val fnrMottaker: String,
+            val fnrMottaker: String?,
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
@@ -167,7 +181,7 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                 sakId = sakId,
                 brevId = brevId,
                 brevdistribusjonId = brevdistribusjonId,
-                fnrMottaker = fnrMottaker,
+                fnrMottaker = fnrMottaker ?: partIdMottaker?.value,
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,

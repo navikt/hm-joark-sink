@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import no.nav.hjelpemidler.joark.sink.brev.BarnebrillerAvvisningDirekteoppgjor
 import no.nav.hjelpemidler.joark.sink.brev.BarnebrillerAvvisningDirekteoppgjorBegrunnelser
 import no.nav.hjelpemidler.joark.sink.brev.BrevService
+import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerIdMedFnr
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.sink.service.JournalpostService
@@ -111,7 +112,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(
 
                 // Opprett og ferdigstill journalpost
                 val journalpostId = journalpostService.opprettUtgåendeJournalpost(
-                    fnrMottaker = packet.fnrBarn,
+                    partIdMottaker = brukerIdMedFnr(packet.fnrBarn),
                     fnrBruker = packet.fnrBarn,
                     dokumenttype = Dokumenttype.KRAV_BARNEBRILLER_OPTIKER_AVVISNING,
                     eksternReferanseId = UUID.randomUUID().toString(),

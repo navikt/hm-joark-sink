@@ -3,6 +3,8 @@ package no.nav.hjelpemidler.joark.service
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.sink.domain.VedleggMetadata
@@ -36,7 +38,7 @@ class OpprettJournalpostSøknadFordeltGammelFlytTest :
         val søknadGjelder = "søknadGjelder"
         sendTestMessage(
             "eventName" to "hm-søknadFordeltGammelFlyt",
-            "fodselNrBruker" to "fodselNrBruker",
+            "fodselNrBruker" to Fødselsnummer(40.år).value,
             "navnBruker" to "test",
             "soknadId" to søknadId,
             "behovsmeldingType" to "SØKNAD",

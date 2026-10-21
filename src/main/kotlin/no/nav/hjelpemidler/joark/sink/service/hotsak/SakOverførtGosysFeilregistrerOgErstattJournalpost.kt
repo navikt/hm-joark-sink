@@ -14,7 +14,7 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -141,7 +141,7 @@ private data class MottattJournalpostData(
 
     override val eventId: UUID = UUID.randomUUID(),
 ) : KafkaMessage {
-    val opprettet = LocalDateTime.now()
+    override val opprettet = Instant.now()
 
     @Deprecated("Bruk fnrBruker")
     val fodselNrBruker by this::fnrBruker

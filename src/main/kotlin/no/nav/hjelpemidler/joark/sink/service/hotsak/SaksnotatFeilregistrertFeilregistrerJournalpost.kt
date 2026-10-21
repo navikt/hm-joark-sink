@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
 import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -50,6 +51,7 @@ class SaksnotatFeilregistrertFeilregistrerJournalpost(
         val saksnotatId: String,
         val journalpostId: String,
         override val eventId: UUID,
+        override val opprettet: Instant = Instant.now(),
     ) : KafkaMessage {
         companion object {
             const val EVENT_NAME = "hm-journalført-notat-feilregistrert"

@@ -3,6 +3,8 @@ package no.nav.hjelpemidler.joark.service.hotsak
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Sak
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
@@ -33,7 +35,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpostTest :
         sendTestMessage(
             "eventName" to "hm-manuelt-barnebrillevedtak-opprettet",
             "saksnummer" to sakId,
-            "fnrBruker" to "10101012345",
+            "fnrBruker" to Fødselsnummer(40.år).value,
             "navnBruker" to "test",
             "navnAvsender" to "test",
             "opprettet" to Instant.now(),

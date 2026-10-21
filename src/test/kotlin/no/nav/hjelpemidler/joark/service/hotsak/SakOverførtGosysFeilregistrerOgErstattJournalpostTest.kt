@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import io.mockk.coEvery
 import io.mockk.coVerify
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.sink.domain.Sakstype
 import no.nav.hjelpemidler.joark.sink.service.hotsak.SakOverførtGosysFeilregistrerOgErstattJournalpost
 import no.nav.hjelpemidler.joark.test.AbstractListenerTest
@@ -14,7 +16,7 @@ import kotlin.test.Test
 class SakOverførtGosysFeilregistrerOgErstattJournalpostTest :
     AbstractListenerTest(::SakOverførtGosysFeilregistrerOgErstattJournalpost) {
     private val nå = LocalDateTime.now()
-    private val fnrBruker = "10101012345"
+    private val fnrBruker = Fødselsnummer(40.år).value
     private val journalpostId = "2"
 
     @BeforeTest

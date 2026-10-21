@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.joark.service.hotsak
 
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Bruker
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Sak
@@ -32,7 +34,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpostTest :
     @Test
     fun `Skal opprette og ferdigstille journalpost for sak opprettet i Hotsak`() {
         val sakId = "1"
-        val fnrBruker = "10101012345"
+        val fnrBruker = Fødselsnummer(40.år).value
         sendTestMessage(
             "eventName" to "hm-sakOpprettet",
             "soknadId" to UUID.randomUUID(),

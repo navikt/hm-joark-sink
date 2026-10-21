@@ -43,19 +43,19 @@ fun main() {
     val texasClient = TexasClient(engine)
     val dokarkivClient = DokarkivClient(
         engine,
-        tokenSetProvider = texasClient.entraIdApplication(Configuration.JOARK_SCOPE)
+        tokenSetProvider = texasClient.entraID(Configuration.JOARK_SCOPE)
     )
     val førstesidegeneratorClient = FørstesidegeneratorClient(
         engine,
-        tokenSetProvider = texasClient.entraIdApplication(Configuration.FORSTESIDEGENERATOR_SCOPE)
+        tokenSetProvider = texasClient.entraID(Configuration.FORSTESIDEGENERATOR_SCOPE)
     )
     val safClient = SafClient(
         engine,
-        tokenSetProvider = texasClient.entraIdApplication(Configuration.SAF_SCOPE)
+        tokenSetProvider = texasClient.entraID(Configuration.SAF_SCOPE)
     )
     val søknadApiClient = SøknadApiClient(
         engine,
-        tokenSetProvider = texasClient.entraIdApplication(Configuration.SOKNAD_API_SCOPE),
+        tokenSetProvider = texasClient.entraID(Configuration.SOKNAD_API_SCOPE),
     )
 
     val pdfGeneratorClient = PdfGeneratorClient(engine)

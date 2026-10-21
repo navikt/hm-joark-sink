@@ -6,6 +6,8 @@ import io.ktor.client.engine.mock.respondOk
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.coroutines.test.runTest
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.http.openid.TokenSet
 import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
@@ -24,6 +26,7 @@ import kotlin.time.Duration.Companion.hours
 
 class DokarkivClientTest {
     private val tokenSetProvider = TokenSetProvider { TokenSet("token", 1.hours) }
+    private val fnr = Fødselsnummer(40.år)
 
     @Test
     fun `oppretter journalpost`() = runTest {
@@ -37,8 +40,8 @@ class DokarkivClientTest {
         }, tokenSetProvider)
 
         val lagRequest = OpprettJournalpostRequestConfigurer(
-            "12345678910",
-            "12345678910",
+            fnr.value,
+            fnr,
             Dokumenttype.INNHENTE_OPPLYSNINGER_BARNEBRILLER,
             OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
             "test",

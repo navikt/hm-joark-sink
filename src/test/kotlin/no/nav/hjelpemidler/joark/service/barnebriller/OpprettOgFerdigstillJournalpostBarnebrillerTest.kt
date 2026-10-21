@@ -3,6 +3,8 @@ package no.nav.hjelpemidler.joark.service.barnebriller
 import io.kotest.inspectors.shouldForExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.år
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.domain.JournalpostOpprettet
 import no.nav.hjelpemidler.joark.sink.service.barnebriller.OpprettOgFerdigstillJournalpostBarnebriller
@@ -34,7 +36,7 @@ class OpprettOgFerdigstillJournalpostBarnebrillerTest :
     fun `Skal lage riktig request for opprettelse av journalpost`() {
         sendTestMessage(
             "eventName" to "hm-barnebrillevedtak-opprettet",
-            "fnr" to "10101012345",
+            "fnr" to Fødselsnummer(40.år).value,
             "brukersNavn" to "test",
             "orgnr" to "123456789",
             "orgNavn" to "test",

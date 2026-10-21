@@ -13,7 +13,7 @@ import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
 import no.nav.hjelpemidler.serialization.jackson.uuidValue
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -88,7 +88,7 @@ class SakOpprettetOpprettOgFerdigstillJournalpost(
 @KafkaEvent("hm-opprettetOgFerdigstiltJournalpost")
 private data class JournalpostData(
     val soknadId: UUID,
-    val opprettet: LocalDateTime = LocalDateTime.now(),
+    override val opprettet: Instant = Instant.now(),
     val fnrBruker: String,
     val joarkRef: String? = null,
     val sakId: String,

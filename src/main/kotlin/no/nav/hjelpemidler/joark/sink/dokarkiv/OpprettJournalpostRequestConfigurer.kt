@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.joark.sink.dokarkiv
 
+import no.nav.hjelpemidler.domain.id.BrukerId
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Dokument
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.DokumentVariant
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
@@ -15,10 +16,11 @@ import java.time.LocalDateTime
 
 class OpprettJournalpostRequestConfigurer(
     val fnrBruker: String,
-    val fnrAvsenderMottaker: String? = fnrBruker,
+    val partIdMottaker: BrukerId?,
     val dokumenttype: Dokumenttype,
     val journalposttype: OpprettJournalpostRequest.Journalposttype,
     val eksternReferanseId: String,
+    val navnMottaker: String? = null,
 ) {
     var tittel: String? = null
     var datoMottatt: LocalDateTime? = null
@@ -82,11 +84,22 @@ class OpprettJournalpostRequestConfigurer(
         check(dokumenter.isNotEmpty()) {
             "Ingen dokumenter er lagt til!"
         }
+        val navnMottaker = navnMottaker?.takeIf { it.isNotBlank() }
+        if (journalposttype == OpprettJournalpostRequest.Journalposttype.UTGAAENDE) {
+            check(partIdMottaker != null || navnMottaker != null) {
+                "Utgående journalpost må ha mottaker med id eller navn, eksternReferanseId: $eksternReferanseId"
+            }
+        }
+        val avsenderMottaker = if (partIdMottaker != null || navnMottaker != null) {
+            avsenderMottakerMedPartId(partIdMottaker, navnMottaker)
+        } else {
+            null
+        }
         return OpprettJournalpostRequest(
             dokumenter = dokumenter.toList(),
             eksternReferanseId = eksternReferanseId,
             journalposttype = journalposttype,
-            avsenderMottaker = fnrAvsenderMottaker?.let { avsenderMottakerMedFnr(it) },
+            avsenderMottaker = avsenderMottaker,
             bruker = brukerMedFnr(fnrBruker),
             datoMottatt = datoMottatt,
             journalfoerendeEnhet = journalførendeEnhet,

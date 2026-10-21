@@ -6,6 +6,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerIdMedFnr
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.sink.service.AsyncPacketListener
 import no.nav.hjelpemidler.joark.sink.service.JournalpostService
@@ -16,8 +17,7 @@ import no.nav.hjelpemidler.rapids_and_rivers.publish
 import no.nav.hjelpemidler.serialization.jackson.enumValueOrNull
 import no.nav.hjelpemidler.serialization.jackson.instantValue
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
-import no.nav.hjelpemidler.time.toLocalDateTime
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -72,7 +72,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
             fnr = packet.fnrBruker,
             dokumentTittel = "Journalføring barnebrillevedtak",
             brevsendingId = packet.brevsendingId,
-            opprettet = packet.opprettet.toLocalDateTime(),
+            opprettet = packet.opprettet,
         )
         log.info {
             logStatement(
@@ -91,7 +91,8 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
 
         try {
             val journalpostId = journalpostService.opprettUtgåendeJournalpost(
-                fnrMottaker = data.fnr,
+                partIdMottaker = brukerIdMedFnr(data.fnr),
+                fnrBruker = data.fnr,
                 dokumenttype = dokumenttype,
                 eksternReferanseId = "${sakId}BARNEBRILLEVEDTAK",
                 forsøkFerdigstill = true
@@ -130,7 +131,7 @@ class VedtakBarnebrillerOpprettOgFerdigstillJournalpost(
         @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
         val brevsendingId: String? = null,
         override val eventId: UUID = UUID.randomUUID(),
-        val opprettet: LocalDateTime,
+        override val opprettet: Instant,
     ) : KafkaMessage
 
     enum class Vedtaksstatus {

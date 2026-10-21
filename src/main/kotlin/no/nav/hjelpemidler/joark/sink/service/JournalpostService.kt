@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.joark.sink.service
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.core.asEnum
 import no.nav.hjelpemidler.domain.enhet.Enhetsnummer
+import no.nav.hjelpemidler.domain.id.BrukerId
 import no.nav.hjelpemidler.domain.joark.EndretDokument
 import no.nav.hjelpemidler.domain.joark.JournalpostSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -10,6 +11,7 @@ import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.sink.dokarkiv.OpprettJournalpostRequestConfigurer
 import no.nav.hjelpemidler.joark.sink.dokarkiv.avsenderMottakerMedFnr
+import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerIdMedFnr
 import no.nav.hjelpemidler.joark.sink.dokarkiv.brukerMedFnr
 import no.nav.hjelpemidler.joark.sink.dokarkiv.generellSak
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.DokumentInfo
@@ -99,7 +101,7 @@ class JournalpostService(
     ) = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsenderMottaker = fnrAvsender,
+            partIdMottaker = brukerIdMedFnr(fnrAvsender),
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.INNGAAENDE,
             eksternReferanseId = eksternReferanseId
@@ -124,19 +126,21 @@ class JournalpostService(
     }
 
     suspend fun opprettUtgåendeJournalpost(
-        fnrMottaker: String,
-        fnrBruker: String = fnrMottaker,
+        partIdMottaker: BrukerId?,
+        fnrBruker: String,
         dokumenttype: Dokumenttype,
         eksternReferanseId: String,
         forsøkFerdigstill: Boolean = false,
+        navnMottaker: String? = null,
         block: OpprettJournalpostRequestConfigurer.() -> Unit = {},
     ): String = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker,
-            fnrAvsenderMottaker = fnrMottaker,
+            partIdMottaker = partIdMottaker,
             dokumenttype = dokumenttype,
             journalposttype = OpprettJournalpostRequest.Journalposttype.UTGAAENDE,
             eksternReferanseId = eksternReferanseId,
+            navnMottaker = navnMottaker,
         ).apply(block)
 
         val journalpost = dokarkivClient.opprettJournalpost(
@@ -163,7 +167,7 @@ class JournalpostService(
     ): JournalpostOpprettet = withCorrelationId {
         val lagOpprettJournalpostRequest = OpprettJournalpostRequestConfigurer(
             fnrBruker = fnrBruker.toString(),
-            fnrAvsenderMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
+            partIdMottaker = null, // Ref. OpenAPI-dokumentasjonen: Skal ikke settes for notater. Overstyrer derfor default behaviour.
             dokumenttype = Dokumenttype.NOTAT,
             journalposttype = OpprettJournalpostRequest.Journalposttype.NOTAT,
             eksternReferanseId = eksternReferanseId,

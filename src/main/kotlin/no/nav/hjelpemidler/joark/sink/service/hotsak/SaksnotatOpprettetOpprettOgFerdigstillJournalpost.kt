@@ -16,6 +16,7 @@ import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
 import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import tools.jackson.databind.JsonNode
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -101,6 +102,7 @@ class SaksnotatOpprettetOpprettOgFerdigstillJournalpost(
         val strukturertDokument: JsonNode?,
         val opprettetAv: String,
         override val eventId: UUID,
+        override val opprettet: Instant = Instant.now(),
     ) : KafkaMessage {
         companion object {
             const val EVENT_NAME = "hm-journalført-notat-opprettet"

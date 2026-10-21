@@ -18,7 +18,7 @@ import no.nav.hjelpemidler.kafka.KafkaEvent
 import no.nav.hjelpemidler.kafka.KafkaMessage
 import no.nav.hjelpemidler.rapids_and_rivers.ExtendedMessageContext
 import no.nav.hjelpemidler.rapids_and_rivers.KafkaMessageListener
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.UUID
 
 private val log = KotlinLogging.logger {}
@@ -142,7 +142,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
         val søknadId: UUID?,
-        val opprettet: LocalDateTime = LocalDateTime.now(),
+        override val opprettet: Instant = Instant.now(),
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage {
         companion object {
