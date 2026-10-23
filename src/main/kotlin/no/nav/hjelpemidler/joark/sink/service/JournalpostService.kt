@@ -38,6 +38,7 @@ import no.nav.hjelpemidler.joark.sink.saf.enums.Journalposttype
 import no.nav.hjelpemidler.joark.sink.saf.enums.Journalstatus
 import no.nav.hjelpemidler.joark.sink.saf.enums.Tema
 import no.nav.hjelpemidler.joark.sink.saf.hentjournalpost.Journalpost
+import no.nav.hjelpemidler.joark.sink.saf.isKanalDigital
 import no.nav.hjelpemidler.joark.sink.service.barnebriller.JournalpostBarnebrillevedtakData
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
@@ -328,7 +329,7 @@ class JournalpostService(
                         tittel = tittel.takeUnless { it.isNullOrBlank() },
                         dokumenter = dokumenter,
                         bruker = brukerMedFnr(brukerFnr.toString()),
-                        avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()),
+                        avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()).takeUnless { journalpost.isKanalDigital },
                         sak = sak.tilSak(),
                         tilleggsopplysninger = søknadId?.let {
                             listOf(Tilleggsopplysning("søknadId", it.toString()))
@@ -390,7 +391,7 @@ class JournalpostService(
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
                         OppdaterJournalpostRequest(
-                            avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()),
+                            avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()).takeUnless { journalpost.isKanalDigital },
                             tittel = tittel.takeUnless { it.isNullOrBlank() },
                             dokumenter = dokumenter,
                         ),
