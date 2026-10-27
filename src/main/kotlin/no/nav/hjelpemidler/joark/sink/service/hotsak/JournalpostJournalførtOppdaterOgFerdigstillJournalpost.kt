@@ -82,6 +82,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
                 oppgaveId = message.oppgaveId,
                 oppgavegrunnlagId = message.oppgavegrunnlagId,
                 søknadId = message.søknadId,
+                isKnyttTilSak = message.isKnyttTilSak ?: (message.oppgavegrunnlagId == null)
             )
         )
     }
@@ -111,6 +112,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
          * Id for søknad generert i Hotsak ved opprettelse av sak.
          */
         val søknadId: UUID?,
+        val isKnyttTilSak: Boolean?,
         override val eventId: UUID,
     ) : KafkaMessage {
         override fun toString(): String =
@@ -142,6 +144,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
         val oppgaveId: String?,
         val oppgavegrunnlagId: UUID?,
         val søknadId: UUID?,
+        val isKnyttTilSak: Boolean,
         override val opprettet: Instant = Instant.now(),
         override val eventId: UUID = UUID.randomUUID(),
     ) : KafkaMessage {
