@@ -1,11 +1,11 @@
 package no.nav.hjelpemidler.joark.sink
 
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.cio.CIO
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
-import no.nav.hjelpemidler.http.openid.TexasClient
 import no.nav.hjelpemidler.joark.sink.brev.BrevService
 import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
@@ -40,23 +40,10 @@ fun main() {
 
     // Clients
     val engine = CIO.create()
-    val texasClient = TexasClient(engine)
-    val dokarkivClient = DokarkivClient(
-        engine,
-        tokenSetProvider = texasClient.entraID(Configuration.JOARK_SCOPE)
-    )
-    val førstesidegeneratorClient = FørstesidegeneratorClient(
-        engine,
-        tokenSetProvider = texasClient.entraID(Configuration.FORSTESIDEGENERATOR_SCOPE)
-    )
-    val safClient = SafClient(
-        engine,
-        tokenSetProvider = texasClient.entraID(Configuration.SAF_SCOPE)
-    )
-    val søknadApiClient = SøknadApiClient(
-        engine,
-        tokenSetProvider = texasClient.entraID(Configuration.SOKNAD_API_SCOPE),
-    )
+    val dokarkivClient = DokarkivClient(engine)
+    val førstesidegeneratorClient = FørstesidegeneratorClient(engine)
+    val safClient = SafClient(engine)
+    val søknadApiClient = SøknadApiClient(engine)
 
     val pdfGeneratorClient = PdfGeneratorClient(engine)
     val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
@@ -65,10 +52,10 @@ fun main() {
     val journalpostService = JournalpostService(
         dokarkivClient = dokarkivClient,
         førstesidegeneratorClient = førstesidegeneratorClient,
-        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
-        pdfGeneratorClient = pdfGeneratorClient,
         safClient = safClient,
         søknadApiClient = søknadApiClient,
+        pdfGeneratorClient = pdfGeneratorClient,
+        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
     )
     val brevService = BrevService(
         pdfGeneratorClient = pdfGeneratorClient,
@@ -97,6 +84,20 @@ fun main() {
             OpprettOgFerdigstillJournalpostBarnebrillerAvvisning(this, journalpostService, brevService)
             ResendJournalpostBarnebriller(this, journalpostService)
             VedtakBarnebrillerOpprettOgFerdigstillJournalpost(this, journalpostService)
+
+            register(object : RapidsConnection.StatusListener {
+                override fun onShutdown(rapidsConnection: RapidsConnection) {
+                    dokarkivClient.close()
+                    førstesidegeneratorClient.close()
+                    safClient.close()
+                    søknadApiClient.close()
+
+                    pdfGeneratorClient.close()
+                    søknadPdfGeneratorClient.close()
+
+                    engine.close()
+                }
+            })
         }
         .start()
 }

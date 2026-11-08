@@ -6,8 +6,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.coroutines.test.runTest
-import no.nav.hjelpemidler.http.openid.TokenSet
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.joark.sink.pdf.FørstesideResponse
 import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideRequestConfigurer
@@ -15,11 +13,8 @@ import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideResponse
 import no.nav.hjelpemidler.joark.test.respondJson
 import kotlin.test.Test
 import kotlin.test.fail
-import kotlin.time.Duration.Companion.hours
 
 class FørstesidegeneratorClientTest {
-    private val tokenSetProvider = TokenSetProvider { TokenSet("token", 1.hours) }
-
     @Test
     fun `lager førsteside`() = runTest {
         val client = FørstesidegeneratorClient(engine = MockEngine { request ->
@@ -40,7 +35,7 @@ class FørstesidegeneratorClientTest {
                     fail()
                 }
             }
-        }, tokenSetProvider)
+        })
         val lagRequest = OpprettFørstesideRequestConfigurer("test", "")
         client.lagFørsteside(lagRequest())
     }

@@ -3,7 +3,6 @@ package no.nav.hjelpemidler.joark.sink.pdf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
@@ -15,13 +14,14 @@ import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.sink.Configuration
 import org.intellij.lang.annotations.Language
+import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
 
 class SøknadPdfGeneratorClient(
-    engine: HttpClientEngine = CIO.create(),
+    engine: HttpClientEngine,
     baseUrl: String = Configuration.SOKNAD_PDFGEN_BASE_URL,
-) {
+) : Closeable {
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
@@ -44,5 +44,9 @@ class SøknadPdfGeneratorClient(
                 throw PdfClientException("Uventet status: '${response.status}', body: '$body'")
             }
         }
+    }
+
+    override fun close() {
+        client.close()
     }
 }

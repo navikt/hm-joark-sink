@@ -3,7 +3,6 @@ package no.nav.hjelpemidler.joark.sink.pdf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
@@ -16,13 +15,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.entraId
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.joark.sink.førstesidegenerator.models.FoerstesideResponse
 import no.nav.hjelpemidler.joark.sink.førstesidegenerator.models.PostFoerstesideRequest
 import no.nav.hjelpemidler.joark.sink.førstesidegenerator.models.PostFoerstesideResponse
+import java.io.Closeable
 
 typealias OpprettFørstesideRequest = PostFoerstesideRequest
 typealias OpprettFørstesideResponse = PostFoerstesideResponse
@@ -31,13 +30,12 @@ typealias FørstesideResponse = FoerstesideResponse
 private val log = KotlinLogging.logger {}
 
 class FørstesidegeneratorClient(
-    engine: HttpClientEngine = CIO.create(),
-    tokenSetProvider: TokenSetProvider,
+    engine: HttpClientEngine,
     baseUrl: String = Configuration.FORSTESIDEGENERATOR_BASE_URL,
-) {
+) : Closeable {
     private val client = createHttpClient(engine) {
         expectSuccess = false
-        openID(tokenSetProvider)
+        entraId(Configuration.FORSTESIDEGENERATOR_SCOPE)
         defaultRequest {
             url(baseUrl)
             accept(ContentType.Application.Json)
@@ -66,6 +64,10 @@ class FørstesidegeneratorClient(
 
             else -> response.feilmelding()
         }
+    }
+
+    override fun close() {
+        client.close()
     }
 
     private suspend fun HttpResponse.feilmelding(): Nothing {

@@ -3,7 +3,6 @@ package no.nav.hjelpemidler.joark.sink.dokarkiv
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
@@ -27,8 +26,7 @@ import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.logging
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.entraId
 import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.AvsenderMottaker
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.Bruker
@@ -48,14 +46,14 @@ import no.nav.hjelpemidler.joark.sink.ktor.navUserId
 import no.nav.hjelpemidler.logging.teamInfo
 import no.nav.hjelpemidler.serialization.jackson.stringValueOrNull
 import tools.jackson.databind.JsonNode
+import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
 
 class DokarkivClient(
-    engine: HttpClientEngine = CIO.create(),
-    tokenSetProvider: TokenSetProvider,
+    engine: HttpClientEngine,
     baseUrl: String = Configuration.JOARK_BASE_URL,
-) {
+) : Closeable {
     private val client = createHttpClient(engine) {
         expectSuccess = false
         install(HttpRequestRetry) {
@@ -69,7 +67,7 @@ class DokarkivClient(
             contentType(ContentType.Application.Json)
             correlationId()
         }
-        openID(tokenSetProvider)
+        entraId(Configuration.JOARK_SCOPE)
         logging {
             logger = object : Logger {
                 override fun log(message: String) {
@@ -228,6 +226,10 @@ class DokarkivClient(
             setBody(BulkOppdaterLogiskVedleggRequest(titler = annetInnhold.toList()))
         }
         if (response.status != HttpStatusCode.NoContent) response.feilmelding()
+    }
+
+    override fun close() {
+        client.close()
     }
 
     private suspend fun HttpResponse.feilmelding(): Nothing {

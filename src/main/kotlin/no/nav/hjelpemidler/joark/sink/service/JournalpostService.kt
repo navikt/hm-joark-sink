@@ -49,10 +49,10 @@ private val log = KotlinLogging.logger {}
 class JournalpostService(
     private val dokarkivClient: DokarkivClient,
     private val førstesidegeneratorClient: FørstesidegeneratorClient,
-    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
-    private val pdfGeneratorClient: PdfGeneratorClient,
     private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
+    private val pdfGeneratorClient: PdfGeneratorClient,
+    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
 ) {
     suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
 

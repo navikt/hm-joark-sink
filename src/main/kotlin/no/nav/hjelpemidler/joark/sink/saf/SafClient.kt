@@ -8,24 +8,23 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.defaultRequest
 import no.nav.hjelpemidler.http.correlationId
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.entraId
 import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.joark.sink.saf.hentjournalpost.Journalpost
+import java.io.Closeable
 import java.net.URI
 
 private val log = KotlinLogging.logger {}
 
 class SafClient(
     engine: HttpClientEngine = CIO.create(),
-    tokenSetProvider: TokenSetProvider,
     baseUrlGraphQL: String = Configuration.SAF_GRAPHQL_URL,
-) {
+) : Closeable {
     private val clientGraphQL = GraphQLKtorClient(
         url = URI(baseUrlGraphQL).toURL(),
         httpClient = HttpClient(engine) {
             expectSuccess = true
-            openID(tokenSetProvider)
+            entraId(Configuration.SAF_SCOPE)
             install(HttpRequestRetry) {
                 retryOnExceptionOrServerErrors(maxRetries = 5)
                 exponentialDelay()
@@ -47,5 +46,9 @@ class SafClient(
         val response = clientGraphQL.execute(request)
         val result = response.resultOrThrow()
         return result.dokumentoversiktFagsak.journalposter.filterNotNull()
+    }
+
+    override fun close() {
+        clientGraphQL.close()
     }
 }

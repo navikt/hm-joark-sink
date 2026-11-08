@@ -19,13 +19,14 @@ import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.joark.sink.brev.Målform
+import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
 
 class PdfGeneratorClient(
     engine: HttpClientEngine = CIO.create(),
     baseUrl: String = Configuration.PDF_GENERATOR_BASE_URL,
-) {
+) : Closeable {
     private val client = createHttpClient(engine) {
         expectSuccess = false
         defaultRequest {
@@ -67,5 +68,9 @@ class PdfGeneratorClient(
                 throw PdfClientException("Uventet status: '${response.status}', body: '$body'")
             }
         }
+    }
+
+    override fun close() {
+        client.close()
     }
 }

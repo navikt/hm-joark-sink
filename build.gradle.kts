@@ -53,6 +53,15 @@ testing {
                 implementation(libs.hotlibs.test)
                 implementation(libs.rapidsAndRivers.test)
             }
+
+            targets.all {
+                testTask {
+                    environment(
+                        "NAIS_APP_NAME" to "hm-joark-sink",
+                        "NAIS_CLUSTER_NAME" to "test",
+                    )
+                }
+            }
         }
     }
 }
