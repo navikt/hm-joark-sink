@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.mockk.CapturingSlot
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import kotlin.time.Duration.Companion.hours
 
 infix fun <T : Any, U : T> CapturingSlot<T>.shouldHaveCaptured(expected: U?) = captured shouldBe expected
 
@@ -20,3 +21,12 @@ fun <T> MockRequestHandleScope.respondJson(value: T, status: HttpStatusCode = Ht
         status,
         headersOf(HttpHeaders.ContentType, "application/json")
     )
+
+
+fun MockRequestHandleScope.respondToken() = respondJson(
+    mapOf(
+        "access_token" to "accessToken",
+        "expires_in" to 1.hours.inWholeSeconds,
+        "token_type" to "Bearer"
+    )
+)

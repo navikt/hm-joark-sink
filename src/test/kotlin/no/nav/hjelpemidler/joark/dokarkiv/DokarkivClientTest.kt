@@ -19,6 +19,7 @@ import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostRequest
 import no.nav.hjelpemidler.joark.sink.dokarkiv.models.OpprettJournalpostResponse
 import no.nav.hjelpemidler.joark.sink.domain.Dokumenttype
 import no.nav.hjelpemidler.joark.test.respondJson
+import no.nav.hjelpemidler.joark.test.respondToken
 import kotlin.test.Test
 
 class DokarkivClientTest {
@@ -27,6 +28,10 @@ class DokarkivClientTest {
     @Test
     fun `oppretter journalpost`() = runTest {
         val client = DokarkivClient(MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             request.url.fullPath shouldBe "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true"
             respondJson(
                 OpprettJournalpostResponse(
@@ -51,6 +56,10 @@ class DokarkivClientTest {
     @Test
     fun `oppdaterer journalpost`() = runTest {
         val client = DokarkivClient(MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             request.url.fullPath shouldBe "/rest/journalpostapi/v1/journalpost/1"
             respondJson(
                 OppdaterJournalpostResponse(journalpostId = "1"), HttpStatusCode.OK
@@ -63,6 +72,10 @@ class DokarkivClientTest {
     @Test
     fun `ferdigstiller journalpost`() = runTest {
         val client = DokarkivClient(MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             request.url.fullPath shouldBe "/rest/journalpostapi/v1/journalpost/1/ferdigstill"
             respondOk()
         })
@@ -73,6 +86,10 @@ class DokarkivClientTest {
     @Test
     fun `feilregistrerer sakstilknytning`() = runTest {
         val client = DokarkivClient(MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             request.url.fullPath shouldBe "/rest/journalpostapi/v1/journalpost/1/feilregistrer/feilregistrerSakstilknytning"
             respondOk()
         })
@@ -83,6 +100,10 @@ class DokarkivClientTest {
     @Test
     fun `knytter til annen sak`() = runTest {
         val client = DokarkivClient(MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             request.url.fullPath shouldBe "/rest/journalpostapi/v1/journalpost/1/knyttTilAnnenSak"
             respondJson(KnyttTilAnnenSakResponse())
         })

@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideResponse
 import no.nav.hjelpemidler.joark.test.respondJson
+import no.nav.hjelpemidler.joark.test.respondToken
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -18,6 +19,10 @@ class FørstesidegeneratorClientTest {
     @Test
     fun `lager førsteside`() = runTest {
         val client = FørstesidegeneratorClient(engine = MockEngine { request ->
+            if (request.url.encodedPath == "/token") {
+                return@MockEngine respondToken()
+            }
+
             when (request.method) {
                 HttpMethod.Post -> {
                     request.url.fullPath shouldBe "/api/foerstesidegenerator/v1/foersteside"
