@@ -300,6 +300,7 @@ class JournalpostService(
         sak: JournalpostSak,
         søknadId: UUID?,
         journalførendeEnhet: Enhetsnummer,
+        overstyrInnsynsregler: String? = null,
     ): JournalpostFerdigstilt {
         val journalpost = hentJournalpost(journalpostId)
         val journalstatus = journalpost.journalstatus
@@ -333,7 +334,7 @@ class JournalpostService(
                         sak = sak.tilSak(),
                         tilleggsopplysninger = søknadId?.let {
                             listOf(Tilleggsopplysning("søknadId", it.toString()))
-                        }
+                        },
                     ),
                 )
 
@@ -387,13 +388,15 @@ class JournalpostService(
                     "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, eksternReferanseId: $eksternReferanseId, $sak"
                 }
 
-                if (!tittel.isNullOrBlank() || dokumenter != null) {
+                if (!tittel.isNullOrBlank() || dokumenter != null || overstyrInnsynsregler != null) {
+                    log.info {"Oppdaterer journalpost ${overstyrInnsynsregler}" }
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
                         OppdaterJournalpostRequest(
                             avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()).takeUnless { journalpost.isKanalDigital },
                             tittel = tittel.takeUnless { it.isNullOrBlank() },
                             dokumenter = dokumenter,
+                            overstyrInnsynsregler = overstyrInnsynsregler,
                         ),
                     )
                 }

@@ -56,6 +56,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             sak = message.sak,
             søknadId = message.søknadId,
             journalførendeEnhet = message.journalførendeEnhet,
+            overstyrInnsynsregler = message.overstyrInnsynsregler,
         )
 
         val sak = journalpostFerdigstilt.sak
@@ -113,6 +114,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
          */
         val søknadId: UUID?,
         val isKnyttTilSak: Boolean?,
+        val overstyrInnsynsregler: String? = null,
         override val eventId: UUID,
     ) : KafkaMessage {
         override fun toString(): String =
