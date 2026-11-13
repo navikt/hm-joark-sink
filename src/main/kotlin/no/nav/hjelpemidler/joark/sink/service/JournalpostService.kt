@@ -394,7 +394,6 @@ class JournalpostService(
                 }
 
                 if (!tittel.isNullOrBlank() || dokumenter != null || overstyrInnsynsregler != null) {
-                    log.info {"Oppdaterer journalpost ${overstyrInnsynsregler}" }
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
                         OppdaterJournalpostRequest(
