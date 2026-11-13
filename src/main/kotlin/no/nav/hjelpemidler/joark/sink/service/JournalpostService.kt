@@ -321,6 +321,10 @@ class JournalpostService(
         val hoveddokumentTittel = dokumenter?.firstOrNull()?.tittel
             ?: journalpost.dokumenter?.firstOrNull()?.tittel
 
+        overstyrInnsynsregler?.let{
+            log.info { "Overstyrinnsynsregler er satt til $overstyrInnsynsregler" }
+        }
+
         return when (journalstatus) {
             Journalstatus.MOTTATT -> {
                 dokarkivClient.oppdaterJournalpost(
@@ -335,6 +339,7 @@ class JournalpostService(
                         tilleggsopplysninger = søknadId?.let {
                             listOf(Tilleggsopplysning("søknadId", it.toString()))
                         },
+                        overstyrInnsynsregler = overstyrInnsynsregler,
                     ),
                 )
 
