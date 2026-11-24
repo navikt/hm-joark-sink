@@ -7,6 +7,8 @@ import no.nav.hjelpemidler.domain.id.BrukerId
 import no.nav.hjelpemidler.domain.joark.EndretDokument
 import no.nav.hjelpemidler.domain.joark.JournalpostSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.tilgang.NavIdent
+import no.nav.hjelpemidler.domain.tilgang.UtførtAvId
 import no.nav.hjelpemidler.http.withCorrelationId
 import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.sink.dokarkiv.OpprettJournalpostRequestConfigurer
@@ -300,6 +302,7 @@ class JournalpostService(
         sak: JournalpostSak,
         søknadId: UUID?,
         journalførendeEnhet: Enhetsnummer,
+        journalførtAv: UtførtAvId?,
         overstyrInnsynsregler: String? = null,
     ): JournalpostFerdigstilt {
         val journalpost = hentJournalpost(journalpostId)
@@ -321,8 +324,17 @@ class JournalpostService(
         val hoveddokumentTittel = dokumenter?.firstOrNull()?.tittel
             ?: journalpost.dokumenter?.firstOrNull()?.tittel
 
-        overstyrInnsynsregler?.let{
-            log.info { "Overstyrinnsynsregler er satt til $overstyrInnsynsregler" }
+        val tilleggsopplysninger = buildList {
+            søknadId?.let {
+                add(Tilleggsopplysning("søknadId", it.toString()))
+            }
+            if (journalførtAv is NavIdent) {
+                add(Tilleggsopplysning("saksbehandlerId", journalførtAv.toString()))
+            }
+        }
+
+        overstyrInnsynsregler?.let {
+            log.info { "Overstyr innsynsregler er satt til $overstyrInnsynsregler" }
         }
 
         return when (journalstatus) {
@@ -336,9 +348,7 @@ class JournalpostService(
                         bruker = brukerMedFnr(brukerFnr.toString()),
                         avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()).takeUnless { journalpost.isKanalDigital },
                         sak = sak.tilSak(),
-                        tilleggsopplysninger = søknadId?.let {
-                            listOf(Tilleggsopplysning("søknadId", it.toString()))
-                        },
+                        tilleggsopplysninger = tilleggsopplysninger.takeUnless { tilleggsopplysninger.isEmpty() },
                         overstyrInnsynsregler = overstyrInnsynsregler,
                     ),
                 )
@@ -393,13 +403,19 @@ class JournalpostService(
                     "Knyttet journalpost til annen sak, journalpostId: $journalpostId, nyJournalpostId: $nyJournalpostId, eksternReferanseId: $eksternReferanseId, $sak"
                 }
 
-                if (!tittel.isNullOrBlank() || dokumenter != null || overstyrInnsynsregler != null) {
+                if (
+                    !tittel.isNullOrBlank()
+                    || dokumenter != null
+                    || tilleggsopplysninger.isNotEmpty()
+                    || overstyrInnsynsregler != null
+                ) {
                     dokarkivClient.oppdaterJournalpost(
                         nyJournalpostId,
                         OppdaterJournalpostRequest(
                             avsenderMottaker = avsenderMottakerMedFnr(avsenderFnr.toString()).takeUnless { journalpost.isKanalDigital },
                             tittel = tittel.takeUnless { it.isNullOrBlank() },
                             dokumenter = dokumenter,
+                            tilleggsopplysninger = tilleggsopplysninger.takeUnless { tilleggsopplysninger.isEmpty() },
                             overstyrInnsynsregler = overstyrInnsynsregler,
                         ),
                     )
@@ -432,6 +448,7 @@ private fun JournalpostSak.tilSak(): Sak = when (this) {
         fagsaksystem = fagsaksystem.asEnum(),
         sakstype = sakstype.asEnum(),
     )
+
     is JournalpostSak.GenerellSak -> generellSak()
 }
 

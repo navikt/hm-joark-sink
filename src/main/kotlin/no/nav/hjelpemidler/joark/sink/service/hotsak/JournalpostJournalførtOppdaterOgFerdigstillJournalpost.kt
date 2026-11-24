@@ -56,6 +56,7 @@ class JournalpostJournalførtOppdaterOgFerdigstillJournalpost(
             sak = message.sak,
             søknadId = message.søknadId,
             journalførendeEnhet = message.journalførendeEnhet,
+            journalførtAv = message.journalførtAv,
             overstyrInnsynsregler = message.overstyrInnsynsregler,
         )
 
