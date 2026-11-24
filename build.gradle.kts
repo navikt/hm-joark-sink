@@ -32,23 +32,11 @@ dependencies {
     implementation(libs.graphql.client.jackson)
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
 testing {
     suites {
         @Suppress("UnstableApiUsage")
         val test = named<JvmTestSuite>("test") {
-            useKotlinTest(libs.versions.kotlin.asProvider())
+            useKotlinTest(libs.versions.kotlin)
             dependencies {
                 implementation(libs.hotlibs.test)
                 implementation(libs.rapidsAndRivers.test)
@@ -145,4 +133,16 @@ sourceSets {
 tasks {
     compileKotlin { dependsOn(openApiGenerate, førstesidegenerator) }
     shadowJar { mergeServiceFiles() }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
 }
