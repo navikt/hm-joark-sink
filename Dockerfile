@@ -1,6 +1,6 @@
-FROM gcr.io/distroless/java25-debian13:nonroot
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 WORKDIR /app
 COPY build/libs/hm-joark-sink-all.jar app.jar
 ENV TZ="Europe/Oslo"
 EXPOSE 8080
-CMD ["./app.jar"]
+CMD ["-jar", "app.jar"]
