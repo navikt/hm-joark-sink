@@ -34,7 +34,6 @@ import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.OpprettFørstesideRequestConfigurer
 import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.saf.SafClient
 import no.nav.hjelpemidler.joark.sink.saf.enums.Journalposttype
 import no.nav.hjelpemidler.joark.sink.saf.enums.Journalstatus
@@ -54,7 +53,6 @@ class JournalpostService(
     private val safClient: SafClient,
     private val søknadApiClient: SøknadApiClient,
     private val pdfGeneratorClient: PdfGeneratorClient,
-    private val søknadPdfGeneratorClient: SøknadPdfGeneratorClient,
 ) {
     suspend fun hentBehovsmeldingPdf(id: UUID): ByteArray = søknadApiClient.hentBehovsmeldingPdf(id)
 
@@ -70,7 +68,7 @@ class JournalpostService(
 
 
     suspend fun genererPdf(data: JournalpostBarnebrillevedtakData): ByteArray {
-        val fysiskDokument = søknadPdfGeneratorClient.genererPdfBarnebriller(
+        val fysiskDokument = pdfGeneratorClient.genererPdfBarnebriller(
             jsonMapper.writeValueAsString(data),
         )
 
