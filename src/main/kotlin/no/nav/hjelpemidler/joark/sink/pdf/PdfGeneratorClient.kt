@@ -20,6 +20,7 @@ import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.joark.sink.Configuration
 import no.nav.hjelpemidler.joark.sink.brev.Målform
+import org.intellij.lang.annotations.Language
 import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
@@ -71,7 +72,8 @@ class PdfGeneratorClient(
         }
     }
 
-    suspend fun genererPdfBarnebriller(søknadJson: String): ByteArray {
+    suspend fun genererPdfBarnebriller(@Language("JSON") søknadJson: String): ByteArray {
+        log.info { "Genererer PDF for barnebrillekrav" }
         val response = client.post("barnebrille") {
             accept(ContentType.Application.Pdf)
             contentType(ContentType.Application.Json)
