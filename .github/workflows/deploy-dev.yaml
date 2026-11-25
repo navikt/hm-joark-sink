@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - vedlegg
+      - migrerTilPdfGenerator
 
 jobs:
   build:

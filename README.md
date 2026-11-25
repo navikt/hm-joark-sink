@@ -3,6 +3,9 @@
 
 App som lytter på rapid og arkiverer mottatte søknader i joark.
 
+PDF-er for barnebrillekrav genereres av `hm-pdf-generator` via `POST /api/barnebrille`.
+Opprettelse og rejournalføring bruker samme endpoint og JSON-format.
+Generatoren må støtte dette endpointet før denne applikasjonen deployes.
 
 # Dokumenter vi arkiverer
 

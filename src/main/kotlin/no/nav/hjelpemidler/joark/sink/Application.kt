@@ -11,7 +11,6 @@ import no.nav.hjelpemidler.joark.sink.dokarkiv.DokarkivClient
 import no.nav.hjelpemidler.joark.sink.pdf.FørstesidegeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.PdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.pdf.SøknadApiClient
-import no.nav.hjelpemidler.joark.sink.pdf.SøknadPdfGeneratorClient
 import no.nav.hjelpemidler.joark.sink.saf.SafClient
 import no.nav.hjelpemidler.joark.sink.service.JournalpostService
 import no.nav.hjelpemidler.joark.sink.service.OpprettJournalpostSøknadFordeltGammelFlyt
@@ -46,7 +45,6 @@ fun main() {
     val søknadApiClient = SøknadApiClient(engine)
 
     val pdfGeneratorClient = PdfGeneratorClient(engine)
-    val søknadPdfGeneratorClient = SøknadPdfGeneratorClient(engine)
 
     // Services
     val journalpostService = JournalpostService(
@@ -55,7 +53,6 @@ fun main() {
         safClient = safClient,
         søknadApiClient = søknadApiClient,
         pdfGeneratorClient = pdfGeneratorClient,
-        søknadPdfGeneratorClient = søknadPdfGeneratorClient,
     )
     val brevService = BrevService(
         pdfGeneratorClient = pdfGeneratorClient,
@@ -93,7 +90,6 @@ fun main() {
                     søknadApiClient.close()
 
                     pdfGeneratorClient.close()
-                    søknadPdfGeneratorClient.close()
 
                     engine.close()
                 }
