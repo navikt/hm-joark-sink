@@ -56,6 +56,10 @@ enum class Dokumenttype(
         kode = "journalføring_svartidsbrev_hotsak_breveditor",
         dokumenttittel = "Brev om forventet saksbehandlingstid",
     ),
+    BREVEDITOR_SVARTIDSBREV_JOURNALFØRING_ENKEL(
+        kode = "journalføring_svartidsbrev_enkel_hotsak_breveditor",
+        dokumenttittel = "Brev om forventet saksbehandlingstid",
+    ),
     BREVEDITOR_INNHENTE_OPPLYSNINGER(
         kode = "innhente_opplysninger_hotsak_breveditor",
         dokumenttittel = "Brev om etterspørsel av opplysninger",
