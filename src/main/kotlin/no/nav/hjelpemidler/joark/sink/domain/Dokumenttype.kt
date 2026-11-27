@@ -74,4 +74,5 @@ enum class Dokumenttype(
 
 val navSkjemaEttersendelseByDokumenttype: Map<Dokumenttype, NavSkjema> = mapOf(
     Dokumenttype.INNHENTE_OPPLYSNINGER_BARNEBRILLER to NavSkjema.NAV_10_07_34,
+    Dokumenttype.BREVEDITOR_INNHENTE_OPPLYSNINGER to NavSkjema.NAV_10_07_03,
 )

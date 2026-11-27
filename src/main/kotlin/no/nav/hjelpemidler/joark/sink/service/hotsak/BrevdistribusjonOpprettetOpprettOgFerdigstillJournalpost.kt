@@ -96,10 +96,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
     private val JsonMessage.språkkode: Språkkode
         get() = this["språkkode"].enumValue<Språkkode>()
 
-    @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
-    private val JsonMessage.brevsendingId: String?
-        get() = this["brevsendingId"].stringValueOrNull()
-
     private val JsonMessage.opprettetAv: String?
         get() = this["opprettetAv"].stringValueOrNull()
 
@@ -112,7 +108,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
         val fnrBruker = packet.fnrBruker
         val dokumenttittel = packet.dokumenttittel
         val dokumenttype = packet.dokumenttype
-        val brevsendingId = packet.brevsendingId
         val opprettetAv = packet.opprettetAv
         val partIdMottaker = packet.partIdMottaker
         val navnMottaker = packet.navnMottaker
@@ -123,7 +118,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                 "sakId" to sakId,
                 "brevId" to brevId,
                 "brevdistribusjonId" to brevdistribusjonId,
-                "brevsendingId" to brevsendingId, // todo -> fjern "brevsendingId" på sikt
                 "mottakertype" to mottakertype,
                 "dokumenttype" to dokumenttype,
             )
@@ -168,8 +162,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
             val fnrBruker: String,
             val dokumenttittel: String,
             val dokumenttype: Dokumenttype,
-            @Deprecated("Fjernes på sikt, erstattet av brevdistribusjonId")
-            val brevsendingId: String?,
             val opprettetAv: String?,
             override val eventId: UUID = UUID.randomUUID(),
         ) : KafkaMessage
@@ -185,7 +177,6 @@ class BrevdistribusjonOpprettetOpprettOgFerdigstillJournalpost(
                 fnrBruker = fnrBruker,
                 dokumenttittel = dokumenttittel,
                 dokumenttype = dokumenttype,
-                brevsendingId = brevsendingId,
                 opprettetAv = opprettetAv,
             )
         )

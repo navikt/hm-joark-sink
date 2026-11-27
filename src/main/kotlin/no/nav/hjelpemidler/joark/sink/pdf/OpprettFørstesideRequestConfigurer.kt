@@ -15,8 +15,10 @@ class OpprettFørstesideRequestConfigurer(
     var språkkode: Språkkode = Språkkode.NB
     var adresse: Adresse = defaultAdresse
     var navSkjema: NavSkjema? = null
-    var arkivtittel: String? =
-        "Briller til barn: Ettersendelse" // TODO Midlertidig hardkodet til problemene i hm-saksbehandling er løst. På grunn av litt ustabil oppførsel, er det litt risikabelt å prodsette nye endringer på hm-saksbehandling. Når det er løst, kan arkivtittel leses fra et eget felt i kafka meldingen
+    var arkivtittel: String? = when (navSkjema) {
+        NavSkjema.NAV_10_07_34 -> "Briller til barn: Ettersendelse"
+        else -> "Søknad om hjelpemidler: Ettersendelse"
+    }
     var enhetsnummer: String? = null
 
     operator fun invoke(): PostFoerstesideRequest = OpprettFørstesideRequest(
